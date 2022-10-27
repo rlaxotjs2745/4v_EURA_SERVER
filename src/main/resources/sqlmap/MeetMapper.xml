@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eura.web.model.MeetMapper">
+    <select id="getMeetingList" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT * FROM TB_MEETING WHERE idx_user=#{idx_user}
+    </select>
+    <select id="getMeetingInfo" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT * FROM TB_MEETING WHERE idx_meeting=#{idx_meeting}
+    </select>
+    <insert id="insertMeetingRoomInfo" parameterType="com.eura.web.model.DTO.MeetingVO">
+        INSERT INTO TB_USER (
+        IDX_USER,
+        MT_NAME,
+        MT_START_DT,
+        MT_END_DT,
+        MT_INFO,
+        MT_STATUS,
+        IS_LIVE,
+        REG_DT,
+        LAST_UPD_DT
+                ) VALUES (
+                             #{idx_user},
+                             #{mt_name},
+                             #{mt_start_dt},
+                             #{mt_end_dt},
+                             #{mt_info},
+                             #{mt_status},
+                             #{is_live},
+                             NOW(),
+                  NOW()
+
+                 )
+
+    </insert>
+
+
+
+</mapper>
