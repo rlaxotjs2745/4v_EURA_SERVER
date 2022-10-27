@@ -28,7 +28,7 @@ public class IndexController {
     private UserService userService;
 
     @GetMapping("/")
-    public String home(HttpServletRequest request, HttpServletResponse response, Model model,@CookieValue(name = "user_id",required = false) String user_id){
+    public String home(HttpServletRequest request, HttpServletResponse response, Model model, @CookieValue(name = "user_id", required = false) String user_id){
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
 
@@ -54,7 +54,7 @@ public class IndexController {
     }
 
     @GetMapping("/index")
-    public String index(HttpServletRequest request, HttpServletResponse response, Model model,@CookieValue(name = "user_id",required = false) String user_id){
+    public String index(HttpServletRequest request, HttpServletResponse response, Model model, @CookieValue(name = "user_id", required = false) String user_id){
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
 
@@ -62,7 +62,7 @@ public class IndexController {
             findUserVo =(UserVO)flashMap.get("userVo");
         }
         if(user_id!=null) {
-            findUserVo =userService.findUserById(user_id);
+            findUserVo = userService.findUserById(user_id);
         }
 
         if (findUserVo == null) {//로그인 필요
@@ -125,7 +125,7 @@ public class IndexController {
     }
 
     @PostMapping("/join_mail")
-    public String join_mail(Model model,UserVO userVo){
+    public String join_mail(Model model, UserVO userVo){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode(userVo.getUser_pwd());
         userVo.setUser_pwd(hashedPassword);
@@ -136,9 +136,9 @@ public class IndexController {
     }
 
     @PostMapping("/join_terms")
-    public String join_terms(Model model,UserVO userVo){
+    public String join_terms(Model model, UserVO userVo){
 
-        model.addAttribute("user",userVo);
+        model.addAttribute("user", userVo);
         return "join_terms";
     }
 
@@ -148,7 +148,7 @@ public class IndexController {
     }
 
     @GetMapping("/api_post_login")
-    public String api_post_login(RedirectAttributes rttr,UserVO userVo){
+    public String api_post_login(RedirectAttributes rttr, UserVO userVo){
 
         /*UserVO userVO = new UserVO();
         userVO.setUser_id(id);
