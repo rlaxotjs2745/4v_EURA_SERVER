@@ -18,8 +18,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    private UserService userService;
+    // @Autowired
+    // private UserService userService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -57,10 +57,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();//csrf 미적용
     }
 
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
-    }
+    // @Override
+    // public void configure(AuthenticationManagerBuilder auth) throws Exception {
+    //     auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
+    // }
 
 
    /* @Override

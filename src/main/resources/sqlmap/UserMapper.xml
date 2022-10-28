@@ -3,13 +3,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.eura.web.model.UserMapper">
-
     <select id="getUserInfoById" parameterType="String" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM TB_USER  WHERE user_id=#{user_id,jdbcType=VARCHAR}
+        SELECT * FROM TB_USER WHERE user_id=#{user_id}
     </select>
 
-    <select id="getUserInfoByIdx" parameterType="long" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM TB_USER  WHERE IDX_USER=#{idx_user}
+    <select id="getUserInfoByIdx" resultType="com.eura.web.model.DTO.UserVO">
+        SELECT * FROM TB_USER WHERE IDX_USER=#{idx_user}
     </select>
 
     <select id="getAuthUser" resultType="com.eura.web.model.DTO.UserVO">
@@ -17,128 +16,114 @@
     </select>
 
     <select id="getUserInfoByNameAndMPhoneNum" parameterType="hashmap" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM TB_USER WHERE USER_NAME='#{user_name}' AND USER_PHONE='#{user_phone}'
+        SELECT * FROM TB_USER WHERE USER_NAME=#{user_name} AND USER_PHONE=#{user_phone}
     </select>
 
     <select id="getAllUserList" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM  TB_USER;
+        SELECT * FROM TB_USER;
     </select>
 
     <select id="getUserSpecialInfoPagingList" parameterType="hashmap" resultType="com.eura.web.model.DTO.PagedUserListVO">
         SELECT
-               user_id
-               ,user_name
-               ,mphone_num
+            user_id
+            ,user_name
+            ,mphone_num
         FROM (
             SELECT ROW_NUMBER() OVER(ORDER by #{order_field} DESC) AS row_num
-              ,user_id
-              ,user_name
-              ,mphone_num
+                ,user_id
+                ,user_name
+                ,mphone_num
             FROM TB_USER
             WHERE ROWNUM <![CDATA[<=]]> #{page_num}*#{amount}
         )
         WHERE row_num <![CDATA[>]]> (#{page_num} -1)*#{amount}
     </select>
+
     <select id="getUserPagingList" parameterType="hashmap" resultType="com.eura.web.model.DTO.UserVO">
         SELECT
-                *
+            *
         FROM (
             SELECT ROW_NUMBER() OVER(ORDER by #{order_field} DESC) AS row_num
                 t.*
             FROM TB_USER t
             WHERE ROWNUM <![CDATA[<=]]> #{page_num}*#{amount}
-            )
+        )
         WHERE row_num <![CDATA[>]]> (#{page_num} -1)*#{amount}
     </select>
 
-    <select id="getUserCount" parameterType="int" resultType="int">
-        SELECT COUNT(*) FROM  TB_USER
+    <select id="getUserCount" parameterType="Integer" resultType="Integer">
+        SELECT COUNT(*) FROM TB_USER
         <if test='user_type != 99'> WHERE USER_TYPE = #{user_type}</if> ;
     </select>
 
     <select id="selectList" parameterType="com.eura.web.model.DTO.UserVO" resultType="com.eura.web.model.DTO.UserVO">
         SELECT * FROM (
-                          SELECT t.*
-                          FROM C##FACT_USR.TB_USER t
-                      ) WHERE ROWNUM <![CDATA[ <= ]]> 501
+            SELECT t.*
+            FROM C##FACT_USR.TB_USER t
+        ) WHERE ROWNUM <![CDATA[ <= ]]> 501
     </select>
 
     <insert id="insertUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
         INSERT INTO TB_USER (
-                USER_NAME,
-USER_ID,
-USER_PWD,
-USER_PHONE,
-EQ_TYPE01,
-EQ_TYPE02,
-EQ_TYPE03,
-EQ_TYPE04,
-EQ_TYPE05,
-EQ_TYPE06,
-EQ_TYPE07,
-EQ_TYPE08,
-EQ_TYPE09,
-EQ_TYPE10,
-USER_STATUS,
-PRIVACY_TERMS,
-SERVICE_USE_TERMS,
-PROFILE_Y,
-TEMP_PW_Y,
-TEMP_PW,
-TEMP_PW_ISSUE_DT,
-REG_DT,
-LAST_PW_UPD_DT,
-LAST_UPD_DT
-
+            USER_NAME,
+            USER_ID,
+            USER_PWD,
+            USER_PHONE,
+            EQ_TYPE01,
+            EQ_TYPE02,
+            EQ_TYPE03,
+            EQ_TYPE04,
+            EQ_TYPE05,
+            EQ_TYPE06,
+            EQ_TYPE07,
+            EQ_TYPE08,
+            EQ_TYPE09,
+            EQ_TYPE10,
+            USER_STATUS,
+            PRIVACY_TERMS,
+            SERVICE_USE_TERMS,
+            PROFILE_Y,
+            TEMP_PW_Y,
+            TEMP_PW
         ) VALUES (
-
-                                 #{user_name},
-#{user_id},
-#{user_pwd},
-#{user_phone},
-#{eq_type01},
-#{eq_type02},
-#{eq_type03},
-#{eq_type04},
-#{eq_type05},
-#{eq_type06},
-#{eq_type07},
-#{eq_type08},
-#{eq_type09},
-#{eq_type10},
-#{user_status},
-#{privacy_terms},
-#{service_use_terms},
-#{profile_y},
-#{temp_pw_y},
-#{temp_pw},
-NOW(),
-NOW(),
-NOW(),
-NOW()
-
+            #{user_name},
+            #{user_id},
+            #{user_pwd},
+            #{user_phone},
+            #{eq_type01},
+            #{eq_type02},
+            #{eq_type03},
+            #{eq_type04},
+            #{eq_type05},
+            #{eq_type06},
+            #{eq_type07},
+            #{eq_type08},
+            #{eq_type09},
+            #{eq_type10},
+            #{user_status},
+            #{privacy_terms},
+            #{service_use_terms},
+            #{profile_y},
+            #{temp_pw_y},
+            #{temp_pw}
         )
     </insert>
 
-
     <update id="updateUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
-
-
     </update>
+
     <update id="updateUserInfoForLogout" parameterType="string">
         UPDATE TB_USER
         SET
             LAST_UPD_DATE = SYSDATE
-        WHERE USER_ID='#{user_id}'
+        WHERE USER_ID=#{user_id}
     </update>
 
     <delete id="deleteUserInfoByID" parameterType="string">
-        DELETE TB_USER WHERE  USER_ID = '#{user_id}'
+        DELETE TB_USER WHERE USER_ID = #{user_id}
     </delete>
 
     <delete id="deleteUserInfoByIdx" parameterType="long">
-        DELETE TB_USER WHERE  IDX_USER = #{idx_user}
+        DELETE TB_USER WHERE IDX_USER = #{idx_user}
     </delete>
-
-
 </mapper>

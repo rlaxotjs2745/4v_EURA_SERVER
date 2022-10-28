@@ -2,5 +2,5 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.eura.web.model.FileServiceMapper">
-
+    <insert id="addMeetFile"></insert>
 </mapper>

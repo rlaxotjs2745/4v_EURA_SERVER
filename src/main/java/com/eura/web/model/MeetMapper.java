@@ -7,5 +7,7 @@ import java.util.List;
 
 @Mapper
 public interface MeetMapper {
-    List<MeetingVO> getMeetingList(int idx_user);
+    public List<MeetingVO> getMeetingList(Integer idx_user);
+
+    public Integer meet_create(MeetingVO meetingVO) throws Exception;
 }

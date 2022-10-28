@@ -1,5 +1,7 @@
 package com.eura.web.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.eura.web.model.DTO.*;
 import com.eura.web.service.UserService;
 import com.eura.web.util.CONSTANT;
@@ -18,7 +20,7 @@ import javax.servlet.http.HttpSession;
 @RequiredArgsConstructor
 @RestController
 public class WebAPIController {
-    private UserService userService;
+    private final UserService userService;
 
     /**
      * 회원 가입 데이터 저장
@@ -27,7 +29,7 @@ public class WebAPIController {
      * @return JSON
      */
     @PostMapping("/join_default")
-    public @ResponseBody ResultVO join_default(HttpSession session, @RequestBody UserVO userVo){
+    public ResultVO join_default(HttpServletRequest req, HttpSession session, UserVO userVo){
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -54,7 +56,7 @@ public class WebAPIController {
      * @return JSON
      */
     @PostMapping("/user_id_check")
-    public @ResponseBody ResultVO user_id_check(HttpSession session, @RequestBody UserVO userVo){
+    public ResultVO user_id_check(HttpServletRequest req, HttpSession session, UserVO userVo){
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("아이디 형식을 확인해 주세요");
         resultVO.setResult_code("ERROR_1000");
@@ -74,7 +76,7 @@ public class WebAPIController {
     }
 
     @PostMapping("/join_confirm")
-    public @ResponseBody ResultVO join_confirm(HttpSession session, @RequestBody UserVO userVo){
+    public ResultVO join_confirm(HttpServletRequest req, HttpSession session, UserVO userVo){
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("회원가입에 필요한 데이터가 없습니다");
         resultVO.setResult_code("ERROR_1000");

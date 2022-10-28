@@ -5,35 +5,33 @@
     <select id="getMeetingList" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT * FROM TB_MEETING WHERE idx_user=#{idx_user}
     </select>
+
     <select id="getMeetingInfo" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT * FROM TB_MEETING WHERE idx_meeting=#{idx_meeting}
     </select>
-    <insert id="insertMeetingRoomInfo" parameterType="com.eura.web.model.DTO.MeetingVO">
+
+    <!-- 미팅룸 생성 -->
+    <insert id="meet_create" parameterType="com.eura.web.model.DTO.MeetingVO" useGeneratedKeys="true" keyColumn="idx_meeting" keyProperty="idx_meeting">
         INSERT INTO TB_USER (
-        IDX_USER,
-        MT_NAME,
-        MT_START_DT,
-        MT_END_DT,
-        MT_INFO,
-        MT_STATUS,
-        IS_LIVE,
-        REG_DT,
-        LAST_UPD_DT
-                ) VALUES (
-                             #{idx_user},
-                             #{mt_name},
-                             #{mt_start_dt},
-                             #{mt_end_dt},
-                             #{mt_info},
-                             #{mt_status},
-                             #{is_live},
-                             NOW(),
-                  NOW()
-
-                 )
-
+            IDX_USER,
+            MT_NAME,
+            MT_START_DT,
+            MT_END_DT,
+            MT_REMIND_TYPE,
+            MT_REMIND_COUNT,
+            MT_REMIND_WEEK,
+            MT_REMIND_END,
+            MT_INFO
+        ) VALUES (
+            #{idx_user},
+            #{mt_name},
+            #{mt_start_dt},
+            #{mt_end_dt},
+            #{mt_remind_type},
+            #{mt_remind_count},
+            #{mt_remind_week},
+            #{mt_remind_end},
+            #{mt_info}
+        )
     </insert>
-
-
-
 </mapper>
