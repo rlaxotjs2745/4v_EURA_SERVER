@@ -12,7 +12,7 @@
 
     <!-- 미팅룸 생성 -->
     <insert id="meet_create" parameterType="com.eura.web.model.DTO.MeetingVO" useGeneratedKeys="true" keyColumn="idx_meeting" keyProperty="idx_meeting">
-        INSERT INTO TB_USER (
+        INSERT INTO TB_MEETING (
             IDX_USER,
             MT_NAME,
             MT_START_DT,
@@ -34,4 +34,34 @@
             #{mt_info}
         )
     </insert>
+
+    <!-- 참여자 리스트 저장 -->
+    <insert id="meet_invite">
+    <![CDATA[
+		{call prc_meet_invite(#{idx_meeting}, #{user_email})}
+	]]>
+    </insert>
+
+    <!-- 미팅룸 수정 -->
+    <update id="meet_modify">
+        UPDATE TB_MEETING 
+            SET
+                MT_NAME=#{mt_name},
+                MT_START_DT=#{mt_start_dt},
+                MT_END_DT=#{mt_end_dt},
+                MT_REMIND_TYPE=#{mt_remind_type},
+                MT_REMIND_COUNT=#{mt_remind_count},
+                MT_REMIND_WEEK=#{mt_remind_week},
+                MT_REMIND_END=#{mt_remind_end},
+                MT_INFO=#{mt_info}
+            WHERE IDX_MEETING=#{idx_meeting}
+    </update>
+
+    <!-- 미팅룸 참여자 삭제 -->
+    <update id="meet_invite_del">
+        UPDATE TB_MEETING_USER_JOIN 
+            SET 
+                DELETE_STAT=1, DEL_DT=NOW() 
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+    </update>
 </mapper>

@@ -26,10 +26,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/resources/static/**");
-    }
+//     @Override
+//     public void configure(WebSecurity web) throws Exception {
+//         web.ignoring().antMatchers("/resources/static/**");
+//     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -37,24 +37,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 /*        http.authorizeRequests()
                 .antMatchers("/").authenticated()
                 .anyRequest().authenticated();*/
+        http.httpBasic().disable()
+        .csrf().disable()//csrf 미적용
+        .authorizeRequests().antMatchers("/").permitAll()
+        .anyRequest().permitAll()
+            .and().exceptionHandling().accessDeniedPage("/denied");
 
-        http.authorizeRequests()
-                .antMatchers("/").permitAll()
-                .anyRequest().permitAll();
+        // http.formLogin()
+        //         .loginPage("/login")
+        //         .defaultSuccessUrl("/")
+        //         .permitAll();
 
-        http.formLogin()
-                .loginPage("/login")
-                .defaultSuccessUrl("/")
-                .permitAll();
+        // http.logout()
+        //         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+        //         .logoutSuccessUrl("/login")
+        //         .invalidateHttpSession(true);
 
-        http.logout()
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/login")
-                .invalidateHttpSession(true);
-
-        http.exceptionHandling()
-                .accessDeniedPage("/denied");
-        http.csrf().disable();//csrf 미적용
+        // http
     }
 
     // @Override

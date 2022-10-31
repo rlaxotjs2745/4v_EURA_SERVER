@@ -2,8 +2,6 @@ package com.eura.web.model.DTO;
 
 import lombok.*;
 
-import java.util.Date;
-
 @Getter
 @Setter
 public class UserVO extends BaseVO {
@@ -27,6 +25,6 @@ public class UserVO extends BaseVO {
     private Integer profile_y;//	tinyint			0			사진 등록 여부	사진등록 여부 0:아니오, 1:예
     private Integer temp_pw_y;//	tinyint			0			임시 비밀번호 발급 여부	임시 비밀번호 여부 0:아니오, 1:예
     private String temp_pw;//	varchar	100					임시 비밀번호	임시 비밀번호 발급이 예이면 값을 가짐
-    private Date temp_pw_issue_dt;//	datetime						임시 비밀번호 발급 일시	사용 기간 제한위해 사용
-    private Date last_pw_upd_dt;//	datetime						최종 패스워드 업데이트 일시
+    private String temp_pw_issue_dt;//	datetime						임시 비밀번호 발급 일시	사용 기간 제한위해 사용
+    private String last_pw_upd_dt;//	datetime						최종 패스워드 업데이트 일시
 }

@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class PagedUserListVO {
-    long idx_user;
+    Long idx_user;
     String user_id;
     String user_name;
     String mphone_num;

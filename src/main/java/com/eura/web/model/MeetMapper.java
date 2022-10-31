@@ -9,5 +9,15 @@ import java.util.List;
 public interface MeetMapper {
     public List<MeetingVO> getMeetingList(Integer idx_user);
 
+    // 미팅룸 생성
     public Integer meet_create(MeetingVO meetingVO) throws Exception;
+
+    // 참여자 리스트 저장
+    public Integer meet_invite(MeetingVO meetingVO) throws Exception;
+
+    // 미팅룸 수정
+    public Integer meet_modify(MeetingVO meetingVO) throws Exception;
+
+    // 미팅룸 참여자 삭제
+    public Integer meet_invite_del(MeetingVO meetingVO) throws Exception;
 }
