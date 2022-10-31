@@ -10,7 +10,7 @@ import java.util.*;
 @Mapper
 public interface UserMapper {
     public UserVO getUserInfoById(String user_id);
-    public UserVO getUserInfoByIdx(Long idx_user) throws Exception;
+    public UserVO getUserInfoByIdx(Integer idx_user) throws Exception;
     public UserVO getAuthUser(String user_id, String user_pwd);
     //public UserVO getAuthUser(ParamVO user);
     public UserVO getUserInfoByNameAndMPhoneNum(String user_name, String mphone_num);

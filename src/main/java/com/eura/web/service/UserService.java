@@ -28,7 +28,7 @@ public class UserService {
         return findUser;
     }
 
-    public UserVO getUserInfo(Long idx_user) throws Exception {
+    public UserVO getUserInfo(Integer idx_user) throws Exception {
         UserVO rs = null;
         try {
             rs = userMapper.getUserInfoByIdx(idx_user);

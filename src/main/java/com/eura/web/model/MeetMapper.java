@@ -7,7 +7,20 @@ import java.util.List;
 
 @Mapper
 public interface MeetMapper {
+    // 미팅룸 리스트
     public List<MeetingVO> getMeetingList(Integer idx_user);
+
+    // 개인화 - 다음일정 - 참여중인 미팅룸
+    public List<MeetingVO> getMyMeetShortList(Integer idx_user);
+
+    // 개인화 - 다음일정 - 참여중인 미팅룸 총 수
+    public Long getMyMeetListCount(Integer idx_user);
+
+    // 개인화 - 다음일정 - 참여중인 미팅룸
+    public List<MeetingVO> getMyMeetList(MeetingVO meetingVO);
+
+    // 개인화 - 지난 미팅
+    public List<MeetingVO> getMyMeetEndList(MeetingVO meetingVO);
 
     // 미팅룸 생성
     public Integer meet_create(MeetingVO meetingVO) throws Exception;

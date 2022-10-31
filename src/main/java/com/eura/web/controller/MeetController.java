@@ -49,7 +49,85 @@ public class MeetController {
         resultVO.setResult_str("Data error");
 
         try {
-            resultVO.setData(null);
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            
+            // 개인화 - 개인정보
+            UserVO uInfo = userService.getUserInfo(1);
+            if(uInfo!=null){
+                _rs.put("ui_name", uInfo.getUser_name());
+                _rs.put("ui_pic", uInfo.getUser_name());
+            }
+            
+            // 개인화 - 다음일정 - 참여중인 미팅룸
+            List<MeetingVO> mSi = meetMapper.getMyMeetShortList(1);
+            ArrayList<Object> _mSrss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mSi){
+                Map<String, Object> _mSrs = new HashMap<String, Object>();
+                _mSrs.put("mt_idx", rs0.getIdx_meeting());
+                _mSrs.put("mt_name", rs0.getMt_name());
+                _mSrs.put("mt_status", rs0.getMt_status());
+                _mSrs.put("mt_start_dt", rs0.getMt_start_dt());
+                _mSrs.put("mt_end_dt", rs0.getMt_end_dt());
+                _mSrss.add(_mSrs);
+            }
+            _rs.put("mt_meetShort", _mSrss);
+
+            // 개인화 - 지난 미팅
+            List<MeetingVO> mEnd = meetMapper.getMyMeetEndList(meetingVO);
+            ArrayList<Object> _merss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mEnd){
+                Map<String, Object> _mers = new HashMap<String, Object>();
+                _mers.put("mt_idx", rs0.getIdx_meeting());
+                _mers.put("mt_name", rs0.getMt_name());
+                _mers.put("mt_hostname", rs0.getUser_name());
+                _mers.put("mt_status", rs0.getMt_status());
+                _mers.put("mt_start_dt", rs0.getMt_start_dt());
+                _mers.put("mt_end_dt", rs0.getMt_end_dt());
+                _mers.put("mt_live", rs0.getIs_live());
+                _merss.add(_mers);
+            }
+            _rs.put("mt_meetEndMyList", _merss);
+            
+            resultVO.setData(_rs);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+
+    @GetMapping("/main/list")
+    public ResultVO getMainList(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);
+            // meetingVO.setCurrentPage(1);
+            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
+            Map<String, Object> _rs = new HashMap<String, Object>();
+
+            // 개인화 - 나의 미팅룸 - 주체는 내가 호스트
+            Long mInfoCnt = meetMapper.getMyMeetListCount(1);
+            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);
+            ArrayList<Object> _mrss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mInfo){
+                Map<String, Object> _mrs = new HashMap<String, Object>();
+                _mrs.put("mt_idx", rs0.getIdx_meeting());
+                _mrs.put("mt_name", rs0.getMt_name());
+                _mrs.put("mt_hostname", rs0.getUser_name());
+                _mrs.put("mt_status", rs0.getMt_status());
+                _mrs.put("mt_start_dt", rs0.getMt_start_dt());
+                _mrs.put("mt_end_dt", rs0.getMt_end_dt());
+                _mrs.put("mt_live", rs0.getIs_live());
+                _mrss.add(_mrs);
+            }
+            _rs.put("mt_meetMyList", _mrss);
+            _rs.put("mt_meetMyListCount", mInfoCnt);
+            
+            resultVO.setData(_rs);
         } catch (Exception e) {
             e.printStackTrace();
         }

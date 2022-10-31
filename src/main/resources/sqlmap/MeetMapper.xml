@@ -2,6 +2,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.eura.web.model.MeetMapper">
+    <!-- 미팅룸 리스트 -->
     <select id="getMeetingList" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT * 
             FROM TB_MEETING 
@@ -9,6 +10,56 @@
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>
+    </select>
+
+    <!-- 개인화 - 다음일정 - 참여중인 미팅룸 -->
+    <select id="getMyMeetShortList" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT *
+            FROM TB_MEETING
+            WHERE DELETE_STAT=0 
+                AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+                AND MT_END_DT <![CDATA[>]]> NOW()
+                AND MT_STATUS != 3
+            ORDER BY MT_START_DT
+            LIMIT 3
+    </select>
+
+    <!-- 개인화 - 다음일정 - 참여중인 미팅룸 총 수 -->
+    <select id="getMyMeetListCount" resultType="Long">
+        SELECT COUNT(1)
+            FROM TB_MEETING
+            WHERE DELETE_STAT=0 
+                AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+                AND MT_END_DT <![CDATA[>]]> NOW()
+                AND MT_STATUS != 3
+    </select>
+
+    <!-- 개인화 - 다음일정 - 참여중인 미팅룸 -->
+    <select id="getMyMeetList" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.*, B.USER_NAME
+            FROM TB_MEETING A
+            JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
+            WHERE A.DELETE_STAT=0 
+                AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+                AND A.MT_END_DT <![CDATA[>]]> NOW()
+                AND A.MT_STATUS != 3
+            ORDER BY A.MT_START_DT
+            <if test="currentPage != null and currentPage > 0">
+                LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+            </if>
+    </select>
+
+    <!-- 개인화 - 지난 미팅 -->
+    <select id="getMyMeetEndList" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.*, B.USER_NAME
+            FROM TB_MEETING A
+            JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
+            WHERE A.DELETE_STAT=0 
+                AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+                AND A.MT_END_DT <![CDATA[<]]> NOW()
+                AND A.MT_STATUS != 3
+        ORDER BY A.MT_START_DT DESC
+        LIMIT 8
     </select>
 
     <!-- 미팅룸 정보 -->
