@@ -50,7 +50,7 @@ CREATE TABLE `TB_MEETING` (
   `MT_NAME` varchar(100) DEFAULT NULL COMMENT '미팅룸 명',
   `MT_START_DT` datetime DEFAULT NULL COMMENT '미팅 시작',
   `MT_END_DT` datetime DEFAULT NULL COMMENT '미팅 종료',
-  `MT_REMIND_TYPE` tinyint(1) unsigned DEFAULT NULL COMMENT '되풀이 미팅 - 0:없음, 1:매일, 2:주, 3:월, 4:년',
+  `MT_REMIND_TYPE` tinyint(1) unsigned DEFAULT 0 COMMENT '되풀이 미팅 - 0:없음, 1:매일, 2:주, 3:월, 4:년',
   `MT_REMIND_COUNT` tinyint(4) DEFAULT NULL COMMENT '주기 : 일,주,월,년',
   `MT_REMIND_WEEK` varchar(20) DEFAULT NULL COMMENT '반복요일 - 월,화,수,목,금,토,일',
   `MT_REMIND_END` date DEFAULT NULL COMMENT '되풀이 미팅 종료일',
@@ -59,8 +59,10 @@ CREATE TABLE `TB_MEETING` (
   `IS_LIVE` tinyint(4) DEFAULT 0 COMMENT '미팅 시작 여부 - 0:아니오, 1:예',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `LAST_UPD_DT` datetime DEFAULT NULL ON UPDATE current_timestamp() COMMENT '수정 일시',
+  `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
+  `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
   PRIMARY KEY (`IDX_MEETING`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
 
 CREATE TABLE `TB_MEETING_USER_JOIN` (
   `IDX_MEETING_USER_JOIN` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -68,8 +70,10 @@ CREATE TABLE `TB_MEETING_USER_JOIN` (
   `IDX_MEETING` int(10) unsigned DEFAULT NULL COMMENT '미팅룸 INDEX - TB_MEETING IDX_MEETING',
   `USER_EMAIL` varchar(400) DEFAULT NULL COMMENT '참가자 E-mail - 미등록 사용자도 초대해야 됨',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
+  `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
+  `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
   PRIMARY KEY (`IDX_MEETING_USER_JOIN`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='미팅에 초대된 참석자 연결 정보';
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='미팅에 초대된 참석자 연결 정보';
 
 CREATE TABLE `TB_ATTACHMENT_FILE_INFO_JOIN` (
   `IDX_ATTACHMENT_FILE_INFO_JOIN` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -78,6 +82,8 @@ CREATE TABLE `TB_ATTACHMENT_FILE_INFO_JOIN` (
   `FILE_NAME` varchar(100) DEFAULT NULL COMMENT '파일 이름',
   `FILE_SIZE` int(10) unsigned DEFAULT NULL COMMENT '파일 크기',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
+  `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
+  `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
   PRIMARY KEY (`IDX_ATTACHMENT_FILE_INFO_JOIN`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 첨부 파일 정보';
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 첨부 파일 정보';
 
