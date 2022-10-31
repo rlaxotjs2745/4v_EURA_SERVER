@@ -20,4 +20,14 @@ public interface MeetMapper {
 
     // 미팅룸 참여자 삭제
     public Integer meet_invite_del(MeetingVO meetingVO) throws Exception;
+
+    // 미팅 메인
+    public MeetingVO meet_main(MeetingVO meetingVO) throws Exception;
+
+    // 미팅룸 정보
+    public MeetingVO getRoomInfo(MeetingVO meetingVO) throws Exception;
+
+    public List<MeetingVO> getMeetFiles(MeetingVO meetingVO) throws Exception;
+
+    public List<MeetingVO> getMeetInvites(MeetingVO meetingVO) throws Exception;
 }

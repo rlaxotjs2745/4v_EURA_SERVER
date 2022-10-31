@@ -5,7 +5,6 @@ import lombok.*;
 @Getter
 @Setter
 public class UserVO extends BaseVO {
-    private String user_name;//	varchar	20					유저 이름
     private String user_id;//	varchar	400					유저 아이디	이메일 형식
     private String user_pwd;//	varchar	100					유저 패스워드
     private String user_phone;//	varchar	20					유저 연락처

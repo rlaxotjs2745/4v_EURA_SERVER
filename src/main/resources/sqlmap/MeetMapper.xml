@@ -3,11 +3,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.eura.web.model.MeetMapper">
     <select id="getMeetingList" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * FROM TB_MEETING WHERE idx_user=#{idx_user}
+        SELECT * FROM TB_MEETING WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0
     </select>
 
-    <select id="getMeetingInfo" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * FROM TB_MEETING WHERE idx_meeting=#{idx_meeting}
+    <select id="getRoomInfo" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT * FROM TB_MEETING WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+    </select>
+
+    <select id="getMeetFiles" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT * FROM TB_ATTACHMENT_FILE_INFO_JOIN WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+    </select>
+
+    <select id="getMeetInvites" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME
+        FROM TB_MEETING_USER_JOIN A 
+        LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
+        WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
     </select>
 
     <!-- 미팅룸 생성 -->
@@ -17,21 +28,37 @@
             MT_NAME,
             MT_START_DT,
             MT_END_DT,
-            MT_REMIND_TYPE,
-            MT_REMIND_COUNT,
-            MT_REMIND_WEEK,
-            MT_REMIND_END,
             MT_INFO
+        <if test="mt_remind_type != null">
+            , MT_REMIND_TYPE
+        </if>
+        <if test="mt_remind_count != null">
+            , MT_REMIND_COUNT
+        </if>
+        <if test="mt_remind_week != null">
+            , MT_REMIND_WEEK
+        </if>
+        <if test="mt_remind_end != null">
+            , MT_REMIND_END
+        </if>
         ) VALUES (
             #{idx_user},
             #{mt_name},
             #{mt_start_dt},
             #{mt_end_dt},
-            #{mt_remind_type},
-            #{mt_remind_count},
-            #{mt_remind_week},
-            #{mt_remind_end},
             #{mt_info}
+        <if test="mt_remind_type != null">
+            , #{mt_remind_type}
+        </if>
+        <if test="mt_remind_count != null">
+            , #{mt_remind_count}
+        </if>
+        <if test="mt_remind_week != null">
+            , #{mt_remind_week}
+        </if>
+        <if test="mt_remind_end != null">
+            , #{mt_remind_end}
+        </if>
         )
     </insert>
 
@@ -49,11 +76,19 @@
                 MT_NAME=#{mt_name},
                 MT_START_DT=#{mt_start_dt},
                 MT_END_DT=#{mt_end_dt},
-                MT_REMIND_TYPE=#{mt_remind_type},
-                MT_REMIND_COUNT=#{mt_remind_count},
-                MT_REMIND_WEEK=#{mt_remind_week},
-                MT_REMIND_END=#{mt_remind_end},
                 MT_INFO=#{mt_info}
+            <if test="mt_remind_type != null">
+                , MT_REMIND_TYPE=#{mt_remind_type}
+            </if>
+            <if test="mt_remind_count != null">
+                , MT_REMIND_COUNT=#{mt_remind_count}
+            </if>
+            <if test="mt_remind_week != null">
+                , MT_REMIND_WEEK=#{mt_remind_week}
+            </if>
+            <if test="mt_remind_end != null">
+                , MT_REMIND_END=#{mt_remind_end}
+            </if>
             WHERE IDX_MEETING=#{idx_meeting}
     </update>
 

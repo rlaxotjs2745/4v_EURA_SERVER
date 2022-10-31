@@ -36,6 +36,84 @@ public class MeetController {
     private String filepath;
 
     /**
+     * 미팅 메인
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main")
+    public ResultVO getMain(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            resultVO.setData(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 정보
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/room/info")
+    public ResultVO getRoomInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
+            if(rs!=null){
+                List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+                List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                _rs.put("mt_name", rs.getMt_name());
+                _rs.put("mt_start_dt", rs.getMt_info());
+                _rs.put("mt_end_dt", rs.getMt_info());
+                _rs.put("mt_remind_type", rs.getMt_remind_type());
+                _rs.put("mt_remind_count", rs.getMt_remind_count());
+                _rs.put("mt_remind_week", rs.getMt_remind_week());
+                _rs.put("mt_remind_end", rs.getMt_remind_end());
+
+                Map<String, Object> _frs = new HashMap<String, Object>();
+                ArrayList<Object> _frss = new ArrayList<Object>();
+                for(MeetingVO frs0 : frs){
+                    _frs.put("idx", frs0.getIdx_attachment_file_info_join());
+                    _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
+                    _frss.add(_frs);
+                }
+                _rs.put("mt_files", _frss);
+
+                Map<String, Object> _irs = new HashMap<String, Object>();
+                ArrayList<Object> _irss = new ArrayList<Object>();
+                for(MeetingVO irs0 : irs){
+                    _irs.put("idx", irs0.getIdx_user());
+                    _irs.put("uname", irs0.getUser_name());
+                    _irs.put("email", irs0.getUser_email());
+                    _irss.add(_irs);
+                }
+                _rs.put("mt_invites", _irss);
+
+                _rs.put("mt_info", rs.getMt_info());
+                resultVO.setData(_rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
      * 미팅룸 생성
      * @param req
      * @param meetingVO
