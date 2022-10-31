@@ -27,7 +27,18 @@ public interface MeetMapper {
     // 미팅룸 정보
     public MeetingVO getRoomInfo(MeetingVO meetingVO) throws Exception;
 
+    // 미팅룸 첨부 파일 리스트
     public List<MeetingVO> getMeetFiles(MeetingVO meetingVO) throws Exception;
 
+    // 미팅룸 참여자 리스트
     public List<MeetingVO> getMeetInvites(MeetingVO meetingVO) throws Exception;
+
+    // 미팅룸 공개
+    public Integer putMeetOpen(MeetingVO meetingVO) throws Exception;
+
+    // 미팅 취소
+    public Integer putMeetCacncel(MeetingVO meetingVO) throws Exception;
+
+    // 미팅룸 삭제하기
+    public Integer deleteMeet(MeetingVO meetingVO) throws Exception;
 }

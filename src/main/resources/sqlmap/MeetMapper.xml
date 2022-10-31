@@ -3,22 +3,34 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.eura.web.model.MeetMapper">
     <select id="getMeetingList" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * FROM TB_MEETING WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0
+        SELECT * 
+            FROM TB_MEETING 
+            WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0
+            <if test="currentPage != null and currentPage > 0">
+                LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+            </if>
     </select>
 
+    <!-- 미팅룸 정보 -->
     <select id="getRoomInfo" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * FROM TB_MEETING WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+        SELECT * 
+            FROM TB_MEETING 
+            WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
     </select>
 
+    <!-- 미팅룸 첨부 파일 리스트 -->
     <select id="getMeetFiles" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * FROM TB_ATTACHMENT_FILE_INFO_JOIN WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+        SELECT * 
+            FROM TB_ATTACHMENT_FILE_INFO_JOIN 
+            WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
     </select>
 
+    <!-- 미팅룸 참여자 리스트 -->
     <select id="getMeetInvites" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME
-        FROM TB_MEETING_USER_JOIN A 
-        LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
-        WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
+            FROM TB_MEETING_USER_JOIN A 
+                LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
+            WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
     </select>
 
     <!-- 미팅룸 생성 -->
@@ -89,7 +101,7 @@
             <if test="mt_remind_end != null">
                 , MT_REMIND_END=#{mt_remind_end}
             </if>
-            WHERE IDX_MEETING=#{idx_meeting}
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
     </update>
 
     <!-- 미팅룸 참여자 삭제 -->
@@ -97,6 +109,30 @@
         UPDATE TB_MEETING_USER_JOIN 
             SET 
                 DELETE_STAT=1, DEL_DT=NOW() 
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+    </update>
+
+    <!-- 미팅룸 공개 -->
+    <update id="putMeetOpen">
+        UPDATE TB_MEETING
+            SET
+                MT_STATUS=1
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
+    </update>
+
+    <!-- 미팅 취소 -->
+    <update id="putMeetCacncel">
+        UPDATE TB_MEETING
+            SET
+                MT_STATUS=2
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
+    </update>
+
+    <!-- 미팅룸 삭제 -->
+    <update id="deleteMeet">
+        UPDATE TB_MEETING
+            SET
+                MT_STATUS=3, DELETE_STAT=1, DEL_DT=NOW()
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 </mapper>

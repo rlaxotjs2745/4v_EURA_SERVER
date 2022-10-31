@@ -20,4 +20,6 @@ public class BaseVO {
     private String file_name;
     private Long file_size;
 
+    private Integer recordCountPerPage = 8;
+    private Integer firstIndex = 1;
 }
