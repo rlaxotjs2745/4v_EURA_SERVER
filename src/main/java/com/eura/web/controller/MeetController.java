@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
-import com.eura.web.model.UserMapper;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.model.DTO.UserVO;
@@ -72,30 +71,22 @@ public class MeetController {
             }
             _rs.put("mt_meetShort", _mSrss);
 
-            // 개인화 - 지난 미팅
-            List<MeetingVO> mEnd = meetMapper.getMyMeetEndList(meetingVO);
-            ArrayList<Object> _merss = new ArrayList<Object>();
-            for(MeetingVO rs0 : mEnd){
-                Map<String, Object> _mers = new HashMap<String, Object>();
-                _mers.put("mt_idx", rs0.getIdx_meeting());
-                _mers.put("mt_name", rs0.getMt_name());
-                _mers.put("mt_hostname", rs0.getUser_name());
-                _mers.put("mt_status", rs0.getMt_status());
-                _mers.put("mt_start_dt", rs0.getMt_start_dt());
-                _mers.put("mt_end_dt", rs0.getMt_end_dt());
-                _mers.put("mt_live", rs0.getIs_live());
-                _merss.add(_mers);
-            }
-            _rs.put("mt_meetEndMyList", _merss);
-            
             resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
         } catch (Exception e) {
             e.printStackTrace();
         }
         return resultVO;
     }
 
-
+    /**
+     * 개인화 - 나의 미팅룸 - 참여중인 미팅룸
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
     @GetMapping("/main/list")
     public ResultVO getMainList(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
@@ -104,14 +95,19 @@ public class MeetController {
 
         try {
             meetingVO.setIdx_user(1);
-            // meetingVO.setCurrentPage(1);
+            if(meetingVO.getCurrentPage() == null){
+                meetingVO.setCurrentPage(1);
+            }
             meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
             meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             Map<String, Object> _rs = new HashMap<String, Object>();
 
-            // 개인화 - 나의 미팅룸 - 주체는 내가 호스트
-            Long mInfoCnt = meetMapper.getMyMeetListCount(1);
-            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);
+            Long mInfoCnt = meetMapper.getMyMeetListCount(1);   // 참여중인 미팅룸 총 수
+
+            if(meetingVO.getPageSort()==null){
+                meetingVO.setPageSort(2);
+            }
+            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
             ArrayList<Object> _mrss = new ArrayList<Object>();
             for(MeetingVO rs0 : mInfo){
                 Map<String, Object> _mrs = new HashMap<String, Object>();
@@ -124,10 +120,62 @@ public class MeetController {
                 _mrs.put("mt_live", rs0.getIs_live());
                 _mrss.add(_mrs);
             }
-            _rs.put("mt_meetMyList", _mrss);
-            _rs.put("mt_meetMyListCount", mInfoCnt);
+            _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
+            _rs.put("mt_meetMyListCount", mInfoCnt);    // 참여중인 미팅룸 총 수
             
             resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 개인화 - 지난 미팅
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main/endlist")
+    public ResultVO getMainEndList(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);
+            if(meetingVO.getCurrentPage() == null){
+                meetingVO.setCurrentPage(1);
+            }
+            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
+            Map<String, Object> _rs = new HashMap<String, Object>();
+
+            // 개인화 - 지난 미팅
+            if(meetingVO.getPageSort()==null){
+                meetingVO.setPageSort(2);
+            }
+            List<MeetingVO> mEnd = meetMapper.getMyMeetEndList(meetingVO);    // 지난 미팅
+            ArrayList<Object> _merss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mEnd){
+                Map<String, Object> _mers = new HashMap<String, Object>();
+                _mers.put("mt_idx", rs0.getIdx_meeting());
+                _mers.put("mt_name", rs0.getMt_name());
+                _mers.put("mt_hostname", rs0.getUser_name());
+                _mers.put("mt_status", rs0.getMt_status());
+                _mers.put("mt_start_dt", rs0.getMt_start_dt());
+                _mers.put("mt_end_dt", rs0.getMt_end_dt());
+                _mers.put("mt_live", rs0.getIs_live());
+                _merss.add(_mers);
+            }
+            _rs.put("mt_meetEndMyList", _merss);    // 지난 미팅
+            
+            resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -153,10 +201,10 @@ public class MeetController {
             if(rs!=null){
                 List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
                 List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+
                 Map<String, Object> _rs = new HashMap<String, Object>();
                 _rs.put("mt_name", rs.getMt_name());
+                _rs.put("mt_hostname", rs.getUser_name());
                 _rs.put("mt_start_dt", rs.getMt_info());
                 _rs.put("mt_end_dt", rs.getMt_info());
                 _rs.put("mt_remind_type", rs.getMt_remind_type());
@@ -188,7 +236,110 @@ public class MeetController {
                 _rs.put("mt_live", rs.getIs_live());
                 _rs.put("mt_regdt", rs.getReg_dt());
                 resultVO.setData(_rs);
+
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+            }else{
+                resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 메인
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/room/main")
+    public ResultVO getRoomMain(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);   // 미팅룸 호스트
+            MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
+            if(rs!=null){
+                List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                _rs.put("mt_name", rs.getMt_name());
+                _rs.put("mt_hostname", rs.getUser_name());
+                _rs.put("mt_start_dt", rs.getMt_info());
+                _rs.put("mt_end_dt", rs.getMt_info());
+                _rs.put("mt_remind_type", rs.getMt_remind_type());
+                _rs.put("mt_remind_count", rs.getMt_remind_count());
+                _rs.put("mt_remind_week", rs.getMt_remind_week());
+                _rs.put("mt_remind_end", rs.getMt_remind_end());
+                _rs.put("mt_info", rs.getMt_info());
+                _rs.put("mt_status", rs.getMt_status());
+                _rs.put("mt_live", rs.getIs_live());
+                _rs.put("mt_regdt", rs.getReg_dt());
+
+                Map<String, Object> _frs = new HashMap<String, Object>();
+                ArrayList<Object> _frss = new ArrayList<Object>();
+                for(MeetingVO frs0 : frs){
+                    _frs.put("idx", frs0.getIdx_attachment_file_info_join());
+                    _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
+                    _frss.add(_frs);
+                }
+                _rs.put("mt_files", _frss);
+
+                resultVO.setData(_rs);
+
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+            }else{
+                resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 메인 - 참석자 리스트(더보기)
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/room/invite")
+    public ResultVO getRoomInvite(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            
+            meetingVO.setIdx_user(1);
+            if(meetingVO.getCurrentPage() == null){
+                meetingVO.setCurrentPage(1) ;
+            }
+            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
+            List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+            Map<String, Object> _irs = new HashMap<String, Object>();
+            ArrayList<Object> _irss = new ArrayList<Object>();
+            for(MeetingVO irs0 : irs){
+                _irs.put("idx", irs0.getIdx_user());
+                _irs.put("uname", irs0.getUser_name());
+                _irs.put("email", irs0.getUser_email());
+                _irss.add(_irs);
+            }
+            _rs.put("mt_invites", _irss);
+            
+            resultVO.setData(_rs);
+
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -31,7 +31,6 @@
             WHERE DELETE_STAT=0 
                 AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND MT_END_DT <![CDATA[>]]> NOW()
-                AND MT_STATUS != 3
     </select>
 
     <!-- 개인화 - 다음일정 - 참여중인 미팅룸 -->
@@ -42,8 +41,23 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[>]]> NOW()
-                AND A.MT_STATUS != 3
-            ORDER BY A.MT_START_DT
+            ORDER BY 
+            <choose>
+                <!-- pageSort - 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
+                <!-- MT_STATUS - 0:비공개, 1:공개, 2:취소, 3:삭제 -->
+                <when test="pageSort != null and pageSort == 1">
+                    A.REG_DT DESC
+                </when>
+                <when test="pageSort != null and pageSort == 3">
+                    FIELD(A.MT_STATUS, 0,1,2,3), A.MT_START_DT ASC
+                </when>
+                <when test="pageSort != null and pageSort == 4">
+                    FIELD(A.MT_STATUS, 2,3,0,1), A.MT_START_DT ASC
+                </when>
+                <otherwise>
+                    A.MT_START_DT ASC
+                </otherwise>
+            </choose>
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>
@@ -57,9 +71,23 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[<]]> NOW()
-                AND A.MT_STATUS != 3
-        ORDER BY A.MT_START_DT DESC
-        LIMIT 8
+            ORDER BY 
+            <choose>
+                <!-- 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
+                <when test="pageSort != null and pageSort == 1">
+                    A.REG_DT DESC
+                </when>
+                <when test="pageSort != null and pageSort == 3">
+                    FIELD(A.MT_STATUS, 0,1,2,3), A.MT_START_DT ASC
+                </when>
+                <when test="pageSort != null and pageSort == 4">
+                    FIELD(A.MT_STATUS, 2,3,0,1), A.MT_START_DT ASC
+                </when>
+                <otherwise>
+                    A.MT_START_DT ASC
+                </otherwise>
+            </choose>
+            LIMIT 8
     </select>
 
     <!-- 미팅룸 정보 -->
@@ -82,6 +110,9 @@
             FROM TB_MEETING_USER_JOIN A 
                 LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
             WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
+            <if test="currentPage != null and currentPage > 0">
+                LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+            </if>
     </select>
 
     <!-- 미팅룸 생성 -->

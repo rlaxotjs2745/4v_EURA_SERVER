@@ -13,10 +13,10 @@ public interface MeetMapper {
     // 개인화 - 다음일정 - 참여중인 미팅룸
     public List<MeetingVO> getMyMeetShortList(Integer idx_user);
 
-    // 개인화 - 다음일정 - 참여중인 미팅룸 총 수
+    // 개인화 - 나의 미팅룸 - 참여중인 미팅룸 총 수
     public Long getMyMeetListCount(Integer idx_user);
 
-    // 개인화 - 다음일정 - 참여중인 미팅룸
+    // 개인화 - 나의 미팅룸 - 참여중인 미팅룸
     public List<MeetingVO> getMyMeetList(MeetingVO meetingVO);
 
     // 개인화 - 지난 미팅
