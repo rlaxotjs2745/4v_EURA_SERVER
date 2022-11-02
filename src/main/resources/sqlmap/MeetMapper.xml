@@ -19,7 +19,7 @@
             WHERE DELETE_STAT=0 
                 AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND MT_END_DT <![CDATA[>]]> NOW()
-                AND MT_STATUS != 3
+                AND MT_STATUS NOT IN (3,4)
             ORDER BY MT_START_DT
             LIMIT 3
     </select>
@@ -31,6 +31,7 @@
             WHERE DELETE_STAT=0 
                 AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND MT_END_DT <![CDATA[>]]> NOW()
+                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
     </select>
 
     <!-- 개인화 - 나의 미팅룸 - 참여중인 미팅룸 -->
@@ -41,6 +42,7 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[>]]> NOW()
+                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
             <if test="calYear != null">
                 AND LEFT(A.MT_START_DT,4)=#{calYear}
             </if>
@@ -77,6 +79,7 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[<]]> NOW()
+                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
             ORDER BY 
             <choose>
                 <!-- 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
@@ -229,6 +232,14 @@
         UPDATE TB_MEETING
             SET
                 IS_LIVE=1
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+    </update>
+
+    <!-- 미팅 들어가기 -->
+    <update id="putMeetLiveJoin">
+        UPDATE TB_MEETING_USER_JOIN
+            SET
+                JOIN_DT=NOW(), TOKEN=#{token}, SESSIONID=#{sessionid}
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 </mapper>

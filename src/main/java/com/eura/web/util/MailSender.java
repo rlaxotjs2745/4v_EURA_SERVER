@@ -8,18 +8,20 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MailSender {
     @Value("${mail.passwd}")
-    protected static String mailpass;
+    private String mailpasswd;
 
-    protected static String FROM = "eura@eura.co.kr";
-    protected static String FROMNAME = "EURA";
-    protected static String SMTP_USERNAME = "sungwoong@4thevision.com";
-    protected static String HOST = "smtps.hiworks.com";
-    protected static int PORT = 465;
+    private String FROM = "eura@eura.co.kr";
+    private String FROMNAME = "EURA";
+    private String SMTP_USERNAME = "sungwoong@4thevision.com";
+    private String HOST = "smtps.hiworks.com";
+    private int PORT = 465;
 
-    public static void sender(String To, String Subject, String Body) throws Exception {
+    public void sender(String To, String Subject, String Body) throws Exception {
         Properties props = System.getProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.port", PORT); 
@@ -40,7 +42,7 @@ public class MailSender {
         Transport transport = session.getTransport();
         try {
             // System.out.println("Sending...");
-            transport.connect(HOST, SMTP_USERNAME, mailpass);
+            transport.connect(HOST, SMTP_USERNAME, mailpasswd);
             transport.sendMessage(msg, msg.getAllRecipients());
             // System.out.println("Email sent!");
         } catch (Exception ex) {

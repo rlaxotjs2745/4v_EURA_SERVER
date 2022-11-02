@@ -25,4 +25,8 @@ public class MeetingVO extends BaseVO {
 
     private Integer calYear;    // 미팅 달력 년
     private Integer calMonth;   // 미팅 달력 월
+
+    private Integer mFTyp;      // 메일폼 종류 - 1:미팅 시작, 2:미팅시작 30분전, 3:미팅취소, 4:미팅룸 공개
+    private String token;
+    private String sessionid;
 }
