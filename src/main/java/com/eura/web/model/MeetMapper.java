@@ -49,6 +49,9 @@ public interface MeetMapper {
     // 미팅룸 공개
     public Integer putMeetOpen(MeetingVO meetingVO) throws Exception;
 
+    // 미팅룸 비공개
+    public Integer putMeetClose(MeetingVO meetingVO) throws Exception;
+
     // 미팅 취소
     public Integer putMeetCacncel(MeetingVO meetingVO) throws Exception;
 
@@ -60,4 +63,10 @@ public interface MeetMapper {
 
     // 미팅 들어가기
     public Integer putMeetLiveJoin(MeetingVO meetingVO) throws Exception;
+
+    // 미팅에 참여중인지 확인
+    public MeetingVO chkMeetLiveJoin(MeetingVO meetingVO) throws Exception;
+
+    // 미팅 시간 중복 체크
+    public MeetingVO chkRoomDupTime(MeetingVO meetingVO) throws Exception;
 }

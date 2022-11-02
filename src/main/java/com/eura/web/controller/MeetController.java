@@ -375,65 +375,13 @@ public class MeetController {
         resultVO.setResult_str("Data error");
 
         try {
-            Integer rs = 0;
             if(meetingVO != null){
                 // 미팅룸 정보 생성
                 meetingVO.setIdx_user(1);   // 미팅룸 호스트
-                rs = meetMapper.meet_create(meetingVO);
-                if(rs > 0){
-                    UserVO uInfo = userService.getUserInfo(1);
+                if(meetingVO.getMt_remind_type().equals(0)){
+                    resultVO = meetingService.createMeetRoom(req, meetingVO);
+                }else if(meetingVO.getMt_remind_type().equals(1)){
 
-                    // 미팅룸 참여자 리스트 저장
-                    MeetingVO es = new MeetingVO();
-                    es.setIdx_meeting(meetingVO.getIdx_meeting());
-                    es.setUser_email(uInfo.getUser_email());
-                    meetMapper.meet_invite(es);
-
-                    if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
-                        String[] inEmail = meetingVO.getMt_invite_email().split(",");
-                        for(String uemail : inEmail){
-                            MeetingVO ee = new MeetingVO();
-                            ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                            ee.setUser_email(uemail);
-                            meetMapper.meet_invite(ee);
-                        }
-                    }
-
-                    // 미팅룸 첨부파일 저장
-                    List<MultipartFile> fileList = req.getFiles("file");
-                    if(req.getFiles("file").get(0).getSize() != 0){
-                        fileList = req.getFiles("file");
-                    }
-                    if(fileList.size()>0){
-                        long time = System.currentTimeMillis();
-                        String path = "/meetroom/" + rs + "/";
-                        String fullpath = this.filepath + path;
-                        File fileDir = new File(fullpath);
-                        if (!fileDir.exists()) {
-                            fileDir.mkdirs();
-                        }
-                        // FileUploadResponseVO paramVo = new FileUploadResponseVO();
-                        for(MultipartFile mf : fileList) {
-                            String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                            String saveFileName = String.format("%d_%s", time, originFileName);
-                            try { // 파일생성
-                                mf.transferTo(new File(fullpath, saveFileName));
-                                MeetingVO paramVo = new MeetingVO();
-                                paramVo.setIdx_meeting(meetingVO.getIdx_meeting());
-                                paramVo.setFile_path(path);
-                                paramVo.setFile_name(saveFileName);
-                                paramVo.setFile_size(mf.getSize());
-                                fileServiceMapper.addMeetFile(paramVo);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    resultVO.setResult_code(CONSTANT.success);
-                    resultVO.setResult_str("미팅룸을 생성하였습니다.");
-                }else{
-                    resultVO.setResult_str("미팅룸 생성에 실패하였습니다.");
                 }
             }
         } catch (Exception e) {
@@ -569,24 +517,78 @@ public class MeetController {
 
         try {
             meetingVO.setIdx_user(1);   // 미팅룸 호스트
-            MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
-            if(rrs!=null){
-                if(rrs.getIdx_user().equals(1)){
-                    Integer rs = meetMapper.putMeetOpen(meetingVO);
-                    if(rs==1){
-                        // 참가자 이메일 전송
-                        meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
 
-                        resultVO.setResult_code(CONSTANT.success);
-                        resultVO.setResult_str("미팅룸을 공개하였습니다.");
+            // 미팅 시간 중복 체크
+            MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
+            if(_chk.getChkcnt().equals(1)){
+                resultVO.setResult_str("미팅 시간이 중복되어 공개할 수 없습니다.");
+            }else{
+                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                if(rrs!=null){
+                    if(rrs.getIdx_user().equals(1)){
+                        Integer rs = meetMapper.putMeetOpen(meetingVO);
+                        if(rs==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                        }
                     }else{
-                        resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                        resultVO.setResult_str("이용권한이 없습니다.");
                     }
                 }else{
-                    resultVO.setResult_str("이용권한이 없습니다.");
+                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 비공개
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/room/close")
+    public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);   // 미팅룸 호스트
+
+            // 미팅 시간 중복 체크
+            MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
+            if(_chk.getChkcnt().equals(1)){
+                resultVO.setResult_str("미팅 시간이 중복되어 비공개할 수 없습니다.");
             }else{
-                resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                if(rrs!=null){
+                    if(rrs.getIdx_user().equals(1)){
+                        Integer rs = meetMapper.putMeetClose(meetingVO);
+                        if(rs==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 비공개하였습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅룸을 비공개하지 못하였습니다.");
+                        }
+                    }else{
+                        resultVO.setResult_str("이용권한이 없습니다.");
+                    }
+                }else{
+                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -707,11 +709,6 @@ public class MeetController {
                 Map<String, Object> _mrs = new HashMap<String, Object>();
                 _mrs.put("mt_idx", rs0.getIdx_meeting());
                 _mrs.put("mt_name", rs0.getMt_name());
-                _mrs.put("mt_remind_type", rs0.getMt_remind_type());
-                _mrs.put("mt_remind_count", rs0.getMt_name());
-                _mrs.put("mt_remind_week", rs0.getMt_name());
-                _mrs.put("mt_remind_end", rs0.getMt_name());
-
                 _mrss.add(_mrs);
             }
             _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
@@ -790,44 +787,56 @@ public class MeetController {
                 if(rrs.getIdx_user().equals(1)){
                     _auth = "1";
                 }
-                SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
-                Date sdate = dateFormat.parse(rrs.getMt_start_dt());
-                Date edate = dateFormat.parse(rrs.getMt_end_dt());
-                Long _sDt = sdate.getTime();
-                Long _eDt = edate.getTime();
 
-                String _userPk = "euraclass" + rrs.getIdx_meeting().toString();
-                String _jwt = tokenJWT.createToken(_userPk, _sDt, _eDt, rrs.getMt_end_dt(), null, _auth);
-                meetingVO.setToken(_jwt);
-                meetingVO.setSessionid(_userPk);
+                // 미팅에 참여중인지 확인
+                MeetingVO _chkMeet = meetMapper.chkMeetLiveJoin(meetingVO);
+                if(!_chkMeet.getToken().isEmpty()){
+                    Map<String, Object> _rs = new HashMap<String, Object>();
+                    _rs.put("mid", meetingVO.getIdx_meeting());
+                    _rs.put("token", _chkMeet.getToken());
+                    resultVO.setData(_rs);
 
-                Map<String, Object> _rs = new HashMap<String, Object>();
-                _rs.put("mid", meetingVO.getIdx_meeting());
-                _rs.put("token", _jwt);
-
-                resultVO.setData(_rs);
-
-                if(rrs.getIdx_user().equals(1)){
-                    Integer rs = meetMapper.putMeetLiveStart(meetingVO);
-                    if(rs==1){
-                        // 참가자 이메일 전송
-                        meetingService.sendMailMeetInvites(meetingVO, rrs, 1);
-
-                        meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
-
-                        resultVO.setResult_code(CONSTANT.success);
-                        resultVO.setResult_str("미팅을 시작하였습니다.");
-                    }else{
-                        resultVO.setResult_str("미팅을 시작할 수 없습니다.");
-                    }
+                    resultVO.setResult_code(CONSTANT.success);
+                    resultVO.setResult_str("이미 미팅에 참여를 시작하여 미팅 장소로 이동합니다.");
                 }else{
-                    if(rrs.getIs_live().equals(1)){
-                        meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+                    Date sdate = dateFormat.parse(rrs.getMt_start_dt());
+                    Date edate = dateFormat.parse(rrs.getMt_end_dt());
+                    Long _sDt = sdate.getTime();
+                    Long _eDt = edate.getTime();
+    
+                    String _userPk = "euraclass" + rrs.getIdx_meeting().toString();
+                    String _jwt = tokenJWT.createToken(_userPk, _sDt, _eDt, rrs.getMt_end_dt(), null, _auth);
+                    meetingVO.setToken(_jwt);
+                    meetingVO.setSessionid(_userPk);
+    
+                    Map<String, Object> _rs = new HashMap<String, Object>();
+                    _rs.put("mid", meetingVO.getIdx_meeting());
+                    _rs.put("token", _jwt);
+                    resultVO.setData(_rs);
+                    
+                    if(rrs.getIdx_user().equals(1)){
+                        Integer rs = meetMapper.putMeetLiveStart(meetingVO);
+                        if(rs==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMailMeetInvites(meetingVO, rrs, 1);
 
-                        resultVO.setResult_code(CONSTANT.success);
-                        resultVO.setResult_str("미팅룸에 참여합니다.");
+                            meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅을 시작하였습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅을 시작할 수 없습니다.");
+                        }
                     }else{
-                        resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
+                        if(rrs.getIs_live().equals(1)){
+                            meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸에 참여합니다.");
+                        }else{
+                            resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
+                        }
                     }
                 }
             }else{

@@ -24,4 +24,6 @@ public class BaseVO {
     private Integer currentPage;
     private Integer pageSort;       // 페이징 정렬 방식 - 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순
     // private Integer pageSortType;   // 페이징 정령 순서 - 1:내림차순, 2:오름차순
+
+    private Integer chkcnt;
 }

@@ -199,7 +199,7 @@
     <update id="meet_invite_del">
         UPDATE TB_MEETING_USER_JOIN 
             SET 
-                DELETE_STAT=1, DEL_DT=NOW() 
+                DELETE_STAT=1, IS_LIVE=0, DEL_DT=NOW() 
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 
@@ -207,7 +207,15 @@
     <update id="putMeetOpen">
         UPDATE TB_MEETING
             SET
-                MT_STATUS=1
+                MT_STATUS=1, IS_LIVE=0
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
+    </update>
+
+    <!-- 미팅룸 비공개 -->
+    <update id="putMeetClose">
+        UPDATE TB_MEETING
+            SET
+                MT_STATUS=0, IS_LIVE=0
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
     </update>
 
@@ -215,7 +223,7 @@
     <update id="putMeetCacncel">
         UPDATE TB_MEETING
             SET
-                MT_STATUS=2
+                MT_STATUS=2, IS_LIVE=0
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
     </update>
 
@@ -239,7 +247,19 @@
     <update id="putMeetLiveJoin">
         UPDATE TB_MEETING_USER_JOIN
             SET
-                JOIN_DT=NOW(), TOKEN=#{token}, SESSIONID=#{sessionid}
+                JOIN_DT=NOW(), TOKEN=#{token}, SESSIONID=#{sessionid}, IS_LIVE=0
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
+
+    <!-- 미팅에 참여중인지 확인 -->
+    <select id="chkMeetLiveJoin" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT TOKEN, SESSIONID, IS_LIVE
+            FROM TB_MEETING_USER_JOIN
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND JOIN_DT IS NOT NULL
+    </select>
+
+    <!-- 미팅 시간 중복 체크 -->
+    <select id="chkRoomDupTime" statementType="CALLABLE">
+		{#{chkcnt} = call prc_meet_chkRoomDupTime(#{idx_meeting}, #{idx_user})}
+    </select>
 </mapper>
