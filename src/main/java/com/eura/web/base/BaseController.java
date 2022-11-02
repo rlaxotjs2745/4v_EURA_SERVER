@@ -2,6 +2,11 @@ package com.eura.web.base;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -81,4 +86,28 @@ public class BaseController {
 		}
 		return ip;
 	}
+
+    /**
+     * 년월일 날짜 계산
+     * @param _date
+     * @param _y
+     * @param _m
+     * @param _d
+     * @return
+     */
+    public String getCalDate(String _date, Integer _y, Integer _m, Integer _d){
+        String _r = "";
+        Calendar cal = Calendar.getInstance();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:00");
+        try {
+            cal.setTime(df.parse(_date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        cal.add(Calendar.YEAR, _y);
+        cal.add(Calendar.MONTH, _m);
+        cal.add(Calendar.DATE, _d);
+        _r = df.format(cal.getTime());
+        return _r;
+    }
 }

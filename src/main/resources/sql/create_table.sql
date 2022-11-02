@@ -51,7 +51,7 @@ CREATE TABLE `TB_MEETING` (
   `MT_START_DT` datetime DEFAULT NULL COMMENT '미팅 시작',
   `MT_END_DT` datetime DEFAULT NULL COMMENT '미팅 종료',
   `MT_REMIND_TYPE` tinyint(2) unsigned DEFAULT 0 COMMENT '되풀이 미팅 - 0:없음, 1:매일, 2:주, 3:월, 4:년',
-  `MT_REMIND_COUNT` tinyint(1) DEFAULT 0 COMMENT '주기 : 일,주,월,년 - 0:없음, 1:일, 2:주, 3:월, 4:년',
+  `MT_REMIND_COUNT` tinyint(1) DEFAULT 0 COMMENT '주기',
   `MT_REMIND_WEEK` varchar(20) DEFAULT NULL COMMENT '반복요일 - 월,화,수,목,금,토,일',
   `MT_REMIND_END` date DEFAULT NULL COMMENT '되풀이 미팅 종료일',
   `MT_INFO` varchar(3000) DEFAULT NULL COMMENT '미팅 설명',
@@ -62,7 +62,7 @@ CREATE TABLE `TB_MEETING` (
   `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
   `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
   PRIMARY KEY (`IDX_MEETING`)
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
 
 CREATE TABLE `TB_MEETING_USER_JOIN` (
   `IDX_MEETING_USER_JOIN` int(10) unsigned NOT NULL AUTO_INCREMENT,

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.MeetingVO;
@@ -29,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/meet")
-public class MeetController {
+public class MeetController extends BaseController {
     private final UserService userService;
     private final MeetMapper meetMapper;
     private final FileServiceMapper fileServiceMapper;
@@ -378,10 +379,98 @@ public class MeetController {
             if(meetingVO != null){
                 // 미팅룸 정보 생성
                 meetingVO.setIdx_user(1);   // 미팅룸 호스트
+                /*
+                 * MT_REMIND_TYPE - 0:없음, 1:매일, 2:주, 3:월, 4:년
+                 * MT_REMIND_COUNT - 주기
+                 * MT_REMIND_WEEK - 반복요일 - 월,화,수,목,금,토,일
+                 * MT_REMIND_END - 되풀이 미팅 종료일
+                 */
                 if(meetingVO.getMt_remind_type().equals(0)){
                     resultVO = meetingService.createMeetRoom(req, meetingVO);
-                }else if(meetingVO.getMt_remind_type().equals(1)){
 
+                // 일 주기
+                }else if(meetingVO.getMt_remind_type().equals(1)){
+                    Integer _cnt = meetingVO.getMt_remind_count();
+                    if(_cnt > 90){
+                        resultVO.setResult_str("일 단위 반복 주기는 90일까지 입니다.");
+                    }else{
+                        for(Integer i=1;i<=_cnt;i++){
+                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, 0, i);
+                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, 0, i);
+                            meetingVO.setMt_start_dt(_sdate);
+                            meetingVO.setMt_end_dt(_edate);
+                            if(i>1){
+                                meetingVO.setMt_remind_type(0);
+                                meetingVO.setMt_remind_count(0);
+                                meetingVO.setMt_remind_week("");
+                                meetingVO.setMt_remind_end(null);
+                            }
+                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        }
+                    }
+                
+                // 주 주기
+                }else if(meetingVO.getMt_remind_type().equals(2)){
+                    Integer _cnt = meetingVO.getMt_remind_count();  // 반복 주
+                    if(_cnt > 12){
+                        resultVO.setResult_str("주 단위 반복 주기는 12주까지 입니다.");
+                    }else{
+                        String[] _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
+                        for(Integer i=1;i<=_cnt;i++){
+
+                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, 0, 0);
+                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, 0, 0);
+                            meetingVO.setMt_start_dt(_sdate);
+                            meetingVO.setMt_end_dt(_edate);
+                            if(i>1){
+                                meetingVO.setMt_remind_type(0);
+                                meetingVO.setMt_remind_count(0);
+                                meetingVO.setMt_remind_week("");
+                                meetingVO.setMt_remind_end(null);
+                            }
+                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        }
+                    }
+                // 월 주기
+                }else if(meetingVO.getMt_remind_type().equals(3)){
+                    Integer _cnt = meetingVO.getMt_remind_count();  // 반복 월
+                    if(_cnt > 12){
+                        resultVO.setResult_str("월 단위 반복 주기는 12개월까지 입니다.");
+                    }else{
+                        for(Integer i=1;i<=_cnt;i++){
+                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, i, 0);
+                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, i, 0);
+                            meetingVO.setMt_start_dt(_sdate);
+                            meetingVO.setMt_end_dt(_edate);
+                            if(i>1){
+                                meetingVO.setMt_remind_type(0);
+                                meetingVO.setMt_remind_count(0);
+                                meetingVO.setMt_remind_week("");
+                                meetingVO.setMt_remind_end(null);
+                            }
+                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        }
+                    }
+                // 년 주기
+                }else if(meetingVO.getMt_remind_type().equals(4)){
+                    Integer _cnt = meetingVO.getMt_remind_count();  // 반복 년
+                    if(_cnt > 5){
+                        resultVO.setResult_str("년 단위 반복 주기는 5년까지 입니다.");
+                    }else{
+                        for(Integer i=1;i<=_cnt;i++){
+                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), i, 0, 0);
+                            String _edate = getCalDate(meetingVO.getMt_end_dt(), i, 0, 0);
+                            meetingVO.setMt_start_dt(_sdate);
+                            meetingVO.setMt_end_dt(_edate);
+                            if(i>1){
+                                meetingVO.setMt_remind_type(0);
+                                meetingVO.setMt_remind_count(0);
+                                meetingVO.setMt_remind_week("");
+                                meetingVO.setMt_remind_end(null);
+                            }
+                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
