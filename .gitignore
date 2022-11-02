@@ -26,5 +26,7 @@ hs_err_pid*
 /.idea
 /.git
 /target
+/src/test
 .DS_Store
 web.iml
+/src/main/resources/application-dev.properties

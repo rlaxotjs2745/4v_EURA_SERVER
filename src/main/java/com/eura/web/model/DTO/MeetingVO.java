@@ -22,4 +22,7 @@ public class MeetingVO extends BaseVO {
     private String mt_invite_email; // 참석자 email 리스트
     private String file_del;        // 미팅룸 첨부파일 삭제 리스트 TB_ATTACHMENT_FILE_INFO_JOIN IDX_ATTACHMENT_FILE_INFO_JOIN
     private String invite_del;      // 미팅룸 참여자 삭제 리스트 TB_USER IDX_USER
+
+    private Integer calYear;    // 미팅 달력 년
+    private Integer calMonth;   // 미팅 달력 월
 }

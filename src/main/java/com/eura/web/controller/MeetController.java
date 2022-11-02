@@ -4,6 +4,7 @@
 package com.eura.web.controller;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,8 +19,11 @@ import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.model.DTO.UserVO;
+import com.eura.web.service.MeetingService;
 import com.eura.web.service.UserService;
 import com.eura.web.util.CONSTANT;
+import com.eura.web.util.MailSender;
+import com.eura.web.util.TokenJWT;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +34,8 @@ public class MeetController {
     private final UserService userService;
     private final MeetMapper meetMapper;
     private final FileServiceMapper fileServiceMapper;
+    private final TokenJWT tokenJWT;
+    private final MeetingService meetingService;
 
     @Value("${file.upload-dir}")
     private String filepath;
@@ -384,7 +390,7 @@ public class MeetController {
                     }
                     if(fileList.size()>0){
                         long time = System.currentTimeMillis();
-                        String path = "/meetroom/" + String.valueOf(time) + "/";
+                        String path = "/meetroom/" + rs + "/";
                         String fullpath = this.filepath + path;
                         File fileDir = new File(fullpath);
                         if (!fileDir.exists()) {
@@ -490,7 +496,7 @@ public class MeetController {
                             }
                             if(fileList.size()>0){
                                 long time = System.currentTimeMillis();
-                                String path = "/meetroom/" + String.valueOf(time) + "/";
+                                String path = "/meetroom/" + meetingVO.getIdx_meeting() + "/";
                                 String fullpath = this.filepath + path;
                                 File fileDir = new File(fullpath);
                                 if (!fileDir.exists()) {
@@ -633,6 +639,177 @@ public class MeetController {
                     }
                 }else{
                     resultVO.setResult_str("이용권한이 없습니다.");
+                }
+            }else{
+                resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 달력
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main/calendar")
+    public ResultVO getMainCalendar(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);
+            long time = System.currentTimeMillis(); 
+            SimpleDateFormat tYear = new SimpleDateFormat("yyyy");
+            SimpleDateFormat tMonth = new SimpleDateFormat("mm");
+            Integer _tYear = Integer.valueOf(tYear.format(new Date(time)));
+            Integer _tMonth = Integer.valueOf(tMonth.format(new Date(time)));
+            if(meetingVO.getCalYear() == null){
+                meetingVO.setCalYear(_tYear);
+            }
+            if(meetingVO.getCalMonth() == null){
+                meetingVO.setCalYear(_tMonth);
+            }
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+            ArrayList<Object> _mrss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mInfo){
+                Map<String, Object> _mrs = new HashMap<String, Object>();
+                _mrs.put("mt_idx", rs0.getIdx_meeting());
+                _mrs.put("mt_name", rs0.getMt_name());
+                _mrs.put("mt_remind_type", rs0.getMt_remind_type());
+                _mrs.put("mt_remind_count", rs0.getMt_name());
+                _mrs.put("mt_remind_week", rs0.getMt_name());
+                _mrs.put("mt_remind_end", rs0.getMt_name());
+
+                _mrss.add(_mrs);
+            }
+            _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
+            
+            resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 달력 일정
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main/calendar/info")
+    public ResultVO getMainCalendarInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);
+
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+            ArrayList<Object> _mrss = new ArrayList<Object>();
+            for(MeetingVO rs0 : mInfo){
+                Map<String, Object> _mrs = new HashMap<String, Object>();
+                _mrs.put("mt_idx", rs0.getIdx_meeting());
+                _mrs.put("mt_name", rs0.getMt_name());
+                _mrs.put("mt_hostname", rs0.getUser_name());
+                _mrs.put("mt_status", rs0.getMt_status());
+                _mrs.put("mt_start_dt", rs0.getMt_start_dt());
+                _mrs.put("mt_end_dt", rs0.getMt_end_dt());
+                _mrs.put("mt_live", rs0.getIs_live());
+                _mrs.put("mt_info", rs0.getMt_info());
+                _mrss.add(_mrs);
+            }
+            _rs.put("mt_meetInfo", _mrss);    // 참여중인 미팅룸
+            
+            resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 시작
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/room/start")
+    public ResultVO putMeetStart(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            meetingVO.setIdx_user(1);   // 미팅룸 호스트
+            MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+            if(rrs!=null){
+                String _auth = "0"; // 게스트 권한 부여
+
+                // 호스트 권한 부여
+                if(rrs.getIdx_user().equals(1)){
+                    _auth = "1";
+                }
+                SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+                Date sdate = dateFormat.parse(rrs.getMt_start_dt());
+                Date edate = dateFormat.parse(rrs.getMt_end_dt());
+                Long _sDt = sdate.getTime();
+                Long _eDt = edate.getTime();
+
+                String _userPk = "euraclass" + rrs.getIdx_meeting().toString();
+
+                String _jwt = tokenJWT.createToken(_userPk, _sDt, _eDt, rrs.getMt_end_dt(), null, _auth);
+
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                _rs.put("mid", meetingVO.getIdx_meeting());
+                _rs.put("token", _jwt);
+
+                resultVO.setData(_rs);
+
+                if(rrs.getIdx_user().equals(1)){
+                    Integer rs = meetMapper.putMeetLiveStart(meetingVO);
+                    if(rs==1){
+                        resultVO.setResult_code(CONSTANT.success);
+                        resultVO.setResult_str("미팅을 시작하였습니다.");
+
+                        // 이메일 데이터 호출
+                        String _data = meetingService.getMailForm(1);
+
+                        List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+                        for(MeetingVO _ss : irs){
+                            String _unm = _ss.getUser_name();
+                            if(_ss.getUser_name().equals("") || _ss.getUser_name().isEmpty()){
+                                _unm = _ss.getUser_email();
+                            }
+                            String _ebody = _data.replace("${MEETNAME}", rrs.getMt_name())
+                                            .replace("${USERNAME}", _unm);
+                            MailSender.sender(_ss.getUser_email(), rrs.getMt_name(), _ebody);
+                        }
+                    }else{
+                        resultVO.setResult_str("미팅을 시작할 수 없습니다.");
+                    }
+                }else{
+                    if(rrs.getIs_live().equals(1)){
+                        resultVO.setResult_code(CONSTANT.success);
+                        resultVO.setResult_str("미팅룸에 참여합니다.");
+                    }else{
+                        resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
+                    }
                 }
             }else{
                 resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");

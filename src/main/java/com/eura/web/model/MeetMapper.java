@@ -54,4 +54,7 @@ public interface MeetMapper {
 
     // 미팅룸 삭제하기
     public Integer deleteMeet(MeetingVO meetingVO) throws Exception;
+
+    // 미팅 시작하기
+    public Integer putMeetLiveStart(MeetingVO meetingVO) throws Exception;
 }

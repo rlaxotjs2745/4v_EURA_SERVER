@@ -24,7 +24,7 @@
             LIMIT 3
     </select>
 
-    <!-- 개인화 - 다음일정 - 참여중인 미팅룸 총 수 -->
+    <!-- 개인화 - 나의 미팅룸 - 참여중인 미팅룸 총 수 -->
     <select id="getMyMeetListCount" resultType="Long">
         SELECT COUNT(1)
             FROM TB_MEETING
@@ -33,7 +33,7 @@
                 AND MT_END_DT <![CDATA[>]]> NOW()
     </select>
 
-    <!-- 개인화 - 다음일정 - 참여중인 미팅룸 -->
+    <!-- 개인화 - 나의 미팅룸 - 참여중인 미팅룸 -->
     <select id="getMyMeetList" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT A.*, B.USER_NAME
             FROM TB_MEETING A
@@ -41,6 +41,12 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[>]]> NOW()
+            <if test="calYear != null">
+                AND LEFT(A.MT_START_DT,4)=#{calYear}
+            </if>
+            <if test="calMonth != null">
+                AND RIGHT(LEFT(A.MT_START_DT,7),2)=#{calMonth}
+            </if>
             ORDER BY 
             <choose>
                 <!-- pageSort - 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
@@ -49,10 +55,10 @@
                     A.REG_DT DESC
                 </when>
                 <when test="pageSort != null and pageSort == 3">
-                    FIELD(A.MT_STATUS, 0,1,2,3), A.MT_START_DT ASC
+                    FIELD(A.MT_STATUS, 0,1,2), A.MT_START_DT ASC
                 </when>
                 <when test="pageSort != null and pageSort == 4">
-                    FIELD(A.MT_STATUS, 2,3,0,1), A.MT_START_DT ASC
+                    FIELD(A.MT_STATUS, 2,0,1), A.MT_START_DT ASC
                 </when>
                 <otherwise>
                     A.MT_START_DT ASC
@@ -215,6 +221,14 @@
         UPDATE TB_MEETING
             SET
                 MT_STATUS=3, DELETE_STAT=1, DEL_DT=NOW()
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+    </update>
+
+    <!-- 미팅 시작하기 -->
+    <update id="putMeetLiveStart">
+        UPDATE TB_MEETING
+            SET
+                IS_LIVE=1
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 </mapper>
