@@ -936,4 +936,29 @@ public class MeetController extends BaseController {
         }
         return resultVO;
     }
+
+    /**
+     * 강의실 종료
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/room/close")
+    public ResultVO closeLiveMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception{
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+        System.out.println(meetingVO.getIdx_meeting());
+
+        try{
+            meetingService.closeMeet(meetingVO);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("Update Complete");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
 }

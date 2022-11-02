@@ -141,4 +141,12 @@ public class MeetingService {
             mailSender.sender(_ss.getUser_email(), rrs.getMt_name(), _ebody);
         }
     }
+
+    public void closeMeet(MeetingVO meetingVO) {
+        try {
+            meetMapper.closeMeet(meetingVO);
+        } catch (Exception e){
+            throw new RuntimeException("강의 종료에 실패했습니다." , e);
+        }
+    }
 }

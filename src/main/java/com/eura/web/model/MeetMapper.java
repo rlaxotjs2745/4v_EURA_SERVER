@@ -69,4 +69,7 @@ public interface MeetMapper {
 
     // 미팅 시간 중복 체크
     public MeetingVO chkRoomDupTime(MeetingVO meetingVO) throws Exception;
+
+    // 현재 실행되는 미팅 끝내기
+    public void closeMeet(MeetingVO meetingVO) throws Exception;
 }

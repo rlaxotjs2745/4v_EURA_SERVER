@@ -262,4 +262,14 @@
     <select id="chkRoomDupTime" statementType="CALLABLE">
 		{#{chkcnt} = call prc_meet_chkRoomDupTime(#{idx_meeting}, #{idx_user})}
     </select>
+
+    <!--현재 진행 중인 미팅 끝내기-->
+    <update id="closeMeet">
+        UPDATE TB_MEETING
+        SET
+            IS_LIVE = 0,
+            MT_END_DT = NOW(),
+            LAST_UPD_DT = NOW()
+        WHERE IDX_MEETING=#{idx_meeting}
+    </update>
 </mapper>
