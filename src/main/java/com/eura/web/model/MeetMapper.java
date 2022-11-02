@@ -69,4 +69,7 @@ public interface MeetMapper {
 
     // 미팅 시간 중복 체크
     public MeetingVO chkRoomDupTime(MeetingVO meetingVO) throws Exception;
+
+    // 일 단위 중복 체크
+    public MeetingVO chkRoomDupDate(MeetingVO meetingVO) throws Exception;
 }

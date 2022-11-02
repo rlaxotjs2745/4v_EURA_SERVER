@@ -28,13 +28,19 @@ public class MeetingService {
     @Value("${file.upload-dir}")
     public String filepath;
 
+    /**
+     * 미팅룸 생성
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
     public ResultVO createMeetRoom(MultipartHttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        Integer rs = 0;
-        rs = meetMapper.meet_create(meetingVO);
+        Integer rs = meetMapper.meet_create(meetingVO);
         if(rs > 0){
             UserVO uInfo = userService.getUserInfo(meetingVO.getIdx_user());
 

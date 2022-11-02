@@ -392,20 +392,39 @@ public class MeetController extends BaseController {
                 }else if(meetingVO.getMt_remind_type().equals(1)){
                     Integer _cnt = meetingVO.getMt_remind_count();
                     if(_cnt > 90){
-                        resultVO.setResult_str("일 단위 반복 주기는 90일까지 입니다.");
+                        resultVO.setResult_str("일 단위 되풀이 주기는 90일까지 입니다.");
                     }else{
-                        for(Integer i=1;i<=_cnt;i++){
-                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, 0, i);
-                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, 0, i);
-                            meetingVO.setMt_start_dt(_sdate);
-                            meetingVO.setMt_end_dt(_edate);
-                            if(i>1){
-                                meetingVO.setMt_remind_type(0);
-                                meetingVO.setMt_remind_count(0);
-                                meetingVO.setMt_remind_week("");
-                                meetingVO.setMt_remind_end(null);
+                        // 일 단위 중복 체크
+                        Integer _dayChk = 0;
+                        MeetingVO param = meetingVO;
+                        String _sd = meetingVO.getMt_start_dt();
+                        String _ed = meetingVO.getMt_end_dt();
+                        for(Integer i=0;i<_cnt;i++){
+                            String _sdate = getCalDate(_sd, 0, 0, i);
+                            String _edate = getCalDate(_ed, 0, 0, i);
+                            param.setMt_start_dt(_sdate);
+                            param.setMt_end_dt(_edate);
+                            MeetingVO _chk = meetMapper.chkRoomDupDate(param);
+                            if(_chk.getChkcnt()>0){
+                                _dayChk++;
                             }
-                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        }
+                        if(_dayChk.equals(0)){
+                            for(Integer i=0;i<_cnt;i++){
+                                String _sdate = getCalDate(_sd, 0, 0, i);
+                                String _edate = getCalDate(_ed, 0, 0, i);
+                                param.setMt_start_dt(_sdate);
+                                param.setMt_end_dt(_edate);
+                                if(i>1){
+                                    param.setMt_remind_type(0);
+                                    param.setMt_remind_count(0);
+                                    param.setMt_remind_week("");
+                                    param.setMt_remind_end(null);
+                                }
+                                resultVO = meetingService.createMeetRoom(req, param);
+                            }
+                        }else{
+                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
                     }
                 
@@ -413,62 +432,77 @@ public class MeetController extends BaseController {
                 }else if(meetingVO.getMt_remind_type().equals(2)){
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 주
                     if(_cnt > 12){
-                        resultVO.setResult_str("주 단위 반복 주기는 12주까지 입니다.");
+                        resultVO.setResult_str("주 단위 되풀이 주기는 12주까지 입니다.");
                     }else{
                         String[] _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
-                        for(Integer i=1;i<=_cnt;i++){
-
-                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, 0, 0);
-                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, 0, 0);
-                            meetingVO.setMt_start_dt(_sdate);
-                            meetingVO.setMt_end_dt(_edate);
-                            if(i>1){
-                                meetingVO.setMt_remind_type(0);
-                                meetingVO.setMt_remind_count(0);
-                                meetingVO.setMt_remind_week("");
-                                meetingVO.setMt_remind_end(null);
+                        MeetingVO param = meetingVO;
+                        String _sd = meetingVO.getMt_start_dt();
+                        String _ed = meetingVO.getMt_end_dt();
+                        for(Integer i=1;i<=_cnt;i++){   // 주 반복
+                            for(Integer j=1;j<=7;j++){  // 월~일 1~7
+                                Integer _dw = getCalDayOfWeek(_sd, 0, 0, j);
+                                for(String _w : _week){ // 입력 값 체크
+                                    if(Integer.valueOf(_w).equals(_dw)){
+                                        String _sdate = getCalDate(_sd, 0, 0, j);
+                                        String _edate = getCalDate(_ed, 0, 0, j);
+                                        param.setMt_start_dt(_sdate);
+                                        param.setMt_end_dt(_edate);
+                                        if(i>1){
+                                            param.setMt_remind_type(0);
+                                            param.setMt_remind_count(0);
+                                            param.setMt_remind_week("");
+                                            param.setMt_remind_end(null);
+                                        }
+                                        resultVO = meetingService.createMeetRoom(req, param);
+                                    }
+                                }
                             }
-                            resultVO = meetingService.createMeetRoom(req, meetingVO);
                         }
                     }
                 // 월 주기
                 }else if(meetingVO.getMt_remind_type().equals(3)){
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 월
                     if(_cnt > 12){
-                        resultVO.setResult_str("월 단위 반복 주기는 12개월까지 입니다.");
+                        resultVO.setResult_str("월 단위 되풀이 주기는 12개월까지 입니다.");
                     }else{
+                        MeetingVO param = meetingVO;
+                        String _sd = meetingVO.getMt_start_dt();
+                        String _ed = meetingVO.getMt_end_dt();
                         for(Integer i=1;i<=_cnt;i++){
-                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), 0, i, 0);
-                            String _edate = getCalDate(meetingVO.getMt_end_dt(), 0, i, 0);
-                            meetingVO.setMt_start_dt(_sdate);
-                            meetingVO.setMt_end_dt(_edate);
+                            String _sdate = getCalDate(_sd, 0, i, 0);
+                            String _edate = getCalDate(_ed, 0, i, 0);
+                            param.setMt_start_dt(_sdate);
+                            param.setMt_end_dt(_edate);
                             if(i>1){
-                                meetingVO.setMt_remind_type(0);
-                                meetingVO.setMt_remind_count(0);
-                                meetingVO.setMt_remind_week("");
-                                meetingVO.setMt_remind_end(null);
+                                param.setMt_remind_type(0);
+                                param.setMt_remind_count(0);
+                                param.setMt_remind_week("");
+                                param.setMt_remind_end(null);
                             }
-                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                            resultVO = meetingService.createMeetRoom(req, param);
                         }
                     }
                 // 년 주기
                 }else if(meetingVO.getMt_remind_type().equals(4)){
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 년
                     if(_cnt > 5){
-                        resultVO.setResult_str("년 단위 반복 주기는 5년까지 입니다.");
+                        resultVO.setResult_str("년 단위 되풀이 주기는 5년까지 입니다.");
                     }else{
+                        MeetingVO param = meetingVO;
+                        String _sd = meetingVO.getMt_start_dt();
+                        String _ed = meetingVO.getMt_end_dt();
                         for(Integer i=1;i<=_cnt;i++){
-                            String _sdate = getCalDate(meetingVO.getMt_start_dt(), i, 0, 0);
-                            String _edate = getCalDate(meetingVO.getMt_end_dt(), i, 0, 0);
-                            meetingVO.setMt_start_dt(_sdate);
-                            meetingVO.setMt_end_dt(_edate);
+                            String _sdate = getCalDate(_sd, i, 0, 0);
+                            String _edate = getCalDate(_ed, i, 0, 0);
+                            param.setMt_start_dt(_sdate);
+                            param.setMt_end_dt(_edate);
                             if(i>1){
-                                meetingVO.setMt_remind_type(0);
-                                meetingVO.setMt_remind_count(0);
-                                meetingVO.setMt_remind_week("");
-                                meetingVO.setMt_remind_end(null);
+                                param.setMt_remind_type(0);
+                                param.setMt_remind_count(0);
+                                param.setMt_remind_week("");
+                                param.setMt_remind_end(null);
                             }
-                            resultVO = meetingService.createMeetRoom(req, meetingVO);
+                            resultVO = meetingService.createMeetRoom(req, param);
                         }
                     }
                 }

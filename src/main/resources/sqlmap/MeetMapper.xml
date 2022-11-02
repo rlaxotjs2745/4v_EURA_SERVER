@@ -259,7 +259,16 @@
     </select>
 
     <!-- 미팅 시간 중복 체크 -->
-    <select id="chkRoomDupTime" statementType="CALLABLE">
-		{#{chkcnt} = call prc_meet_chkRoomDupTime(#{idx_meeting}, #{idx_user})}
+    <select id="chkRoomDupTime" statementType="CALLABLE" resultType="com.eura.web.model.DTO.MeetingVO">
+    <![CDATA[
+		{call prc_meet_chkRoomDupTime(#{idx_meeting}, #{idx_user})}
+    ]]>
+    </select>
+
+    <!-- 일 단위 중복 체크 -->
+    <select id="chkRoomDupDate" statementType="CALLABLE" resultType="com.eura.web.model.DTO.MeetingVO">
+    <![CDATA[
+        {call prc_meet_chkRoomDupDate(#{idx_user}, #{mt_start_dt}, #{mt_end_dt})}
+    ]]>
     </select>
 </mapper>
