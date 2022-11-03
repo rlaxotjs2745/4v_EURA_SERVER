@@ -1,6 +1,9 @@
 package com.eura.web.service.impl;
 
 import com.eura.web.WebFrontFileUploadProperties;
+import com.eura.web.model.DTO.FileUploadResponseVO;
+import com.eura.web.model.DTO.MeetingVO;
+import com.eura.web.model.MeetMapper;
 import com.eura.web.service.FileService;
 import com.eura.web.util.FileDownloadException;
 import com.eura.web.util.FileUploadException;
@@ -16,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Service("fileService")
 public class FileServiceImpl implements FileService {

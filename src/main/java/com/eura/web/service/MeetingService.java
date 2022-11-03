@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 
+import com.eura.web.model.DTO.FileUploadResponseVO;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -125,6 +126,7 @@ public class MeetingService {
      * @param _mFTyp
      * @throws Exception
      */
+
     public void sendMailMeetInvites(MeetingVO meetingVO, MeetingVO rrs, Integer _mFTyp) throws Exception {
         // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
@@ -142,11 +144,8 @@ public class MeetingService {
         }
     }
 
-    public void closeMeet(MeetingVO meetingVO) {
-        try {
-            meetMapper.closeMeet(meetingVO);
-        } catch (Exception e){
-            throw new RuntimeException("강의 종료에 실패했습니다." , e);
-        }
+
+    public void closeMeet(MeetingVO meetingVO) throws Exception {
+        meetMapper.closeMeet(meetingVO);
     }
 }

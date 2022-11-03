@@ -4,6 +4,7 @@
 package com.eura.web.controller;
 
 import java.io.File;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -944,21 +945,116 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/close")
+    @PutMapping("/room/finish")
     public ResultVO closeLiveMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception{
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
-        System.out.println(meetingVO.getIdx_meeting());
 
         try{
-            meetingService.closeMeet(meetingVO);
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("Update Complete");
+            if(meetMapper.getRoomInfo(meetingVO).getIs_live() == 1){
+                meetMapper.closeMeet(meetingVO);
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("Update Complete");
+            } else {
+                resultVO.setResult_code(CONSTANT.fail);
+                resultVO.setResult_str("해당 강의가 진행중이 아닙니다.");
+            }
         } catch (Exception e){
             e.printStackTrace();
         }
 
         return resultVO;
     }
+
+    /**
+     * 미팅 분석 결과(미팅 정보)
+     * @param req
+     * @param meetingVO(idx_meeting)
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/result/meeting")
+    public ResultVO getResultMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+        try {
+            MeetingVO meetingInfo = meetMapper.getRoomInfo(meetingVO);
+
+            Map<String, Object> _rs = new HashMap<String, Object>();
+
+            _rs.put("mtName", meetingInfo.getMt_name());
+            _rs.put("mtStartTime", meetingInfo.getMt_start_dt());
+            _rs.put("mtEndTime", meetingInfo.getMt_end_dt());
+
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            long diff = format.parse(meetingInfo.getMt_end_dt()).getTime() - format.parse(meetingInfo.getMt_start_dt()).getTime();
+            String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
+            String minutes = (diff / 1000) / 60 % 60 < 10 ? "0" + (diff / 1000) / 60 % 60 : "" + (diff / 1000) / 60 % 60;
+            String seconds = (diff / 1000) % 60 < 10 ? "0" + (diff / 1000) % 60 : "" + (diff / 1000) % 60;
+
+            _rs.put("mtMeetingTime", hours + ":" + minutes + ":" + seconds);
+
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("강의 정보를 불러오는 데에 성공했습니다.");
+            resultVO.setData(_rs);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 미팅 분석 결과(첨부파일)
+     * @param req
+     * @param meetingVO(idx_meeting)
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/result/attachfile")
+    public ResultVO getResultAttachFile(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            Map<String, Object> _rs = new HashMap<String, Object>();
+
+            _rs.put("mtAttachedFiles", meetMapper.getMeetFiles(meetingVO));
+
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("파일 정보를 불러오는 데에 성공했습니다.");
+            resultVO.setData(_rs);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 미팅 분석 결과(강의 참여자 명단)
+     * @param req
+     * @param meetingVO(idx_meeting)
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/result/participant")
+    public ResultVO getResultParticipant(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try{
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
+
 }

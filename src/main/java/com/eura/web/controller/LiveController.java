@@ -19,20 +19,7 @@ public class LiveController {
     private final AnalysisService analysisService;
 
 
-    @GetMapping("/result")
-    public ResultVO getResultMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
 
-        try {
-//            meetingService.get
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return resultVO;
-    }
 
 
 
