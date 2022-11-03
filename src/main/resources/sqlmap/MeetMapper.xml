@@ -31,7 +31,7 @@
             WHERE DELETE_STAT=0 
                 AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND MT_END_DT <![CDATA[>]]> NOW()
-                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
+                AND CASE WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4) ELSE 1=1 END
     </select>
 
     <!-- 개인화 - 나의 미팅룸 - 참여중인 미팅룸 -->
@@ -42,7 +42,7 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[>]]> NOW()
-                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
+                AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS NOT IN (3,4) ELSE 1=1 END
             <if test="calYear != null">
                 AND LEFT(A.MT_START_DT,4)=#{calYear}
             </if>
@@ -79,7 +79,7 @@
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND A.MT_END_DT <![CDATA[<]]> NOW()
-                AND WHEN IDX_USER!=#{idx_user} THEN MT_STATUS NOT IN (3,4)
+                AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS NOT IN (3,4) ELSE 1=1 END
             ORDER BY 
             <choose>
                 <!-- 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
@@ -118,6 +118,7 @@
         SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME
             FROM TB_MEETING_USER_JOIN A 
                 LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
+                JOIN TB_MEETING C ON C.IDX_MEETING=A.IDX_MEETING AND C.IDX_USER!=A.IDX_USER
             WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
@@ -270,5 +271,14 @@
     <![CDATA[
         {call prc_meet_chkRoomDupDate(#{idx_user}, #{mt_start_dt}, #{mt_end_dt})}
     ]]>
+    </select>
+
+    <!-- APP이 mcid, token으로 정보 요청 시 -->
+    <select id="chkRoomInvite" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.MT_NAME, UNIX_TIMESTAMP(A.MT_START_DT) AS MT_START_DT, UNIX_TIMESTAMP(A.MT_END_DT) AS MT_END_DT, IF(A.IS_FINISH=1,2,IF(A.IS_LIVE=1,1,0)) AS MT_STATUS (SELECT USER_NAME FROM TB_USER WHERE IDX_USER=A.IDX_USER) AS HOST_NAME, C.USER_NAME, B.SESSIONID
+            FROM TB_MEETING A
+        JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING
+        JOIN TB_USER C ON C.IDX_USER=B.IDX_USER
+        WHERE A.IDX_MEETING=#{idx_meeting} AND B.TOKEN=#{token}
     </select>
 </mapper>

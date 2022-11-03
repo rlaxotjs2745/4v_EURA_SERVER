@@ -2,9 +2,12 @@ package com.eura.web.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,11 +21,20 @@ import com.eura.web.model.DTO.UserVO;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.MailSender;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class MeetingService {
+    @Autowired
     private MeetMapper meetMapper;
+    
     private MailSender mailSender;
+
+    @Autowired
     private UserService userService;
+
+    @Autowired
     private FileServiceMapper fileServiceMapper;
 
     @Value("${file.upload-dir}")
@@ -40,56 +52,34 @@ public class MeetingService {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
+        // log.info(meetingVO.getMt_name());
         Integer rs = meetMapper.meet_create(meetingVO);
         if(rs > 0){
             UserVO uInfo = userService.getUserInfo(meetingVO.getIdx_user());
 
-            // 미팅룸 참여자 리스트 저장
+            // 미팅룸 호스트 참여자 리스트에 저장
             MeetingVO es = new MeetingVO();
             es.setIdx_meeting(meetingVO.getIdx_meeting());
-            es.setUser_email(uInfo.getUser_email());
+            es.setIdx_user(uInfo.getIdx_user());
+            es.setUser_email(uInfo.getUser_id());
             meetMapper.meet_invite(es);
 
+            // 미팅룸 참여자 리스트 저장
             if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
                 String[] inEmail = meetingVO.getMt_invite_email().split(",");
                 for(String uemail : inEmail){
-                    MeetingVO ee = new MeetingVO();
-                    ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                    ee.setUser_email(uemail);
-                    meetMapper.meet_invite(ee);
-                }
-            }
-
-            // 미팅룸 첨부파일 저장
-            List<MultipartFile> fileList = req.getFiles("file");
-            if(req.getFiles("file").get(0).getSize() != 0){
-                fileList = req.getFiles("file");
-            }
-            if(fileList.size()>0){
-                long time = System.currentTimeMillis();
-                String path = "/meetroom/" + rs + "/";
-                String fullpath = this.filepath + path;
-                File fileDir = new File(fullpath);
-                if (!fileDir.exists()) {
-                    fileDir.mkdirs();
-                }
-                // FileUploadResponseVO paramVo = new FileUploadResponseVO();
-                for(MultipartFile mf : fileList) {
-                    String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                    String saveFileName = String.format("%d_%s", time, originFileName);
-                    try { // 파일생성
-                        mf.transferTo(new File(fullpath, saveFileName));
-                        MeetingVO paramVo = new MeetingVO();
-                        paramVo.setIdx_meeting(meetingVO.getIdx_meeting());
-                        paramVo.setFile_path(path);
-                        paramVo.setFile_name(saveFileName);
-                        paramVo.setFile_size(mf.getSize());
-                        fileServiceMapper.addMeetFile(paramVo);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if(!uemail.isEmpty()){
+                        MeetingVO ee = new MeetingVO();
+                        ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                        ee.setUser_email(uemail);
+                        meetMapper.meet_invite(ee);
                     }
                 }
             }
+
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            _rs.put("key",meetingVO.getIdx_meeting());
+            resultVO.setData(_rs);
 
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("미팅룸을 생성하였습니다.");

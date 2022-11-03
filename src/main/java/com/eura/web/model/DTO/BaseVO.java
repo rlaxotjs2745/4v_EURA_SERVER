@@ -26,4 +26,5 @@ public class BaseVO {
     // private Integer pageSortType;   // 페이징 정령 순서 - 1:내림차순, 2:오름차순
 
     private Integer chkcnt;
+    private String mcid;    // ZOOM의 연결점 중 강의실 고유번호(ID) - TB_MEETING Table의 IDX_MEETING 인덱스 컬럼
 }

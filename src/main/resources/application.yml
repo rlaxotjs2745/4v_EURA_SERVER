@@ -1,0 +1,24 @@
+spring:
+  profiles:
+    active: dev
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+    static-path-pattern: /resources/static/**
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 200MB
+      max-request-size: 215MB
+  jwt:
+    secret: ToiRTMXMHjwLXqkcbzmMWTxzIPhy4JA82M3q
+
+#Model Location
+mybatis:
+  type-aliases-package: com.eura.web.model.DTO
+
+#Xml Location
+  mapper-locations: classpath:sqlmap/*.xml
+  configuration:
+    jdbc-type-for-null: null

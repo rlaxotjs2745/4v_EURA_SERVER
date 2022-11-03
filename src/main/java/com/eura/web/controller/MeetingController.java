@@ -37,6 +37,13 @@ public class MeetingController {
     @Value("${file.upload-dir}")
     private String filepath;
 
+    /**
+     * APP으로부터 사용자 확인 후 미팅룸 정보를 전달
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
     @GetMapping("/uchk")
     public ResultVO chkUser(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
@@ -45,6 +52,9 @@ public class MeetingController {
 
         try {
             Map<String, Object> _rs = new HashMap<String, Object>();
+
+            meetingVO.setIdx_meeting(Integer.valueOf(meetingVO.getMcid()));
+            MeetingVO rrs = meetMapper.chkRoomInvite(meetingVO);
 
             // 개인화 - 개인정보
             UserVO uInfo = userService.getUserInfo(1);

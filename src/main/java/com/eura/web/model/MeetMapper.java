@@ -72,4 +72,7 @@ public interface MeetMapper {
 
     // 일 단위 중복 체크
     public MeetingVO chkRoomDupDate(MeetingVO meetingVO) throws Exception;
+
+    // APP이 mcid, token으로 정보 요청 시
+    public MeetingVO chkRoomInvite(MeetingVO meetingVO) throws Exception;
 }
