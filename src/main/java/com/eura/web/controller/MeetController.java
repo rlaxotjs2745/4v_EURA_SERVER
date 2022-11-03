@@ -521,12 +521,12 @@ public class MeetController extends BaseController {
                             String _sd = meetingVO.getMt_start_dt();
                             String _ed = meetingVO.getMt_end_dt();
                             for(Integer i=1;i<=_cnt;i++){   // 주 반복
-                                for(Integer j=0;j<=6;j++){  // 월~일 1~7
-                                    Integer _dw = getCalDayOfWeek(_sd, 0, 0, j);
+                                for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                    Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
                                     for(String _w : _week){ // 입력 값 체크
                                         if(Integer.valueOf(_w).equals(_dw)){
-                                            String _sdate = getCalDate(_sd, 0, 0, j);
-                                            String _edate = getCalDate(_ed, 0, 0, j);
+                                            String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
+                                            String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
                                             param.setMt_start_dt(_sdate);
                                             param.setMt_end_dt(_edate);
                                             MeetingVO _chk = meetMapper.chkRoomDupDate(param);
@@ -540,19 +540,18 @@ public class MeetController extends BaseController {
 
                             if(_dayChk.equals(0)){
                                 Integer _idx = 0;
+                                Integer _fcnt = 0;
                                 ArrayList<Object> _frss = new ArrayList<Object>();
                                 for(Integer i=1;i<=_cnt;i++){   // 주 반복
-                                    for(Integer j=0;j<=6;j++){  // 월~일 1~7
-                                        Integer _dw = getCalDayOfWeek(_sd, 0, 0, j);
+                                    for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                        Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
                                         for(String _w : _week){ // 입력 값 체크
-                                            log.info("_w: {}", _w);
-                                            log.info("_dw: {}", _dw);
                                             if(Integer.valueOf(_w).equals(_dw)){
-                                                String _sdate = getCalDate(_sd, 0, 0, j);
-                                                String _edate = getCalDate(_ed, 0, 0, j);
+                                                String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
+                                                String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
                                                 param.setMt_start_dt(_sdate);
                                                 param.setMt_end_dt(_edate);
-                                                if(i>1){
+                                                if(_fcnt>0){
                                                     param.setMt_remind_type(0);
                                                     param.setMt_remind_count(0);
                                                     param.setMt_remind_week("");
@@ -560,7 +559,8 @@ public class MeetController extends BaseController {
                                                 }
                                                 resultVO = meetingService.createMeetRoom(req, param);
                                                 _idx = Integer.valueOf(resultVO.getData().get("key").toString());
-                                                if(i==1){
+                                                if(_fcnt==0){
+                                                    _fcnt++;
                                                     // 미팅룸 첨부파일 저장
                                                     List<MultipartFile> fileList = req.getFiles("file");
                                                     if(req.getFiles("file").get(0).getSize() != 0){
@@ -576,50 +576,55 @@ public class MeetController extends BaseController {
                                                         }
                                                         
                                                         for(MultipartFile mf : fileList) {
-                                                            Map<String, Object> _frs = new HashMap<String, Object>();
-                                                            String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                                                            String saveFileName = String.format("%d_%s", time, originFileName);
-                                                            try { // 파일생성
-                                                                mf.transferTo(new File(fullpath, saveFileName));
-                                                                MeetingVO paramVo = new MeetingVO();
-                                                                paramVo.setIdx_meeting(_idx);
-                                                                paramVo.setFile_path(path);
-                                                                paramVo.setFile_name(saveFileName);
-                                                                paramVo.setFile_size(mf.getSize());
-                                                                fileServiceMapper.addMeetFile(paramVo);
-                                                                _frs.put("filepath",path);
-                                                                _frs.put("filename",saveFileName);
-                                                                _frs.put("filesize",mf.getSize());
-                                                                _frss.add(_frs);
-                                                            } catch (Exception e) {
-                                                                e.printStackTrace();
+                                                            if(mf.getOriginalFilename() != null){
+                                                                Map<String, Object> _frs = new HashMap<String, Object>();
+                                                                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                                                                String saveFileName = String.format("%d_%s", time, originFileName);
+                                                                try { // 파일생성
+                                                                    mf.transferTo(new File(fullpath, saveFileName));
+                                                                    MeetingVO paramVo = new MeetingVO();
+                                                                    paramVo.setIdx_meeting(_idx);
+                                                                    paramVo.setFile_path(path);
+                                                                    paramVo.setFile_name(saveFileName);
+                                                                    paramVo.setFile_size(mf.getSize());
+                                                                    fileServiceMapper.addMeetFile(paramVo);
+                                                                    _frs.put("filepath",path);
+                                                                    _frs.put("filename",saveFileName);
+                                                                    _frs.put("filesize",mf.getSize());
+                                                                    _frss.add(_frs);
+                                                                } catch (Exception e) {
+                                                                    e.printStackTrace();
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }else{
                                                     if(!_idx.equals(0)){
+                                                        _fcnt++;
                                                         try {
                                                             // filecopy
-                                                            String path = "/meetroom/" + _idx + "/";
-                                                            String fullpath = this.filepath + path;
-                                                            File fileDir = new File(fullpath);
-                                                            if (!fileDir.exists()) {
-                                                                fileDir.mkdirs();
-                                                            }
-                                                            for(int ii=0;ii<_frss.size();ii++){
-                                                                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
-                                                                String _sfnm = _frsa.get("filename").toString();
-                                                                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
-                                                                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
-                                                                File newFile = new File(fullpath + _sfnm);
-                                                                FileUtils.copyFile(file, newFile);
-                
-                                                                MeetingVO paramVo = new MeetingVO();
-                                                                paramVo.setIdx_meeting(_idx);
-                                                                paramVo.setFile_path(path);
-                                                                paramVo.setFile_name(_sfnm);
-                                                                paramVo.setFile_size(_sfze);
-                                                                fileServiceMapper.addMeetFile(paramVo);
+                                                            if(!_frss.isEmpty()){
+                                                                String path = "/meetroom/" + _idx + "/";
+                                                                String fullpath = this.filepath + path;
+                                                                File fileDir = new File(fullpath);
+                                                                if (!fileDir.exists()) {
+                                                                    fileDir.mkdirs();
+                                                                }
+                                                                for(int ii=0;ii<_frss.size();ii++){
+                                                                    Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
+                                                                    String _sfnm = _frsa.get("filename").toString();
+                                                                    Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
+                                                                    File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+                                                                    File newFile = new File(fullpath + _sfnm);
+                                                                    FileUtils.copyFile(file, newFile);
+                    
+                                                                    MeetingVO paramVo = new MeetingVO();
+                                                                    paramVo.setIdx_meeting(_idx);
+                                                                    paramVo.setFile_path(path);
+                                                                    paramVo.setFile_name(_sfnm);
+                                                                    paramVo.setFile_size(_sfze);
+                                                                    fileServiceMapper.addMeetFile(paramVo);
+                                                                }
                                                             }
                                                         } catch (Exception e) {
                                                             e.printStackTrace();
@@ -642,21 +647,107 @@ public class MeetController extends BaseController {
                     if(_cnt > 12){
                         resultVO.setResult_str("월 단위 되풀이 주기는 12개월까지 입니다.");
                     }else{
+                        // 월 단위 중복 체크
+                        Integer _dayChk = 0;
                         MeetingVO param = meetingVO;
                         String _sd = meetingVO.getMt_start_dt();
                         String _ed = meetingVO.getMt_end_dt();
-                        for(Integer i=1;i<=_cnt;i++){
+                        for(Integer i=0;i<_cnt;i++){
                             String _sdate = getCalDate(_sd, 0, i, 0);
                             String _edate = getCalDate(_ed, 0, i, 0);
                             param.setMt_start_dt(_sdate);
                             param.setMt_end_dt(_edate);
-                            if(i>1){
-                                param.setMt_remind_type(0);
-                                param.setMt_remind_count(0);
-                                param.setMt_remind_week("");
-                                param.setMt_remind_end(null);
+                            MeetingVO _chk = meetMapper.chkRoomDupDate(param);
+                            if(_chk.getChkcnt()>0){
+                                _dayChk++;
                             }
-                            resultVO = meetingService.createMeetRoom(req, param);
+                        }
+                        Integer _idx = 0;
+                        ArrayList<Object> _frss = new ArrayList<Object>();
+                        if(_dayChk.equals(0)){
+                            for(Integer i=0;i<_cnt;i++){
+                                String _sdate = getCalDate(_sd, 0, i, 0);
+                                String _edate = getCalDate(_ed, 0, i, 0);
+                                param.setMt_start_dt(_sdate);
+                                param.setMt_end_dt(_edate);
+                                if(i>0){
+                                    param.setMt_remind_type(0);
+                                    param.setMt_remind_count(0);
+                                    param.setMt_remind_week("");
+                                    param.setMt_remind_end(null);
+                                }
+                                resultVO = meetingService.createMeetRoom(req, param);
+                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+                                if(i==0){
+                                    // 미팅룸 첨부파일 저장
+                                    List<MultipartFile> fileList = req.getFiles("file");
+                                    if(req.getFiles("file").get(0).getSize() != 0){
+                                        fileList = req.getFiles("file");
+                                    }
+                                    if(fileList.size()>0){
+                                        long time = System.currentTimeMillis();
+                                        String path = "/meetroom/" + _idx + "/";
+                                        String fullpath = this.filepath + path;
+                                        File fileDir = new File(fullpath);
+                                        if (!fileDir.exists()) {
+                                            fileDir.mkdirs();
+                                        }
+                                        
+                                        for(MultipartFile mf : fileList) {
+                                            Map<String, Object> _frs = new HashMap<String, Object>();
+                                            String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                                            String saveFileName = String.format("%d_%s", time, originFileName);
+                                            try { // 파일생성
+                                                mf.transferTo(new File(fullpath, saveFileName));
+                                                MeetingVO paramVo = new MeetingVO();
+                                                paramVo.setIdx_meeting(_idx);
+                                                paramVo.setFile_path(path);
+                                                paramVo.setFile_name(saveFileName);
+                                                paramVo.setFile_size(mf.getSize());
+                                                fileServiceMapper.addMeetFile(paramVo);
+                                                _frs.put("filepath",path);
+                                                _frs.put("filename",saveFileName);
+                                                _frs.put("filesize",mf.getSize());
+                                                _frss.add(_frs);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if(!_idx.equals(0)){
+                                        try {
+                                            // filecopy
+                                            String path = "/meetroom/" + _idx + "/";
+                                            String fullpath = this.filepath + path;
+                                            File fileDir = new File(fullpath);
+                                            if (!fileDir.exists()) {
+                                                fileDir.mkdirs();
+                                            }
+                                            for(int ii=0;ii<_frss.size();ii++){
+                                                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
+                                                String _sfnm = _frsa.get("filename").toString();
+                                                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
+                                                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+                                                File newFile = new File(fullpath + _sfnm);
+                                                FileUtils.copyFile(file, newFile);
+
+                                                MeetingVO paramVo = new MeetingVO();
+                                                paramVo.setIdx_meeting(_idx);
+                                                paramVo.setFile_path(path);
+                                                paramVo.setFile_name(_sfnm);
+                                                paramVo.setFile_size(_sfze);
+                                                fileServiceMapper.addMeetFile(paramVo);
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            }
+                            resultVO.setData(null);
+                        }else{
+                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
                     }
                 // 년 주기
@@ -665,21 +756,110 @@ public class MeetController extends BaseController {
                     if(_cnt > 5){
                         resultVO.setResult_str("년 단위 되풀이 주기는 5년까지 입니다.");
                     }else{
+                        // 일 단위 중복 체크
+                        Integer _dayChk = 0;
                         MeetingVO param = meetingVO;
+                        // log.debug("debug log={}", param);
                         String _sd = meetingVO.getMt_start_dt();
                         String _ed = meetingVO.getMt_end_dt();
-                        for(Integer i=1;i<=_cnt;i++){
+                        for(Integer i=0;i<_cnt;i++){
                             String _sdate = getCalDate(_sd, i, 0, 0);
                             String _edate = getCalDate(_ed, i, 0, 0);
                             param.setMt_start_dt(_sdate);
                             param.setMt_end_dt(_edate);
-                            if(i>1){
-                                param.setMt_remind_type(0);
-                                param.setMt_remind_count(0);
-                                param.setMt_remind_week("");
-                                param.setMt_remind_end(null);
+                            MeetingVO _chk = meetMapper.chkRoomDupDate(param);
+                            if(_chk.getChkcnt()>0){
+                                _dayChk++;
                             }
-                            resultVO = meetingService.createMeetRoom(req, param);
+                        }
+                        Integer _idx = 0;
+                        ArrayList<Object> _frss = new ArrayList<Object>();
+                        if(_dayChk.equals(0)){
+                            for(Integer i=0;i<_cnt;i++){
+                                String _sdate = getCalDate(_sd, i, 0, 0);
+                                String _edate = getCalDate(_ed, i, 0, 0);
+                                param.setMt_start_dt(_sdate);
+                                param.setMt_end_dt(_edate);
+                                if(i>0){
+                                    param.setMt_remind_type(0);
+                                    param.setMt_remind_count(0);
+                                    param.setMt_remind_week("");
+                                    param.setMt_remind_end(null);
+                                }
+                                resultVO = meetingService.createMeetRoom(req, param);
+
+                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+                                if(i==0){
+                                    // 미팅룸 첨부파일 저장
+                                    List<MultipartFile> fileList = req.getFiles("file");
+                                    if(req.getFiles("file").get(0).getSize() != 0){
+                                        fileList = req.getFiles("file");
+                                    }
+                                    if(fileList.size()>0){
+                                        long time = System.currentTimeMillis();
+                                        String path = "/meetroom/" + _idx + "/";
+                                        String fullpath = this.filepath + path;
+                                        File fileDir = new File(fullpath);
+                                        if (!fileDir.exists()) {
+                                            fileDir.mkdirs();
+                                        }
+                                        
+                                        for(MultipartFile mf : fileList) {
+                                            Map<String, Object> _frs = new HashMap<String, Object>();
+                                            String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                                            String saveFileName = String.format("%d_%s", time, originFileName);
+                                            try { // 파일생성
+                                                mf.transferTo(new File(fullpath, saveFileName));
+                                                MeetingVO paramVo = new MeetingVO();
+                                                paramVo.setIdx_meeting(_idx);
+                                                paramVo.setFile_path(path);
+                                                paramVo.setFile_name(saveFileName);
+                                                paramVo.setFile_size(mf.getSize());
+                                                fileServiceMapper.addMeetFile(paramVo);
+                                                _frs.put("filepath",path);
+                                                _frs.put("filename",saveFileName);
+                                                _frs.put("filesize",mf.getSize());
+                                                _frss.add(_frs);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if(!_idx.equals(0)){
+                                        try {
+                                            // filecopy
+                                            String path = "/meetroom/" + _idx + "/";
+                                            String fullpath = this.filepath + path;
+                                            File fileDir = new File(fullpath);
+                                            if (!fileDir.exists()) {
+                                                fileDir.mkdirs();
+                                            }
+                                            for(int ii=0;ii<_frss.size();ii++){
+                                                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
+                                                String _sfnm = _frsa.get("filename").toString();
+                                                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
+                                                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+                                                File newFile = new File(fullpath + _sfnm);
+                                                FileUtils.copyFile(file, newFile);
+
+                                                MeetingVO paramVo = new MeetingVO();
+                                                paramVo.setIdx_meeting(_idx);
+                                                paramVo.setFile_path(path);
+                                                paramVo.setFile_name(_sfnm);
+                                                paramVo.setFile_size(_sfze);
+                                                fileServiceMapper.addMeetFile(paramVo);
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            }
+                            resultVO.setData(null);
+
+                        }else{
+                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
                     }
                 }

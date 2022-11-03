@@ -5,10 +5,7 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.Calendar;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -134,9 +131,7 @@ public class BaseController {
         if(_m!=0){cal.add(Calendar.MONTH, _m);}
         if(_d!=0){cal.add(Calendar.DATE, _d);}
 
-        LocalDate date = LocalDate.of(Calendar.YEAR, Calendar.MONTH, Calendar.DATE);
-        DayOfWeek dayOfWeek = date.getDayOfWeek();
-        _r = dayOfWeek.getValue();
+        _r = cal.get(Calendar.DAY_OF_WEEK);
         return _r;
     }
 }
