@@ -997,6 +997,8 @@ public class MeetController extends BaseController {
 
             _rs.put("mtMeetingTime", hours + ":" + minutes + ":" + seconds);
 
+            // 미구현 내용: 미팅 녹화 내용 담아주어야 함
+
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("강의 정보를 불러오는 데에 성공했습니다.");
             resultVO.setData(_rs);
@@ -1056,5 +1058,12 @@ public class MeetController extends BaseController {
 
         return resultVO;
     }
+
+    //퍼센트 계산
+    // 전체값 a에서 b는 몇퍼센트인가?
+    // b / a * 100
+
+    //    a의 bb%는 얼마인가?
+    //    a * 0.bb
 
 }
