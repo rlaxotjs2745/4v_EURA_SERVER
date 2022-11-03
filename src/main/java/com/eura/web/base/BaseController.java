@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -133,5 +134,20 @@ public class BaseController {
 
         _r = cal.get(Calendar.DAY_OF_WEEK);
         return _r;
+    }
+
+    /**
+     * 날짜 비교
+     * @param _date1
+     * @param _date2
+     * @return 0:동일, 0>:이전, 0<:이후
+     * @throws ParseException
+     */
+    public Integer getDateDiff(String _date1, String _date2) throws ParseException{
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd");
+        Date date1,date2;
+        date1 = _ex.parse(_date1);
+        date2 = _ex.parse(_date2);
+        return date1.compareTo(date2);
     }
 }

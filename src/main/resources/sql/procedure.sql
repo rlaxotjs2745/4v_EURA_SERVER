@@ -1,4 +1,4 @@
-CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `prc_meet_invite`(
+CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `eura_db`.`prc_meet_invite`(
 	IN `_idx_meeting` INT,
 	IN `_user_email` VARCHAR(400)
 )
@@ -6,18 +6,15 @@ BEGIN
 	SET @IDXUSER = 0;
 	IF EXISTS (SELECT IDX_USER FROM TB_USER WHERE USER_ID = _user_email) THEN
 		SELECT IDX_USER INTO @IDXUSER FROM TB_USER WHERE USER_ID = _user_email;
+	END IF;
+
+	IF NOT EXISTS(SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE USER_EMAIL=_user_email) THEN
 		INSERT INTO TB_MEETING_USER_JOIN (
             IDX_USER, IDX_MEETING, USER_EMAIL
         ) VALUES (
             @IDXUSER, _idx_meeting, _user_email
         );
-	ELSE
-		INSERT INTO TB_MEETING_USER_JOIN (
-            IDX_USER, IDX_MEETING, USER_EMAIL
-        ) VALUES (
-            0, _idx_meeting, _user_email
-        );
-	END IF;
+    END IF;
 END;;
 
 CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `prc_meet_chkRoomDupTime`(

@@ -7,8 +7,10 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+@CrossOrigin
 @SpringBootApplication
 @EnableConfigurationProperties({
     WebFrontFileUploadProperties.class

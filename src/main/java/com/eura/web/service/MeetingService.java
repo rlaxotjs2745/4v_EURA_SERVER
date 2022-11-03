@@ -2,10 +2,12 @@ package com.eura.web.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -135,6 +137,86 @@ public class MeetingService {
             String _ebody = _data.replace("${MEETNAME}", rrs.getMt_name())
                                 .replace("${USERNAME}", _unm);
             mailSender.sender(_ss.getUser_email(), rrs.getMt_name(), _ebody);
+        }
+    }
+
+    /**
+     * 미팅룸 첨부파일 저장
+     * @param req
+     * @param _idx
+     * @return
+     * @throws Exception
+     */
+    public ArrayList<Object> meetFileSave(MultipartHttpServletRequest req, Integer _idx) throws Exception {
+        ArrayList<Object> _frss = new ArrayList<Object>();
+        List<MultipartFile> fileList = req.getFiles("file");
+        if(req.getFiles("file").get(0).getSize() != 0){
+            fileList = req.getFiles("file");
+        }
+        if(fileList.size()>0){
+            long time = System.currentTimeMillis();
+            String path = "/meetroom/" + _idx + "/";
+            String fullpath = this.filepath + path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            
+            for(MultipartFile mf : fileList) {
+                Map<String, Object> _frs = new HashMap<String, Object>();
+                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                String saveFileName = String.format("%d_%s", time, originFileName);
+                try { // 파일생성
+                    mf.transferTo(new File(fullpath, saveFileName));
+                    MeetingVO paramVo = new MeetingVO();
+                    paramVo.setIdx_meeting(_idx);
+                    paramVo.setFile_path(path);
+                    paramVo.setFile_name(saveFileName);
+                    paramVo.setFile_size(mf.getSize());
+                    fileServiceMapper.addMeetFile(paramVo);
+                    _frs.put("filepath",path);
+                    _frs.put("filename",saveFileName);
+                    _frs.put("filesize",mf.getSize());
+                    _frss.add(_frs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return _frss;
+    }
+
+    /**
+     * 미팅룸 첨부파일 복사
+     * @param _idx
+     * @param _frss
+     * @throws Exception
+     */
+    public void meetFileCopy(Integer _idx, ArrayList<Object> _frss) throws Exception {
+        try {
+            String path = "/meetroom/" + _idx + "/";
+            String fullpath = this.filepath + path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            for(int ii=0;ii<_frss.size();ii++){
+                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
+                String _sfnm = _frsa.get("filename").toString();
+                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
+                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+                File newFile = new File(fullpath + _sfnm);
+                FileUtils.copyFile(file, newFile);
+
+                MeetingVO paramVo = new MeetingVO();
+                paramVo.setIdx_meeting(_idx);
+                paramVo.setFile_path(path);
+                paramVo.setFile_name(_sfnm);
+                paramVo.setFile_size(_sfze);
+                fileServiceMapper.addMeetFile(paramVo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
