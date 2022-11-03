@@ -5,6 +5,8 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -98,16 +100,43 @@ public class BaseController {
     public String getCalDate(String _date, Integer _y, Integer _m, Integer _d){
         String _r = "";
         Calendar cal = Calendar.getInstance();
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:00");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             cal.setTime(df.parse(_date));
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        cal.add(Calendar.YEAR, _y);
-        cal.add(Calendar.MONTH, _m);
-        cal.add(Calendar.DATE, _d);
+        if(_y!=0){cal.add(Calendar.YEAR, _y);}
+        if(_m!=0){cal.add(Calendar.MONTH, _m);}
+        if(_d!=0){cal.add(Calendar.DATE, _d);}
         _r = df.format(cal.getTime());
+        return _r;
+    }
+
+    /**
+     * 요일 구하기
+     * @param _date
+     * @param _y
+     * @param _m
+     * @param _d
+     * @return
+     */
+    public Integer getCalDayOfWeek(String _date, Integer _y, Integer _m, Integer _d){
+        Integer _r = 0;
+        Calendar cal = Calendar.getInstance();
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            cal.setTime(df.parse(_date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        if(_y!=0){cal.add(Calendar.YEAR, _y);}
+        if(_m!=0){cal.add(Calendar.MONTH, _m);}
+        if(_d!=0){cal.add(Calendar.DATE, _d);}
+
+        LocalDate date = LocalDate.of(Calendar.YEAR, Calendar.MONTH, Calendar.DATE);
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        _r = dayOfWeek.getValue();
         return _r;
     }
 }

@@ -70,6 +70,12 @@ public interface MeetMapper {
     // 미팅 시간 중복 체크
     public MeetingVO chkRoomDupTime(MeetingVO meetingVO) throws Exception;
 
+    // 일 단위 중복 체크
+    public MeetingVO chkRoomDupDate(MeetingVO meetingVO) throws Exception;
+
+    // APP이 mcid, token으로 정보 요청 시
+    public MeetingVO chkRoomInvite(MeetingVO meetingVO) throws Exception;
+
     // 현재 실행되는 미팅 끝내기
     public void closeMeet(MeetingVO meetingVO) throws Exception;
 }
