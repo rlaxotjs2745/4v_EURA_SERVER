@@ -201,7 +201,7 @@
         UPDATE TB_MEETING_USER_JOIN 
             SET 
                 DELETE_STAT=1, IS_LIVE=0, DEL_DT=NOW() 
-            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+            WHERE IDX_MEETING=#{idx_meeting} AND USER_EMAIL=#{user_email}
     </update>
 
     <!-- 미팅룸 공개 -->
@@ -275,10 +275,18 @@
 
     <!-- APP이 mcid, token으로 정보 요청 시 -->
     <select id="chkRoomInvite" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT A.MT_NAME, UNIX_TIMESTAMP(A.MT_START_DT) AS MT_START_DT, UNIX_TIMESTAMP(A.MT_END_DT) AS MT_END_DT, IF(A.IS_FINISH=1,2,IF(A.IS_LIVE=1,1,0)) AS MT_STATUS (SELECT USER_NAME FROM TB_USER WHERE IDX_USER=A.IDX_USER) AS HOST_NAME, C.USER_NAME, B.SESSIONID
+        SELECT 
+            A.MT_NAME
+            , UNIX_TIMESTAMP(A.MT_START_DT) AS MT_START_DT
+            , UNIX_TIMESTAMP(A.MT_END_DT) AS MT_END_DT
+            , IF(A.IS_FINISH=1,2,IF(A.IS_LIVE=1,1,0)) AS MT_STATUS
+            , (SELECT USER_NAME FROM TB_USER WHERE IDX_USER=A.IDX_USER) AS HOST_NAME
+            , C.USER_NAME
+            , B.SESSIONID
+            , IF(A.IDX_USER=B.IDX_USER,1,0) AS ISHOST
             FROM TB_MEETING A
         JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING
         JOIN TB_USER C ON C.IDX_USER=B.IDX_USER
-        WHERE A.IDX_MEETING=#{idx_meeting} AND B.TOKEN=#{token}
+        WHERE B.SESSIONID=#{sessionid} AND B.TOKEN=#{token}
     </select>
 </mapper>

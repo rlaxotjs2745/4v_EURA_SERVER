@@ -381,6 +381,8 @@ public class MeetController extends BaseController {
 
         try {
             if(meetingVO != null){
+                Integer _dayChk = 0;
+
                 // 미팅룸 정보 생성
                 meetingVO.setIdx_user(1);   // 미팅룸 호스트
                 /*
@@ -389,36 +391,41 @@ public class MeetController extends BaseController {
                  * MT_REMIND_WEEK - 반복요일 - 월,화,수,목,금,토,일
                  * MT_REMIND_END - 되풀이 미팅 종료일
                  */
+                if(meetingVO.getMt_remind_type()==null){
+                    meetingVO.setMt_remind_type(0);
+                }
                 if(meetingVO.getMt_remind_type().equals(0)){
-                    resultVO = meetingService.createMeetRoom(req, meetingVO);
+                    _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
+                    if(_dayChk.equals(0)){
+                        resultVO = meetingService.createMeetRoom(req, meetingVO);
+                        Integer _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+                        meetingService.meetFileSave(req, _idx);
+                        resultVO.setResult_code(CONSTANT.success);
+                        resultVO.setResult_str("미팅룸을 생성하였습니다.");
+                    }else{
+                        resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
+                    }
 
                 // 일 주기
                 }else if(meetingVO.getMt_remind_type().equals(1)){
                     Integer _cnt = meetingVO.getMt_remind_count();
                     if(_cnt > 90){
                         resultVO.setResult_str("일 단위 되풀이 주기는 90일까지 입니다.");
+                    }else if(meetingVO.getMt_remind_end() == null){
+                        resultVO.setResult_str("종료일을 선택해주세요.");
                     }else{
                         // 일 단위 중복 체크
-                        Integer _dayChk = 0;
                         MeetingVO param = meetingVO;
+                        String _enddt = meetingVO.getMt_remind_end();
                         // log.debug("debug log={}", param);
                         String _sd = meetingVO.getMt_start_dt();
                         String _ed = meetingVO.getMt_end_dt();
-                        for(Integer i=0;i<_cnt;i++){
-                            String _sdate = getCalDate(_sd, 0, 0, i);
-                            String _edate = getCalDate(_ed, 0, 0, i);
-                            param.setMt_start_dt(_sdate);
-                            param.setMt_end_dt(_edate);
-                            if(getDateDiff(_sdate, param.getMt_remind_end())<0){
-                                MeetingVO _chk = meetMapper.chkRoomDupDate(param);
-                                if(_chk.getChkcnt()>0){
-                                    _dayChk++;
-                                }
-                            }
-                        }
-                        Integer _idx = 0;
-                        ArrayList<Object> _frss = new ArrayList<Object>();
+
+                        _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+
                         if(_dayChk.equals(0)){
+                            Integer _idx = 0;
+                            ArrayList<Object> _frss = new ArrayList<Object>();
                             for(Integer i=0;i<_cnt;i++){
                                 String _sdate = getCalDate(_sd, 0, 0, i);
                                 String _edate = getCalDate(_ed, 0, 0, i);
@@ -430,11 +437,12 @@ public class MeetController extends BaseController {
                                     param.setMt_remind_week(null);
                                     param.setMt_remind_end(null);
                                 }
-                                if(getDateDiff(_sdate, param.getMt_remind_end())<0){
+                                if(getDateDiff(_sdate, _enddt)<0){
                                     resultVO = meetingService.createMeetRoom(req, param);
                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                     if(i==0){
                                         // 미팅룸 첨부파일 저장
+                                        log.info("미팅룸 첨부파일 저장");
                                         _frss = meetingService.meetFileSave(req, _idx);
                                     }else{
                                         // 미팅룸 첨부파일 복사
@@ -444,11 +452,12 @@ public class MeetController extends BaseController {
                                     }
                                 }
                             }
-                            resultVO.setData(null);
-
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 생성하였습니다.");
                         }else{
                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
+                        resultVO.setData(null);
                     }
                 
                 // 주 주기
@@ -456,14 +465,15 @@ public class MeetController extends BaseController {
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 주
                     if(_cnt > 12){
                         resultVO.setResult_str("주 단위 되풀이 주기는 12주까지 입니다.");
+                    }else if(meetingVO.getMt_remind_end() == null){
+                        resultVO.setResult_str("종료일을 선택해주세요.");
                     }else{
                         if(meetingVO.getMt_remind_week().isEmpty() || meetingVO.getMt_remind_week()==null){
                             resultVO.setResult_str("주 단위 되풀이 주기는 요일을 선택해주세요.");
                         }else{
-                            // 일 단위 중복 체크
-                            Integer _dayChk = 0;
+                            // 주 단위 중복 체크
                             MeetingVO param = meetingVO;
-                            // log.debug("debug log={}", param);
+                            String _enddt = meetingVO.getMt_remind_end();
                             String[] _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
                             String _sd = meetingVO.getMt_start_dt();
                             String _ed = meetingVO.getMt_end_dt();
@@ -471,16 +481,13 @@ public class MeetController extends BaseController {
                                 for(Integer j=0;j<=6;j++){  // 일~월 1~7
                                     Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
                                     for(String _w : _week){ // 입력 값 체크
-                                        if(Integer.valueOf(_w).equals(_dw)){
+                                        if(Integer.valueOf(_w) == _dw){
                                             String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
                                             String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
                                             param.setMt_start_dt(_sdate);
                                             param.setMt_end_dt(_edate);
-                                            if(getDateDiff(_sdate, param.getMt_remind_end())<0){
-                                                MeetingVO _chk = meetMapper.chkRoomDupDate(param);
-                                                if(_chk.getChkcnt()>0){
-                                                    _dayChk++;
-                                                }
+                                            if(getDateDiff(_sdate, _enddt)<0){
+                                                _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                             }
                                         }
                                     }
@@ -506,7 +513,7 @@ public class MeetController extends BaseController {
                                                     param.setMt_remind_week("");
                                                     param.setMt_remind_end(null);
                                                 }
-                                                if(getDateDiff(_sdate, param.getMt_remind_end())<0){
+                                                if(getDateDiff(_sdate, _enddt)<0){
                                                     resultVO = meetingService.createMeetRoom(req, param);
                                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                                     if(_fcnt==0){
@@ -524,38 +531,33 @@ public class MeetController extends BaseController {
                                         }
                                     }
                                 }
-                                resultVO.setData(null);
+                                resultVO.setResult_code(CONSTANT.success);
+                                resultVO.setResult_str("미팅룸을 생성하였습니다.");
                             }else{
                                 resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                             }
                         }
+                        resultVO.setData(null);
                     }
                 // 월 주기
                 }else if(meetingVO.getMt_remind_type().equals(3)){
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 월
                     if(_cnt > 12){
                         resultVO.setResult_str("월 단위 되풀이 주기는 12개월까지 입니다.");
+                    }else if(meetingVO.getMt_remind_end() == null){
+                        resultVO.setResult_str("종료일을 선택해주세요.");
                     }else{
                         // 월 단위 중복 체크
-                        Integer _dayChk = 0;
                         MeetingVO param = meetingVO;
+                        String _enddt = meetingVO.getMt_remind_end();
                         String _sd = meetingVO.getMt_start_dt();
                         String _ed = meetingVO.getMt_end_dt();
-                        for(Integer i=0;i<_cnt;i++){
-                            String _sdate = getCalDate(_sd, 0, i, 0);
-                            String _edate = getCalDate(_ed, 0, i, 0);
-                            param.setMt_start_dt(_sdate);
-                            param.setMt_end_dt(_edate);
-                            if(getDateDiff(_sdate, param.getMt_remind_end())<0){
-                                MeetingVO _chk = meetMapper.chkRoomDupDate(param);
-                                if(_chk.getChkcnt()>0){
-                                    _dayChk++;
-                                }
-                            }
-                        }
-                        Integer _idx = 0;
-                        ArrayList<Object> _frss = new ArrayList<Object>();
+
+                        _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+
                         if(_dayChk.equals(0)){
+                            Integer _idx = 0;
+                            ArrayList<Object> _frss = new ArrayList<Object>();
                             for(Integer i=0;i<_cnt;i++){
                                 String _sdate = getCalDate(_sd, 0, i, 0);
                                 String _edate = getCalDate(_ed, 0, i, 0);
@@ -567,7 +569,7 @@ public class MeetController extends BaseController {
                                     param.setMt_remind_week("");
                                     param.setMt_remind_end(null);
                                 }
-                                if(getDateDiff(_sdate, param.getMt_remind_end())<0){
+                                if(getDateDiff(_sdate, _enddt)<0){
                                     resultVO = meetingService.createMeetRoom(req, param);
                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                     if(i==0){
@@ -580,38 +582,32 @@ public class MeetController extends BaseController {
                                     }
                                 }
                             }
-                            resultVO.setData(null);
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 생성하였습니다.");
                         }else{
                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
+                        resultVO.setData(null);
                     }
                 // 년 주기
                 }else if(meetingVO.getMt_remind_type().equals(4)){
                     Integer _cnt = meetingVO.getMt_remind_count();  // 반복 년
                     if(_cnt > 5){
                         resultVO.setResult_str("년 단위 되풀이 주기는 5년까지 입니다.");
+                    }else if(meetingVO.getMt_remind_end() == null){
+                        resultVO.setResult_str("종료일을 선택해주세요.");
                     }else{
-                        // 일 단위 중복 체크
-                        Integer _dayChk = 0;
+                        // 년 단위 중복 체크
                         MeetingVO param = meetingVO;
-                        // log.debug("debug log={}", param);
+                        String _enddt = meetingVO.getMt_remind_end();
                         String _sd = meetingVO.getMt_start_dt();
                         String _ed = meetingVO.getMt_end_dt();
-                        for(Integer i=0;i<_cnt;i++){
-                            String _sdate = getCalDate(_sd, i, 0, 0);
-                            String _edate = getCalDate(_ed, i, 0, 0);
-                            param.setMt_start_dt(_sdate);
-                            param.setMt_end_dt(_edate);
-                            if(getDateDiff(_sdate, param.getMt_remind_end())<0){
-                                MeetingVO _chk = meetMapper.chkRoomDupDate(param);
-                                if(_chk.getChkcnt()>0){
-                                    _dayChk++;
-                                }
-                            }
-                        }
-                        Integer _idx = 0;
-                        ArrayList<Object> _frss = new ArrayList<Object>();
+
+                        _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+
                         if(_dayChk.equals(0)){
+                            Integer _idx = 0;
+                            ArrayList<Object> _frss = new ArrayList<Object>();
                             for(Integer i=0;i<_cnt;i++){
                                 String _sdate = getCalDate(_sd, i, 0, 0);
                                 String _edate = getCalDate(_ed, i, 0, 0);
@@ -623,7 +619,7 @@ public class MeetController extends BaseController {
                                     param.setMt_remind_week("");
                                     param.setMt_remind_end(null);
                                 }
-                                if(getDateDiff(_sdate, param.getMt_remind_end())<0){
+                                if(getDateDiff(_sdate, _enddt)<0){
                                     resultVO = meetingService.createMeetRoom(req, param);
 
                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
@@ -637,11 +633,12 @@ public class MeetController extends BaseController {
                                     }
                                 }
                             }
-                            resultVO.setData(null);
-
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 생성하였습니다.");
                         }else{
                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
                         }
+                        resultVO.setData(null);
                     }
                 }
             }
@@ -672,83 +669,367 @@ public class MeetController extends BaseController {
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
                     if(rrs.getIdx_user().equals(1)){
-                        rs = meetMapper.meet_modify(meetingVO);
-                        if(rs > 0){
-                            // 미팅룸 참여자 삭제 리스트
-                            if(meetingVO.getInvite_del() != null && meetingVO.getInvite_del() != ""){
-                                String[] inInvite = meetingVO.getInvite_del().split(",");
-                                for(String uidx : inInvite){
-                                    MeetingVO ee = new MeetingVO();
-                                    ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                                    ee.setIdx_user(Integer.valueOf(uidx));
-                                    meetMapper.meet_invite_del(ee);
-                                }
+                        if(meetingVO.getMt_remind_type()==null){
+                            meetingVO.setMt_remind_type(0);
+                        }
+                        if(meetingVO.getMt_remind_type().equals(0)){
+                            Integer _dayChk = 0;
+                            if(getDateDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0){
+                                _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
                             }
-
-                            // 미팅룸 참여자 추가 저장
-                            if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
-                                String[] inEmail = meetingVO.getMt_invite_email().split(",");
-                                for(String uemail : inEmail){
-                                    MeetingVO ee = new MeetingVO();
-                                    ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                                    ee.setUser_email(uemail);
-                                    meetMapper.meet_invite(ee);
-                                }
-                            }
-
-                            // 미팅룸 첨부파일 삭제
-                            if(meetingVO.getFile_del() != null && meetingVO.getFile_del() != ""){
-                                String[] fileIdx = meetingVO.getFile_del().split(",");
-                                for(String fidx : fileIdx){
-                                    MeetingVO ee = new MeetingVO();
-                                    ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                                    ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
-                                    meetMapper.meet_invite(ee);
-
-                                    // 파일 삭제
-                                    MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
-                                    File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                    if(f.exists()){
-                                        f.delete();
+                            if(_dayChk.equals(0)){
+                                rs = meetMapper.meet_modify(meetingVO);
+                                if(rs > 0){
+                                    // 미팅룸 참여자 삭제 리스트
+                                    if(meetingVO.getInvite_del() != null && meetingVO.getInvite_del() != ""){
+                                        String[] inInvite = meetingVO.getInvite_del().split(",");
+                                        for(String ue : inInvite){
+                                            MeetingVO ee = new MeetingVO();
+                                            ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                                            ee.setUser_email(ue);
+                                            meetMapper.meet_invite_del(ee);
+                                        }
                                     }
-                                }
-                            }
 
-                            // 미팅룸 첨부파일 저장
-                            List<MultipartFile> fileList = req.getFiles("file");
-                            if(req.getFiles("file").get(0).getSize() != 0){
-                                fileList = req.getFiles("file");
-                            }
-                            if(fileList.size()>0){
-                                long time = System.currentTimeMillis();
-                                String path = "/meetroom/" + meetingVO.getIdx_meeting() + "/";
-                                String fullpath = this.filepath + path;
-                                File fileDir = new File(fullpath);
-                                if (!fileDir.exists()) {
-                                    fileDir.mkdirs();
-                                }
-                                // FileUploadResponseVO paramVo = new FileUploadResponseVO();
-                                for(MultipartFile mf : fileList) {
-                                    String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                                    String saveFileName = String.format("%d_%s", time, originFileName);
-                                    try { // 파일생성
-                                        mf.transferTo(new File(fullpath, saveFileName));
-                                        MeetingVO paramVo = new MeetingVO();
-                                        paramVo.setIdx_meeting(meetingVO.getIdx_meeting());
-                                        paramVo.setFile_path(path);
-                                        paramVo.setFile_name(saveFileName);
-                                        paramVo.setFile_size(mf.getSize());
-                                        fileServiceMapper.addMeetFile(paramVo);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+                                    // 미팅룸 첨부파일 삭제
+                                    if(meetingVO.getFile_del() != null && meetingVO.getFile_del() != ""){
+                                        String[] fileIdx = meetingVO.getFile_del().split(",");
+                                        for(String fidx : fileIdx){
+                                            MeetingVO ee = new MeetingVO();
+                                            ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                                            ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+                                            fileServiceMapper.getMeetFile(ee);
+
+                                            // 파일 삭제
+                                            MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                            File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                            if(f.exists()){
+                                                f.delete();
+                                            }
+                                            fileServiceMapper.delMeetFile(ee);
+                                        }
                                     }
-                                }
-                            }
 
-                            resultVO.setResult_code(CONSTANT.success);
-                            resultVO.setResult_str("미팅룸을 생성하였습니다.");
+                                    // 미팅룸 참여자 추가 저장
+                                    meetingService.saveMeetInvite(meetingVO);
+
+                                    // 미팅룸 첨부파일 저장
+                                    meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+
+                                    resultVO.setResult_code(CONSTANT.success);
+                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                }else{
+                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                }
+                            }else{
+                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                            }
+                            resultVO.setData(null);
                         }else{
-                            resultVO.setResult_str("미팅룸 생성에 실패하였습니다.");
+                            Integer _chkDup = 0;
+                            Integer _dayChk = 0;
+                            MeetingVO param = meetingVO;
+                            String _enddt = meetingVO.getMt_remind_end();
+                            String _sd = meetingVO.getMt_start_dt();
+                            String _ed = meetingVO.getMt_end_dt();
+                            Integer _cnt = meetingVO.getMt_remind_count();
+                            String[] _week = null;
+                            if(meetingVO.getMt_remind_end() == null){
+                                resultVO.setResult_str("종료일을 선택해주세요.");
+                            }else{
+
+                            // 일 주기
+                            if(meetingVO.getMt_remind_type().equals(1)){
+                                if(_cnt > 90){
+                                    resultVO.setResult_str("일 단위 되풀이 주기는 90일까지 입니다.");
+                                    _chkDup = 1;
+                                }else{
+                                    _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+                                    if(!_dayChk.equals(0)){
+                                        resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                        _chkDup = 1;
+                                    }
+                                }
+
+                            // 주 주기
+                            }else if(meetingVO.getMt_remind_type().equals(2)){
+                                if(_cnt > 12){
+                                    resultVO.setResult_str("주 단위 되풀이 주기는 12주까지 입니다.");
+                                    _chkDup = 1;
+                                }else{
+                                    if(meetingVO.getMt_remind_week().isEmpty() || meetingVO.getMt_remind_week()==null){
+                                        resultVO.setResult_str("주 단위 되풀이 주기는 요일을 선택해주세요.");
+                                        _chkDup = 1;
+                                    }else{
+                                        _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
+                                        for(Integer i=1;i<=_cnt;i++){   // 주 반복
+                                            for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                                Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
+                                                for(String _w : _week){ // 입력 값 체크
+                                                    if(Integer.valueOf(_w).equals(_dw)){
+                                                        String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
+                                                        String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
+                                                        param.setMt_start_dt(_sdate);
+                                                        param.setMt_end_dt(_edate);
+                                                        if(getDateDiff(_sdate, _enddt)<0){
+                                                            _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if(!_dayChk.equals(0)){
+                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                            _chkDup = 1;
+                                        }
+                                    }
+                                }
+    
+                            // 월 주기
+                            }else if(meetingVO.getMt_remind_type().equals(3)){
+                                if(_cnt > 12){
+                                    resultVO.setResult_str("월 단위 되풀이 주기는 12개월까지 입니다.");
+                                    _chkDup = 1;
+                                }else{
+                                    _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+                                    if(!_dayChk.equals(0)){
+                                        resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                        _chkDup = 1;
+                                    }
+                                }
+
+                            // 년 주기
+                            }else if(meetingVO.getMt_remind_type().equals(4)){
+                                if(_cnt > 5){
+                                    resultVO.setResult_str("년 단위 되풀이 주기는 5년까지 입니다.");
+                                    _chkDup = 1;
+                                }else{
+                                    _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+                                    if(!_dayChk.equals(0)){
+                                        resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                        _chkDup = 1;
+                                    }
+                                }
+                            }
+
+                            // 기간 제한 통과 && 중복 날짜 통과
+                            if(_chkDup==0){
+                                // 미팅룸 참여자 삭제 리스트
+                                if(meetingVO.getInvite_del() != null && meetingVO.getInvite_del() != ""){
+                                    String[] inInvite = meetingVO.getInvite_del().split(",");
+                                    for(String uidx : inInvite){
+                                        MeetingVO ee = new MeetingVO();
+                                        ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                                        ee.setIdx_user(Integer.valueOf(uidx));
+                                        meetMapper.meet_invite_del(ee);
+                                    }
+                                }
+
+                                // 미팅룸 첨부파일 삭제
+                                if(meetingVO.getFile_del() != null && meetingVO.getFile_del() != ""){
+                                    String[] fileIdx = meetingVO.getFile_del().split(",");
+                                    for(String fidx : fileIdx){
+                                        MeetingVO ee = new MeetingVO();
+                                        ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                                        ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+                                        fileServiceMapper.getMeetFile(ee);
+
+                                        // 파일 삭제
+                                        MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                        File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                        if(f.exists()){
+                                            f.delete();
+                                        }
+                                        fileServiceMapper.delMeetFile(ee);
+                                    }
+                                }
+
+                                Integer _idx = 0;
+                                ArrayList<Object> _frss = new ArrayList<Object>();
+
+                                // 일 주기
+                                if(meetingVO.getMt_remind_type().equals(1)){
+                                    for(Integer i=0;i<_cnt;i++){
+                                        String _sdate = getCalDate(_sd, 0, 0, i);
+                                        String _edate = getCalDate(_ed, 0, 0, i);
+                                        param.setMt_start_dt(_sdate);
+                                        param.setMt_end_dt(_edate);
+                                        if(i>0){
+                                            param.setMt_remind_type(0);
+                                            param.setMt_remind_count(0);
+                                            param.setMt_remind_week(null);
+                                            param.setMt_remind_end(null);
+                                        }
+                                        if(getDateDiff(_sdate, _enddt)<0){
+                                            if(i==0){
+                                                rs = meetMapper.meet_modify(meetingVO);
+                                                if(rs > 0){
+                                                    // 미팅룸 참여자 추가 저장
+                                                    meetingService.saveMeetInvite(meetingVO);
+
+                                                    // 미팅룸 첨부파일 저장
+                                                    _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+
+                                                    resultVO.setResult_code(CONSTANT.success);
+                                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                }else{
+                                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                }
+                                            }else{
+                                                resultVO = meetingService.createMeetRoom(req, param);
+                                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+
+                                                // 미팅룸 첨부파일 복사
+                                                if(!_idx.equals(0)){
+                                                    meetingService.meetFileCopy(_idx, _frss);
+                                                }
+                                                resultVO.setResult_code(CONSTANT.success);
+                                                resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                            }
+                                        }
+                                    }
+                                // 주 주기
+                                }else if(meetingVO.getMt_remind_type().equals(2)){
+                                    Integer _fcnt = 0;
+                                    _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
+
+                                    for(Integer i=1;i<=_cnt;i++){   // 주 반복
+                                        for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                            Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
+                                            for(String _w : _week){ // 입력 값 체크
+                                                if(Integer.valueOf(_w).equals(_dw)){
+                                                    String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
+                                                    String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
+                                                    param.setMt_start_dt(_sdate);
+                                                    param.setMt_end_dt(_edate);
+                                                    if(_fcnt>0){
+                                                        param.setMt_remind_type(0);
+                                                        param.setMt_remind_count(0);
+                                                        param.setMt_remind_week("");
+                                                        param.setMt_remind_end(null);
+                                                    }
+                                                    if(getDateDiff(_sdate, _enddt)<0){
+                                                        if(_fcnt==0){
+                                                            rs = meetMapper.meet_modify(meetingVO);
+                                                            if(rs > 0){
+                                                                // 미팅룸 참여자 추가 저장
+                                                                meetingService.saveMeetInvite(meetingVO);
+            
+                                                                // 미팅룸 첨부파일 저장
+                                                                _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+            
+                                                                resultVO.setResult_code(CONSTANT.success);
+                                                                resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                                _fcnt++;
+                                                            }else{
+                                                                resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                            }
+                                                        }else{
+                                                            resultVO = meetingService.createMeetRoom(req, param);
+                                                            _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+            
+                                                            // 미팅룸 첨부파일 복사
+                                                            if(!_idx.equals(0)){
+                                                                _fcnt++;
+                                                                meetingService.meetFileCopy(_idx, _frss);
+                                                            }
+                                                            resultVO.setResult_code(CONSTANT.success);
+                                                            resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                // 월 주기
+                                }else if(meetingVO.getMt_remind_type().equals(3)){
+                                    for(Integer i=0;i<_cnt;i++){
+                                        String _sdate = getCalDate(_sd, 0, i, 0);
+                                        String _edate = getCalDate(_ed, 0, i, 0);
+                                        param.setMt_start_dt(_sdate);
+                                        param.setMt_end_dt(_edate);
+                                        if(i>0){
+                                            param.setMt_remind_type(0);
+                                            param.setMt_remind_count(0);
+                                            param.setMt_remind_week("");
+                                            param.setMt_remind_end(null);
+                                        }
+                                        if(getDateDiff(_sdate, _enddt)<0){
+                                            if(i==0){
+                                                rs = meetMapper.meet_modify(meetingVO);
+                                                if(rs > 0){
+                                                    // 미팅룸 참여자 추가 저장
+                                                    meetingService.saveMeetInvite(meetingVO);
+
+                                                    // 미팅룸 첨부파일 저장
+                                                    _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+
+                                                    resultVO.setResult_code(CONSTANT.success);
+                                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                }else{
+                                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                }
+                                            }else{
+                                                resultVO = meetingService.createMeetRoom(req, param);
+                                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+
+                                                // 미팅룸 첨부파일 복사
+                                                if(!_idx.equals(0)){
+                                                    meetingService.meetFileCopy(_idx, _frss);
+                                                }
+                                                resultVO.setResult_code(CONSTANT.success);
+                                                resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                            }
+                                        }
+                                    }
+                                // 년 주기
+                                }else if(meetingVO.getMt_remind_type().equals(4)){
+                                    for(Integer i=0;i<_cnt;i++){
+                                        String _sdate = getCalDate(_sd, i, 0, 0);
+                                        String _edate = getCalDate(_ed, i, 0, 0);
+                                        param.setMt_start_dt(_sdate);
+                                        param.setMt_end_dt(_edate);
+                                        if(i>0){
+                                            param.setMt_remind_type(0);
+                                            param.setMt_remind_count(0);
+                                            param.setMt_remind_week("");
+                                            param.setMt_remind_end(null);
+                                        }
+                                        if(getDateDiff(_sdate, _enddt)<0){
+                                            if(i==0){
+                                                rs = meetMapper.meet_modify(meetingVO);
+                                                if(rs > 0){
+                                                    // 미팅룸 참여자 추가 저장
+                                                    meetingService.saveMeetInvite(meetingVO);
+
+                                                    // 미팅룸 첨부파일 저장
+                                                    _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+
+                                                    resultVO.setResult_code(CONSTANT.success);
+                                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                }else{
+                                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                }
+                                            }else{
+                                                resultVO = meetingService.createMeetRoom(req, param);
+                                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+
+                                                // 미팅룸 첨부파일 복사
+                                                if(!_idx.equals(0)){
+                                                    meetingService.meetFileCopy(_idx, _frss);
+                                                }
+                                                resultVO.setResult_code(CONSTANT.success);
+                                                resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                }
+                                resultVO.setData(null);
+                            }
+                            }
                         }
                     }else{
                         resultVO.setResult_str("이용권한이 없습니다.");
@@ -1053,7 +1334,7 @@ public class MeetController extends BaseController {
                 MeetingVO _chkMeet = meetMapper.chkMeetLiveJoin(meetingVO);
                 if(!_chkMeet.getToken().isEmpty()){
                     Map<String, Object> _rs = new HashMap<String, Object>();
-                    _rs.put("mid", meetingVO.getIdx_meeting());
+                    _rs.put("mcid", "euraclass" + meetingVO.getIdx_meeting().toString());
                     _rs.put("token", _chkMeet.getToken());
                     resultVO.setData(_rs);
 
@@ -1073,7 +1354,7 @@ public class MeetController extends BaseController {
                     meetingVO.setSessionid(_userPk);
     
                     Map<String, Object> _rs = new HashMap<String, Object>();
-                    _rs.put("mid", meetingVO.getIdx_meeting());
+                    _rs.put("mcid", "euraclass" + meetingVO.getIdx_meeting().toString());
                     _rs.put("token", _jwt);
                     resultVO.setData(_rs);
                     
