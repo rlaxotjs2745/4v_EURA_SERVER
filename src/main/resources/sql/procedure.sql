@@ -15,9 +15,10 @@ BEGIN
             @IDXUSER, _idx_meeting, _user_email
         );
     END IF;
-END;;
+END;$$
+DELIMITER ;
 
-CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `prc_meet_chkRoomDupTime`(
+CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `eura_db`.`prc_meet_chkRoomDupTime`(
 	IN `_idx_meeting` INT,
 	IN `_idx_user` INT
 )
@@ -27,9 +28,10 @@ BEGIN
 	SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
 		AND ((MT_START_DT<=@MTSTARTDT AND MT_END_DT>=@MTSTARTDT) OR (MT_START_DT<=@MTENDDT AND MT_END_DT>=@MTENDDT));
 	SELECT @CNT AS chkcnt;
-END;;
+END;$$
+DELIMITER ;
 
-CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `prc_meet_chkRoomDupDate`(
+CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `eura_db`.`prc_meet_chkRoomDupDate`(
 	IN `_idx_user` INT,
 	IN `_mt_start_dt` VARCHAR(20),
 	IN `_mt_end_dt` VARCHAR(20)
@@ -39,4 +41,5 @@ BEGIN
 	SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
 			AND ((MT_START_DT<=_mt_start_dt AND MT_END_DT>=_mt_start_dt) OR (MT_START_DT<=_mt_end_dt AND MT_END_DT>=_mt_end_dt));
 	SELECT @CNT AS chkcnt;
-END;;
+END;$$
+DELIMITER ;
