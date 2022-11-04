@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.eura.web.model.DTO.AnalysisMapper">
-    <insert id="insertAnalysisData" parameterType="com.eura.web.model.AnalysisMapper">
+<mapper namespace="com.eura.web.model.AnalysisMapper">
+    <insert id="insertAnalysisData" parameterType="com.eura.web.model.DTO.LiveEmotionVO">
         INSERT INTO TB_ANALYSIS (
+            IDX_MEETING_USER_JOIN,
             JOY,
             SADNESS,
             DISGUST,
@@ -38,38 +39,44 @@
             LIPSTRETCH,
             REG_DT
         ) VALUES (
-            #{joy},
-            #{sadness},
-            #{disgust},
-            #{contempt},
-            #{anger},
-            #{fear},
-            #{surprise},
-            #{valence},
-            #{engagement},
-            #{Timestamp},
-            #{FileName},
-            #{smile},
-            #{innerBrowRaise},
-            #{browRaise},
-            #{browFurrow},
-            #{noseWrinkle},
-            #{upperLipRaise},
-            #{lipCornerDepressor},
-            #{chinRaise},
-            #{lipPucker},
-            #{lipPress},
-            #{lipSuck},
-            #{mouthOpen},
-            #{smirk},
-            #{eyeClosure},
-            #{attention},
-            #{lidTighten},
-            #{jawDrop},
-            #{dimpler},
-            #{eyeWiden},
-            #{cheekRaise},
-            #{lipStretch},
+            (
+                SELECT IDX_MEETING_USER_JOIN
+                FROM TB_MEETING_USER_JOIN
+                WHERE TOKEN = #{udata.token}
+                  AND SESSIONID = #{udata.mcid}
+            ),
+            #{mdata.joy},
+            #{mdata.sadness},
+            #{mdata.disgust},
+            #{mdata.contempt},
+            #{mdata.anger},
+            #{mdata.fear},
+            #{mdata.surprise},
+            #{mdata.valence},
+            #{mdata.engagement},
+            #{mdata.Timestamp},
+            #{mdata.FileName},
+            #{mdata.smile},
+            #{mdata.innerBrowRaise},
+            #{mdata.browRaise},
+            #{mdata.browFurrow},
+            #{mdata.noseWrinkle},
+            #{mdata.upperLipRaise},
+            #{mdata.lipCornerDepressor},
+            #{mdata.chinRaise},
+            #{mdata.lipPucker},
+            #{mdata.lipPress},
+            #{mdata.lipSuck},
+            #{mdata.mouthOpen},
+            #{mdata.smirk},
+            #{mdata.eyeClosure},
+            #{mdata.attention},
+            #{mdata.lidTighten},
+            #{mdata.jawDrop},
+            #{mdata.dimpler},
+            #{mdata.eyeWiden},
+            #{mdata.cheekRaise},
+            #{mdata.lipStretch},
             NOW()
         )
     </insert>

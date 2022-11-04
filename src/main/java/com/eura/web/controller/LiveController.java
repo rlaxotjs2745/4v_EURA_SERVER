@@ -1,6 +1,7 @@
 package com.eura.web.controller;
 
 import com.eura.web.model.DTO.AnalysisVO;
+import com.eura.web.model.DTO.LiveEmotionVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
@@ -19,9 +20,29 @@ public class LiveController {
     private final AnalysisService analysisService;
 
 
+    /**
+     * 강의실 종료
+     * @param req
+     * @param analysisVO
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/analyse")
+    public ResultVO analyseFace(HttpServletRequest req, @RequestBody LiveEmotionVO liveEmotionVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
 
+        try{
+            analysisService.insertAnalysisData(liveEmotionVO);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("Insert Complete");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
-
+        return resultVO;
+    }
 
 
 }

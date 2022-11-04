@@ -1210,6 +1210,7 @@ public class MeetController extends BaseController {
             _rs.put("mtMeetingTime", hours + ":" + minutes + ":" + seconds);
 
             // 미구현 내용: 미팅 녹화 내용 담아주어야 함
+            // 미구현 내용: 감정 분석 결과 분석으로 집중도 분석 요약 그래프에 들어갈 퍼센트 만들어야 함
 
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("강의 정보를 불러오는 데에 성공했습니다.");
@@ -1263,13 +1264,23 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try{
+            Map<String, Object> _rs = new HashMap<String, Object>();
 
+            _rs.put("participants", meetMapper.getMeetInvites(meetingVO));
+
+            // 미구현 내용: 감정 분석 결과를 분석하여 집중도 추가 필요함
+
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("인원 정보를 불러오는 데에 성공했습니다.");
+            resultVO.setData(_rs);
         } catch (Exception e){
             e.printStackTrace();
         }
 
         return resultVO;
     }
+
+
 
     //퍼센트 계산
     // 전체값 a에서 b는 몇퍼센트인가?
