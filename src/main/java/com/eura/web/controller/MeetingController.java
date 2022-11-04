@@ -55,6 +55,7 @@ public class MeetingController {
                 _rs.put("mt_end_dt",rrs.getMt_end_dt());
                 _rs.put("mt_status",rrs.getMt_status());
                 _rs.put("host_name",rrs.getHost_name());
+                _rs.put("ishost",rrs.getIshost());
                 _rs.put("user_name",rrs.getUser_name());
                 _rs.put("session_name",rrs.getSessionid());
                 _rs.put("keepalive",CONSTANT.keepalive);
