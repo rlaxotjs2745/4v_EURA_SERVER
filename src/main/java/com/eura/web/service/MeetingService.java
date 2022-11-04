@@ -270,7 +270,11 @@ public class MeetingService extends BaseController {
         return _dayChk;
     }
 
-
+    /**
+     * 강의실 종료
+     * @param meetingVO
+     * @throws Exception
+     */
     public void closeMeet(MeetingVO meetingVO) throws Exception {
         meetMapper.closeMeet(meetingVO);
     }
