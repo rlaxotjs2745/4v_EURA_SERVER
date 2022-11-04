@@ -13,4 +13,8 @@ public class CONSTANT {
     public static Integer no = 0;
 
     public static Integer default_pageblock = 8;    // 페이징 기본 수량
+
+    public static Integer keepalive = 5;
+    public static Integer mdatasec = 5;
+    public static String rurl = "/mt/";
 }

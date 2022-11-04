@@ -2,10 +2,12 @@ package com.eura.web.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import com.eura.web.model.DTO.FileUploadResponseVO;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.MeetingVO;
@@ -26,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class MeetingService {
+public class MeetingService extends BaseController {
     @Autowired
     private MeetMapper meetMapper;
     
@@ -45,7 +48,7 @@ public class MeetingService {
      * 미팅룸 생성
      * @param req
      * @param meetingVO
-     * @return
+     * @return ResultVO
      * @throws Exception
      */
     public ResultVO createMeetRoom(MultipartHttpServletRequest req, MeetingVO meetingVO) throws Exception {
@@ -53,7 +56,6 @@ public class MeetingService {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        // log.info(meetingVO.getMt_name());
         Integer rs = meetMapper.meet_create(meetingVO);
         if(rs > 0){
             UserVO uInfo = userService.getUserInfo(meetingVO.getIdx_user());
@@ -66,17 +68,7 @@ public class MeetingService {
             meetMapper.meet_invite(es);
 
             // 미팅룸 참여자 리스트 저장
-            if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
-                String[] inEmail = meetingVO.getMt_invite_email().split(",");
-                for(String uemail : inEmail){
-                    if(!uemail.isEmpty()){
-                        MeetingVO ee = new MeetingVO();
-                        ee.setIdx_meeting(meetingVO.getIdx_meeting());
-                        ee.setUser_email(uemail);
-                        meetMapper.meet_invite(ee);
-                    }
-                }
-            }
+            this.saveMeetInvite(meetingVO);
 
             Map<String, Object> _rs = new HashMap<String, Object>();
             _rs.put("key",meetingVO.getIdx_meeting());
@@ -88,6 +80,25 @@ public class MeetingService {
             resultVO.setResult_str("미팅룸 생성에 실패하였습니다.");
         }
         return resultVO;
+    }
+
+    /**
+     * 미팅룸 참여자 리스트 저장
+     * @param meetingVO
+     * @throws Exception
+     */
+    public void saveMeetInvite(MeetingVO meetingVO) throws Exception {
+        if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
+            String[] inEmail = meetingVO.getMt_invite_email().split(",");
+            for(String uemail : inEmail){
+                if(!uemail.isEmpty()){
+                    MeetingVO ee = new MeetingVO();
+                    ee.setIdx_meeting(meetingVO.getIdx_meeting());
+                    ee.setUser_email(uemail);
+                    meetMapper.meet_invite(ee);
+                }
+            }
+        }
     }
 
     /**
@@ -138,6 +149,125 @@ public class MeetingService {
                                 .replace("${USERNAME}", _unm);
             mailSender.sender(_ss.getUser_email(), rrs.getMt_name(), _ebody);
         }
+    }
+
+    /**
+     * 미팅룸 첨부파일 저장
+     * @param req
+     * @param _idx
+     * @return
+     * @throws Exception
+     */
+    public ArrayList<Object> meetFileSave(MultipartHttpServletRequest req, Integer _idx) throws Exception {
+        ArrayList<Object> _frss = new ArrayList<Object>();
+
+        List<MultipartFile> fileList = req.getFiles("file");
+        if(req.getFiles("file").get(0).getSize() != 0){
+            fileList = req.getFiles("file");
+        }
+        if(fileList.size()>0){
+            long time = System.currentTimeMillis();
+            String path = "/meetroom/" + _idx + "/";
+            String fullpath = this.filepath + path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+
+            for(MultipartFile mf : fileList) {
+                Map<String, Object> _frs = new HashMap<String, Object>();
+                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                String saveFileName = String.format("%d_%s", time, originFileName);
+                try { // 파일생성
+                    mf.transferTo(new File(fullpath, saveFileName));
+                    MeetingVO paramVo = new MeetingVO();
+                    paramVo.setIdx_meeting(_idx);
+                    paramVo.setFile_path(path);
+                    paramVo.setFile_name(saveFileName);
+                    paramVo.setFile_size(mf.getSize());
+                    fileServiceMapper.addMeetFile(paramVo);
+                    _frs.put("filepath",path);
+                    _frs.put("filename",saveFileName);
+                    _frs.put("filesize",mf.getSize());
+                    _frss.add(_frs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return _frss;
+    }
+
+    /**
+     * 미팅룸 첨부파일 복사
+     * @param _idx
+     * @param _frss
+     * @throws Exception
+     */
+    public void meetFileCopy(Integer _idx, ArrayList<Object> _frss) throws Exception {
+        try {
+            String path = "/meetroom/" + _idx + "/";
+            String fullpath = this.filepath + path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            for(int ii=0;ii<_frss.size();ii++){
+                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
+                String _sfnm = _frsa.get("filename").toString();
+                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
+                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+                File newFile = new File(fullpath + _sfnm);
+                FileUtils.copyFile(file, newFile);
+
+                MeetingVO paramVo = new MeetingVO();
+                paramVo.setIdx_meeting(_idx);
+                paramVo.setFile_path(path);
+                paramVo.setFile_name(_sfnm);
+                paramVo.setFile_size(_sfze);
+                fileServiceMapper.addMeetFile(paramVo);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 일,월,년 단위 중복 체크
+     * @param _tp = 1:일,3:월,4:년
+     * @param _dayChk
+     * @param _cnt
+     * @param meetingVO
+     * @return Integer
+     * @throws Exception
+     */
+    public Integer chkRoomDup(Integer _tp, Integer _dayChk, Integer _cnt, MeetingVO meetingVO) throws Exception{
+        String _sd = meetingVO.getMt_start_dt();
+        String _ed = meetingVO.getMt_end_dt();
+        if(_cnt>0){
+            for(Integer i=0;i<_cnt;i++){
+                String _sdate = getCalDate(_sd, 0, 0, 0);
+                String _edate = getCalDate(_ed, 0, 0, 0);
+                if(_tp==1){
+                    _sdate = getCalDate(_sd, 0, 0, i);
+                    _edate = getCalDate(_ed, 0, 0, i);
+                }else if(_tp==3){
+                    _sdate = getCalDate(_sd, 0, i, 0);
+                    _edate = getCalDate(_ed, 0, i, 0);
+                }else if(_tp==4){
+                    _sdate = getCalDate(_sd, i, 0, 0);
+                    _edate = getCalDate(_ed, i, 0, 0);
+                }
+                meetingVO.setMt_start_dt(_sdate);
+                meetingVO.setMt_end_dt(_edate);
+                MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
+                _dayChk=_dayChk+_chk.getChkcnt();
+            }
+        }else{
+            MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
+            _dayChk=_dayChk+_chk.getChkcnt();
+        }
+        return _dayChk;
     }
 
 

@@ -5,12 +5,12 @@ import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class BaseController {
     public String getBrowser(HttpServletRequest req) {
@@ -58,7 +58,7 @@ public class BaseController {
     /**
 	 * Client IP 조회
 	 * @param request
-	 * @return
+	 * @return String
 	 */
 	protected String getClientIP(HttpServletRequest req) {
 		String ip = req.getHeader("X-FORWARDED-FOR");
@@ -95,7 +95,7 @@ public class BaseController {
      * @param _y
      * @param _m
      * @param _d
-     * @return
+     * @return String
      */
     public String getCalDate(String _date, Integer _y, Integer _m, Integer _d){
         String _r = "";
@@ -119,7 +119,7 @@ public class BaseController {
      * @param _y
      * @param _m
      * @param _d
-     * @return
+     * @return Integer
      */
     public Integer getCalDayOfWeek(String _date, Integer _y, Integer _m, Integer _d){
         Integer _r = 0;
@@ -134,9 +134,31 @@ public class BaseController {
         if(_m!=0){cal.add(Calendar.MONTH, _m);}
         if(_d!=0){cal.add(Calendar.DATE, _d);}
 
-        LocalDate date = LocalDate.of(Calendar.YEAR, Calendar.MONTH, Calendar.DATE);
-        DayOfWeek dayOfWeek = date.getDayOfWeek();
-        _r = dayOfWeek.getValue();
+        _r = cal.get(Calendar.DAY_OF_WEEK);
         return _r;
     }
+
+    /**
+     * 날짜 비교
+     * @param _date1
+     * @param _date2
+     * @return 0:동일, 0>:이전, 0<:이후
+     * @throws ParseException
+     */
+    public Integer getDateDiff(String _date1, String _date2) throws ParseException{
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd");
+        Date date1 = _ex.parse(_date1);
+        Date date2 = _ex.parse(_date2);
+        return date1.compareTo(date2);
+    }
+
+    /**
+     * get Map Object from JSON String by GSON
+     * @param jsonStr
+     * @return List<Map<String, String>>
+     */
+    public static List<Map<String, String>> getListFromJson(String jsonStr) {
+		return new Gson().fromJson(jsonStr, new TypeToken<List<Map<String, String>>>() {
+        }.getType());
+	}
 }

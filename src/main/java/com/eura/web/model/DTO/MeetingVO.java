@@ -30,6 +30,7 @@ public class MeetingVO extends BaseVO {
     private String token;
     private String sessionid;
     private String host_name;
+    private Integer ishost;
     private Integer klsec;      // APP과의 KeepAlive 주기(Sec)
     private Integer anlsec;     // APP과의 감정분석 주기(Sec)
     private Integer appuppath;  // APP에서 결과를 업로드할 경로
