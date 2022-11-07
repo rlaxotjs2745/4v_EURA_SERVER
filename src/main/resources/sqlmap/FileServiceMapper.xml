@@ -25,4 +25,13 @@
         FROM TB_ATTACHMENT_FILE_INFO_JOIN 
         WHERE DELETE_STAT=0 AND IDX_ATTACHMENT_FILE_INFO_JOIN=#{idx_attachment_file_info_join}
     </select>
+
+    <!-- 미팅 동영상 파일 저장 -->
+    <insert id="addMeetMovieFile">
+        INSERT INTO TB_MEETING_MOVIE_FILE (
+            IDX_MEETING, FILE_PATH, FILE_NAME, FILE_SIZE
+        ) VALUES (
+            (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}), #{file_path}, #{file_name}, #{file_size}
+        )
+    </insert>
 </mapper>

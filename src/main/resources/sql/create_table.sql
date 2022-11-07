@@ -74,6 +74,7 @@ CREATE TABLE `TB_MEETING_USER_JOIN` (
   `SESSIONID` varchar(50) DEFAULT NULL COMMENT '미팅룸 고유 고정 값',
   `JOIN_DT` datetime DEFAULT NULL COMMENT '참가 일시',
   `IS_LIVE` tinyint(1) DEFAULT 0 COMMENT '참여 여부 - 0:미참여, 1:참여',
+  `IS_ALIVE` tinyint(1) DEFAULT 0 COMMENT '감정분석 상태 - 0:미진행, 1:진행',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
   `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
@@ -130,3 +131,15 @@ CREATE TABLE `TB_ANALYSIS` (
   `REG_DT` datetime DEFAULT NULL,
   PRIMARY KEY (`IDX_ANALYSIS`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='감정 분석 데이터';
+
+CREATE TABLE `TB_MEETING_MOVIE_FILE` (
+  `IDX_MOVIE_FILE` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `IDX_MEETING` int(10) unsigned DEFAULT NULL COMMENT '미팅룸 INDEX - TB_MEETING IDX_MEETING',
+  `FILE_PATH` varchar(1000) DEFAULT NULL COMMENT '파일 경로',
+  `FILE_NAME` varchar(100) DEFAULT NULL COMMENT '파일 이름',
+  `FILE_SIZE` int(10) unsigned DEFAULT NULL COMMENT '파일 크기',
+  `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
+  `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
+  `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
+  PRIMARY KEY (`IDX_MOVIE_FILE`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 동영상 파일 정보';
