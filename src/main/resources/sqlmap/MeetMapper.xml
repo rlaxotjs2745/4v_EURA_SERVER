@@ -240,8 +240,24 @@
     <update id="putMeetLiveStart">
         UPDATE TB_MEETING
             SET
-                IS_LIVE=1
+                JOIN_DT=NOW()
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+    </update>
+
+    <!-- ZOOM 미팅 참가 수신 -->
+    <update id="putJoinMeetLiveStart">
+        UPDATE TB_MEETING_USER_JOIN
+            SET
+                IS_LIVE=1, zuid=#{zuid}
+            WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
+    </update>
+
+    <!-- ZOOM 미팅 Keep Alive : 녹화/감정 분석 진행여부 -->
+    <update id="putMeetAlive">
+        UPDATE TB_MEETING_USER_JOIN
+            SET
+                IS_ALIVE=#{is_alive}
+            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND zuid=#{zuid}
     </update>
 
     <!-- 미팅 들어가기 -->
@@ -298,5 +314,15 @@
             MT_END_DT = NOW(),
             LAST_UPD_DT = NOW()
         WHERE IDX_MEETING=#{idx_meeting}
+    </update>
+
+    <!-- APP 미팅룸 종료 시 영상 파일 받기 -->
+    <update id="endMeetLive">
+        UPDATE TB_MEETING
+        SET
+            IS_LIVE = 0,
+            IS_FINISH = 1,
+            LAST_UPD_DT = NOW()
+        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
     </update>
 </mapper>

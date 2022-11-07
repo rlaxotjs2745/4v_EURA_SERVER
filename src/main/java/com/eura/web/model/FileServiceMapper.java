@@ -14,4 +14,7 @@ public interface FileServiceMapper {
 
     // 미팅룸 첨부파일 정보
     public MeetingVO getMeetFile(MeetingVO meetingVO) throws Exception;
+
+    // 미팅 동영상 파일 저장
+    public Integer addMeetMovieFile(MeetingVO meetingVO) throws Exception;
 }

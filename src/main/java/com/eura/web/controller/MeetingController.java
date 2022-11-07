@@ -42,7 +42,6 @@ public class MeetingController {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
-        log.info("mcid: {}", meetingVO.getMcid());
 
         try {
             Map<String, Object> _rs = new HashMap<String, Object>();
@@ -64,6 +63,62 @@ public class MeetingController {
                 resultVO.setData(_rs);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+
+    /**
+     * ZOOM 미팅 참가 수신
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping(value="/join", consumes = "application/json", produces = "application/json")
+    public ResultVO putJoinMeetLiveStart(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            Integer rs = meetMapper.putMeetLiveStart(meetingVO);
+            if(rs == 1){
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("참가 정보 수신을 완료하였습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * ZOOM 미팅 Keep Alive : 녹화/감정 분석 진행여부
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping(value="/alive", consumes = "application/json", produces = "application/json")
+    public ResultVO putMeetAlive(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            if(meetingVO.getIsAnalysis() == null){
+                meetingVO.setIs_alive(0);
+            }else{
+                meetingVO.setIs_alive(meetingVO.getIsAnalysis());
+            }
+            Integer rs = meetMapper.putMeetAlive(meetingVO);
+            if(rs == 1){
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("정보 수신을 완료하였습니다.");
             }
         } catch (Exception e) {
             e.printStackTrace();

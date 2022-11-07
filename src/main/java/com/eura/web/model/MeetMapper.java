@@ -61,6 +61,12 @@ public interface MeetMapper {
     // 미팅 시작하기
     public Integer putMeetLiveStart(MeetingVO meetingVO) throws Exception;
 
+    // ZOOM 미팅 참가 수신
+    public Integer putJoinMeetLiveStart(MeetingVO meetingVO) throws Exception;
+
+    // ZOOM 미팅 Keep Alive : 녹화/감정 분석 진행여부
+    public Integer putMeetAlive(MeetingVO meetingVO) throws Exception;
+
     // 미팅 들어가기
     public Integer putMeetLiveJoin(MeetingVO meetingVO) throws Exception;
 
@@ -78,4 +84,6 @@ public interface MeetMapper {
 
     // 현재 실행되는 미팅 끝내기
     public void closeMeet(MeetingVO meetingVO) throws Exception;
+
+    public Integer endMeetLive(MeetingVO meetingVO) throws Exception;
 }

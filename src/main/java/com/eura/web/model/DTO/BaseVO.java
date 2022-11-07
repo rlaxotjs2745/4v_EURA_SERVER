@@ -27,4 +27,5 @@ public class BaseVO {
 
     private Integer chkcnt;
     private String mcid;    // ZOOM의 연결점 중 강의실 고유번호(ID) - TB_MEETING Table의 IDX_MEETING 인덱스 컬럼
+    private String token;       // ZOOM 이용을 위한 토큰 값
 }

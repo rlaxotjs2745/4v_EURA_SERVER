@@ -27,12 +27,14 @@ public class MeetingVO extends BaseVO {
     private Integer calMonth;   // 미팅 달력 월
 
     private Integer mFTyp;      // 메일폼 종류 - 1:미팅 시작, 2:미팅시작 30분전, 3:미팅취소, 4:미팅룸 공개
-    private String token;
-    private String sessionid;
-    private String host_name;
-    private Integer ishost;
+    private String sessionid;   // 미팅룸 고유 ID
+    private String host_name;   // 호스트명
+    private Integer ishost;     // 호스트 여부 - 0:일반참석자, 1:호스트
+    private Integer isAnalysis; // ZOOM 감정 분석 상태 - 0:미진행, 1:진행
     private Integer klsec;      // APP과의 KeepAlive 주기(Sec)
     private Integer anlsec;     // APP과의 감정분석 주기(Sec)
     private Integer appuppath;  // APP에서 결과를 업로드할 경로
     private String zuid;        // ZOOM User ID
+    private Integer is_alive;   // ZOOM 감정 분석 상태 - 0:미진행, 1:진행
+    private String result;      // 강의 종료 데이터
 }
