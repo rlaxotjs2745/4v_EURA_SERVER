@@ -37,7 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
                 .authorizeRequests()
-                    .antMatchers("/meet","/live").authenticated()
+                    .antMatchers("/meet").authenticated()
                     .anyRequest().permitAll()
                 .and()
                     .exceptionHandling().accessDeniedPage("/denied");

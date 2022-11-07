@@ -325,4 +325,10 @@
             LAST_UPD_DT = NOW()
         WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
     </update>
+
+    <!-- 미팅 참가자 INDEX 정보 추출 -->
+    <select id="getMeetInvite" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT IDX_USER, IDX_MEETING FROM TB_MEETING_USER_JOIN
+            WHERE TOKEN=#{token} AND SESSIONID=#{sessionid}
+    </select>
 </mapper>

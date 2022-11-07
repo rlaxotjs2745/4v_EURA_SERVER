@@ -10,8 +10,8 @@ import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
 import com.eura.web.util.CONSTANT;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +21,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.io.File;
 import java.util.*;
 
-import javax.mail.Multipart;
-import javax.servlet.http.HttpServletRequest;
-
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
@@ -36,7 +34,7 @@ public class LiveController extends BaseController {
     public String filepath;
 
     /**
-     * 강의실 종료
+     * 참석자 감정 분석 자료
      * @param req
      * @param liveEmotionVO
      * @return
@@ -52,61 +50,60 @@ public class LiveController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        System.out.println(req.getCookies());
-
         try{
-            Gson gson = new Gson();
-            AnalysisVO analysisVO = gson.fromJson(emotion, AnalysisVO.class);
+            AnalysisVO analysisVO = new Gson().fromJson(emotion, AnalysisVO.class);
 
-            LiveEmotionVO liveEmotionVO = new LiveEmotionVO();
+            MeetingVO meetingVO = new MeetingVO();
+            meetingVO.setSessionid(mcid);
+            meetingVO.setToken(token);
+            MeetingVO _urs = meetMapper.getMeetInvite(meetingVO);
+            if(_urs==null){
+                resultVO.setResult_str("이용 가능한 회원이 아닙니다.");
+            }else{
+                LiveEmotionVO liveEmotionVO = new LiveEmotionVO();
+                liveEmotionVO.setToken(token);
+                liveEmotionVO.setMcid(mcid);
+                liveEmotionVO.setEmotion(analysisVO);
+                analysisService.insertAnalysisData(liveEmotionVO);
+                
+                List<MultipartFile> fileList = req.getFiles("file");
+                if(req.getFiles("file").get(0).getSize() != 0){
+                    fileList = req.getFiles("file");
+                }
 
-            liveEmotionVO.setZuid(zuid);
-            liveEmotionVO.setMcid(mcid);
-            liveEmotionVO.setToken(token);
-            liveEmotionVO.setEmotion(analysisVO);
-
-            analysisService.insertAnalysisData(liveEmotionVO);
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("Insert Complete");
+                if(fileList.size()>0){
+                    long time = System.currentTimeMillis();
+                    String path = "/emotiondata/" + mcid + "/" + _urs.getIdx_user() + "/";
+                    String fullpath = this.filepath + path;
+                    File fileDir = new File(fullpath);
+                    if (!fileDir.exists()) {
+                        fileDir.mkdirs();
+                    }
+        
+                    for(MultipartFile mf : fileList) {
+                        if(mf.getOriginalFilename()!=null){
+                            String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                            String saveFileName = String.format("%d_%s", time, originFileName);
+                            try { // 파일생성
+                                mf.transferTo(new File(fullpath, saveFileName));
+                                MeetingVO paramVo = new MeetingVO();
+                                paramVo.setIdx_analysis(liveEmotionVO.getIdx_analysis());
+                                paramVo.setFile_path(path);
+                                paramVo.setFile_name(saveFileName);
+                                paramVo.setFile_size(mf.getSize());
+                                fileServiceMapper.addEmotionFile(paramVo);        // 미팅 감정 파일 저장
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("Insert Complete");
+            }
         } catch (Exception e){
             e.printStackTrace();
         }
-
-//        List<MultipartFile> fileList = req.getFiles("file");
-//
-//        if(req.getFiles("file").get(0).getSize() != 0){
-//            fileList = req.getFiles("file");
-//        }
-//        if(fileList.size()>0){
-//            long time = System.currentTimeMillis();
-//            String path = "/emotiondata/" + mcid + "/" + zuid + "/";
-//            String fullpath = this.filepath + path;
-//            File fileDir = new File(fullpath);
-//            if (!fileDir.exists()) {
-//                fileDir.mkdirs();
-//            }
-//
-//            for(MultipartFile mf : fileList) {
-//                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-//                String saveFileName = String.format("%d_%s", time, originFileName);
-//                try { // 파일생성
-//                    mf.transferTo(new File(fullpath, saveFileName));
-//                    MeetingVO paramVo = new MeetingVO();
-//                    paramVo.setMcid(mcid);
-//                    paramVo.setZuid(zuid);
-//                    paramVo.setToken(token);
-//                    paramVo.setFile_path(path);
-//                    paramVo.setFile_name(saveFileName);
-//                    paramVo.setFile_size(mf.getSize());
-//                    fileServiceMapper.addEmotionFile(paramVo);        // 미팅 동영상 파일 저장
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-
-
-
         return resultVO;
     }
 
@@ -145,6 +142,7 @@ public class LiveController extends BaseController {
                         try { // 파일생성
                             mf.transferTo(new File(fullpath, saveFileName));
                             MeetingVO paramVo = new MeetingVO();
+                            paramVo.setToken(meetingVO.getToken());
                             paramVo.setMcid(meetingVO.getMcid());
                             paramVo.setFile_path(path);
                             paramVo.setFile_name(saveFileName);

@@ -3,8 +3,6 @@ package com.eura.web.model.DTO;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 public class AnalysisVO extends BaseVO{
@@ -17,7 +15,7 @@ public class AnalysisVO extends BaseVO{
     double surprise;
     double valence;
     double engagement;
-    Date Timestamp;
+    Integer Timestamp;
     String FileName;
     double smile;
     double innerBrowRaise;

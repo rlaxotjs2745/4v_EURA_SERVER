@@ -35,15 +35,12 @@
         )
     </insert>
 
-    <!-- 미팅 동영상 파일 저장 -->
+    <!-- 미팅 감정 파일 저장 -->
     <insert id="addEmotionFile">
         INSERT INTO TB_ANALYSIS_FILE (
             IDX_ANALYSIS, FILE_PATH, FILE_NAME, FILE_SIZE
         ) VALUES (
-            (SELECT IDX_ANALYSIS FROM TB_ANALYSIS WHERE (SELECT IDX_MEETING_USER_JOIN FROM  TOKEN=#{token} AND SESSIONID=#{mcid}),
-                  #{file_path},
-                  #{file_name},
-                  #{file_size}
+            #{idx_analysis}, #{file_path}, #{file_name}, #{file_size}
         )
     </insert>
 </mapper>

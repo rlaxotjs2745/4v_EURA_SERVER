@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.eura.web.model.AnalysisMapper">
-    <insert id="insertAnalysisData" parameterType="com.eura.web.model.DTO.LiveEmotionVO">
+    <insert id="insertAnalysisData" parameterType="com.eura.web.model.DTO.LiveEmotionVO" useGeneratedKeys="true" keyColumn="idx_analysis" keyProperty="idx_analysis">
         INSERT INTO TB_ANALYSIS (
             IDX_MEETING_USER_JOIN,
             JOY,
@@ -36,8 +36,7 @@
             DIMPLER,
             EYEWIDEN,
             CHEEKRAISE,
-            LIPSTRETCH,
-            REG_DT
+            LIPSTRETCH
         ) VALUES (
             (
                 SELECT IDX_MEETING_USER_JOIN
@@ -76,11 +75,7 @@
             #{emotion.dimpler},
             #{emotion.eyeWiden},
             #{emotion.cheekRaise},
-            #{emotion.lipStretch},
-            NOW()
+            #{emotion.lipStretch}
         )
-        <selectKey resultType="java.lang.Integer" order="AFTER">
-            SELECT LAST_INSERT_ID()
-        </selectKey>
     </insert>
 </mapper>

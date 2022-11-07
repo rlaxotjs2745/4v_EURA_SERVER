@@ -7,7 +7,7 @@ import lombok.*;
 public class BaseVO {
     private Integer idx_user;//	int unsigned 회원 INDEX
     private Integer idx_meeting;//	int unsigned 미팅룸 INDEX
-    private Integer idx_analysis;//	int unsigned 미팅룸 INDEX
+    private Long idx_analysis;//	int unsigned 미팅룸 INDEX
 
     private String user_email;
     private String user_name;//	varchar	20					유저 이름

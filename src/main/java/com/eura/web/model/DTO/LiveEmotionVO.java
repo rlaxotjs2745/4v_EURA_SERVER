@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LiveEmotionVO {
+public class LiveEmotionVO extends BaseVO {
     String token; //user - meeting 토큰
     String mcid; // 강의실 고유 코드 id
     String zuid; // zoom user id

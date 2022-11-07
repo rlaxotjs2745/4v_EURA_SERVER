@@ -5,7 +5,7 @@ import com.eura.web.model.DTO.ConcentrationVO;
 import com.eura.web.model.DTO.LiveEmotionVO;
 
 public interface AnalysisService {
-    public void insertAnalysisData(LiveEmotionVO liveEmotionVO);
+    public Long insertAnalysisData(LiveEmotionVO liveEmotionVO);
 
     public ConcentrationVO getConcentrationRate(AnalysisVO analysisVO);
 }

@@ -7,5 +7,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface AnalysisMapper {
     //미팅 중 감정 데이터 저장
-    public Integer insertAnalysisData(LiveEmotionVO liveEmotionVO);
+    public Long insertAnalysisData(LiveEmotionVO liveEmotionVO);
 }

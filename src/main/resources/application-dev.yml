@@ -16,11 +16,11 @@ file:
 #개발만 디버그 로그 보이게 하기
 logging:
   level:
-    root: info
+    root: debug
     com:
       eura: debug
   file:
-    path: /home/tomcat/logs
+    path: /Users/winmaster/APPS/apache-tomcat-9/logs
     max-history: 7
 
 log4jdbc:
