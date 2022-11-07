@@ -20,7 +20,8 @@ public class AnalysisServiceImpl implements AnalysisService {
     @Override
     public void insertAnalysisData(LiveEmotionVO liveEmotionVO) {
         try {
-            analysisMapper.insertAnalysisData(liveEmotionVO);
+            int analysisIdx = analysisMapper.insertAnalysisData(liveEmotionVO);
+            System.out.println("anal Idx: " + analysisIdx);
         } catch (Exception e){
             throw new RuntimeException("표정 분석 데이터 입력 중 문제가 발생했습니다.",e);
         }

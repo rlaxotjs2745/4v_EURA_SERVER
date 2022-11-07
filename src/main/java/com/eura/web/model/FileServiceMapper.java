@@ -17,4 +17,9 @@ public interface FileServiceMapper {
 
     // 미팅 동영상 파일 저장
     public Integer addMeetMovieFile(MeetingVO meetingVO) throws Exception;
+
+    // 감정 분석 데이터 내의 파일 저장
+    public Integer addEmotionFile(MeetingVO meetingVO) throws Exception;
+
+
 }

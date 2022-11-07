@@ -1,5 +1,6 @@
 package com.eura.web.controller;
 
+import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
@@ -41,7 +42,7 @@ public class LiveController {
      * @throws Exception
      */
     @PostMapping(value = "/analyse")
-    public ResultVO analyseFace(HttpServletRequest req,
+    public ResultVO analyseFace(MultipartHttpServletRequest req,
                                 @RequestPart("mcid") String mcid,
                                 @RequestPart("zuid") String zuid,
                                 @RequestPart("token") String token,
@@ -59,6 +60,39 @@ public class LiveController {
         liveEmotionVO.setMcid(mcid);
         liveEmotionVO.setToken(token);
         liveEmotionVO.setEmotion(analysisVO);
+
+        List<MultipartFile> fileList = req.getFiles("file");
+
+        if(req.getFiles("file").get(0).getSize() != 0){
+            fileList = req.getFiles("file");
+        }
+        if(fileList.size()>0){
+            long time = System.currentTimeMillis();
+            String path = "/emotiondata/" + mcid + "/" + zuid + "/";
+            String fullpath = this.filepath + path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+
+            for(MultipartFile mf : fileList) {
+                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+                String saveFileName = String.format("%d_%s", time, originFileName);
+                try { // 파일생성
+                    mf.transferTo(new File(fullpath, saveFileName));
+                    MeetingVO paramVo = new MeetingVO();
+                    paramVo.setMcid(mcid);
+                    paramVo.setZuid(zuid);
+                    paramVo.setToken(token);
+                    paramVo.setFile_path(path);
+                    paramVo.setFile_name(saveFileName);
+                    paramVo.setFile_size(mf.getSize());
+                    fileServiceMapper.addEmotionFile(paramVo);        // 미팅 동영상 파일 저장
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         try{
             analysisService.insertAnalysisData(liveEmotionVO);

@@ -79,5 +79,8 @@
             #{emotion.lipStretch},
             NOW()
         )
+        <selectKey resultType="int" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
     </insert>
 </mapper>
