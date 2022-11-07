@@ -61,6 +61,10 @@ public interface MeetMapper {
     // 미팅 시작하기
     public Integer putMeetLiveStart(MeetingVO meetingVO) throws Exception;
 
+    public Integer putJoinMeetLiveStart(MeetingVO meetingVO) throws Exception;
+
+    public Integer putMeetAlive(MeetingVO meetingVO) throws Exception;
+
     // 미팅 들어가기
     public Integer putMeetLiveJoin(MeetingVO meetingVO) throws Exception;
 
