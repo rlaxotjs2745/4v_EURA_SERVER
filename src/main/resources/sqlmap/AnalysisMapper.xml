@@ -79,7 +79,7 @@
             #{emotion.lipStretch},
             NOW()
         )
-        <selectKey resultType="int" order="AFTER">
+        <selectKey resultType="java.lang.Integer" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
     </insert>

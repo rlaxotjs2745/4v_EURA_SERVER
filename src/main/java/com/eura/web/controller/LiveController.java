@@ -51,56 +51,60 @@ public class LiveController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        Gson gson = new Gson();
-        AnalysisVO analysisVO = gson.fromJson(emotion, AnalysisVO.class);
-
-        LiveEmotionVO liveEmotionVO = new LiveEmotionVO();
-
-        liveEmotionVO.setZuid(zuid);
-        liveEmotionVO.setMcid(mcid);
-        liveEmotionVO.setToken(token);
-        liveEmotionVO.setEmotion(analysisVO);
-
-        List<MultipartFile> fileList = req.getFiles("file");
-
-        if(req.getFiles("file").get(0).getSize() != 0){
-            fileList = req.getFiles("file");
-        }
-        if(fileList.size()>0){
-            long time = System.currentTimeMillis();
-            String path = "/emotiondata/" + mcid + "/" + zuid + "/";
-            String fullpath = this.filepath + path;
-            File fileDir = new File(fullpath);
-            if (!fileDir.exists()) {
-                fileDir.mkdirs();
-            }
-
-            for(MultipartFile mf : fileList) {
-                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                String saveFileName = String.format("%d_%s", time, originFileName);
-                try { // 파일생성
-                    mf.transferTo(new File(fullpath, saveFileName));
-                    MeetingVO paramVo = new MeetingVO();
-                    paramVo.setMcid(mcid);
-                    paramVo.setZuid(zuid);
-                    paramVo.setToken(token);
-                    paramVo.setFile_path(path);
-                    paramVo.setFile_name(saveFileName);
-                    paramVo.setFile_size(mf.getSize());
-                    fileServiceMapper.addEmotionFile(paramVo);        // 미팅 동영상 파일 저장
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        System.out.println(req.getCookies());
 
         try{
+            Gson gson = new Gson();
+            AnalysisVO analysisVO = gson.fromJson(emotion, AnalysisVO.class);
+
+            LiveEmotionVO liveEmotionVO = new LiveEmotionVO();
+
+            liveEmotionVO.setZuid(zuid);
+            liveEmotionVO.setMcid(mcid);
+            liveEmotionVO.setToken(token);
+            liveEmotionVO.setEmotion(analysisVO);
+
             analysisService.insertAnalysisData(liveEmotionVO);
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("Insert Complete");
         } catch (Exception e){
             e.printStackTrace();
         }
+
+//        List<MultipartFile> fileList = req.getFiles("file");
+//
+//        if(req.getFiles("file").get(0).getSize() != 0){
+//            fileList = req.getFiles("file");
+//        }
+//        if(fileList.size()>0){
+//            long time = System.currentTimeMillis();
+//            String path = "/emotiondata/" + mcid + "/" + zuid + "/";
+//            String fullpath = this.filepath + path;
+//            File fileDir = new File(fullpath);
+//            if (!fileDir.exists()) {
+//                fileDir.mkdirs();
+//            }
+//
+//            for(MultipartFile mf : fileList) {
+//                String originFileName = mf.getOriginalFilename();   // 원본 파일 명
+//                String saveFileName = String.format("%d_%s", time, originFileName);
+//                try { // 파일생성
+//                    mf.transferTo(new File(fullpath, saveFileName));
+//                    MeetingVO paramVo = new MeetingVO();
+//                    paramVo.setMcid(mcid);
+//                    paramVo.setZuid(zuid);
+//                    paramVo.setToken(token);
+//                    paramVo.setFile_path(path);
+//                    paramVo.setFile_name(saveFileName);
+//                    paramVo.setFile_size(mf.getSize());
+//                    fileServiceMapper.addEmotionFile(paramVo);        // 미팅 동영상 파일 저장
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+
+
 
         return resultVO;
     }
