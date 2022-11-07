@@ -7,12 +7,20 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.eura.web.model.UserMapper;
+import com.eura.web.model.DTO.UserVO;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class BaseController {
+    @Autowired
+    private UserMapper userMapper;
+
     public String getBrowser(HttpServletRequest req) {
         String userAgent = req.getHeader("User-Agent");
         if(userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident") > -1 /*IE11*/|| userAgent.indexOf("Edge") > -1) {
@@ -161,4 +169,25 @@ public class BaseController {
 		return new Gson().fromJson(jsonStr, new TypeToken<List<Map<String, String>>>() {
         }.getType());
 	}
+
+    /**
+     * 이메일 to UserVO
+     * @param req
+     * @return UserVO
+     * @throws Exception
+     */
+    public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
+        UserVO rs = new UserVO();
+        if(req.getCookies() != null){
+            Cookie o[] = req.getCookies();
+            for(int i=0;i<o.length;i++){
+                if(o[i].getName().equals("user_id")){
+                    if(!o[i].getValue().isEmpty()){
+                        rs = userMapper.getUserInfoById(o[i].getValue());
+                    }
+                }
+            }
+        }
+        return rs;
+    }
 }

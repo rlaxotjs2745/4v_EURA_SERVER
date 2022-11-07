@@ -9,6 +9,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.eura.web.model.UserMapper;
+import com.eura.web.model.DTO.UserVO;
 import com.google.gson.Gson;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 @Component
 public class ApiAuthorityInterceptor implements HandlerInterceptor {
+    @Autowired
+    private final UserMapper userMapper;
+
 	@Override
 	public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws Exception {
 		String ip = getClientIP(req);
@@ -29,7 +34,10 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
                 for(int i=0;i<o.length;i++){
                     if(o[i].getName().equals("user_id")){
                         if(!o[i].getValue().isEmpty()){
-                            _r = true;
+                            UserVO rs =  userMapper.getUserInfoById(o[i].getValue());
+                            if(rs!=null){
+                                _r = true;
+                            }
                         }
                     }
                 }
@@ -39,9 +47,8 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
         }
 		if(_r==false){
 			Map<String, Object> _resultMap = new HashMap<String, Object>();
-			_resultMap.put("success", "0");
-			_resultMap.put("code", "-1003");
-			_resultMap.put("msg", "A resource that can not be accessed with the privileges it has.");
+			_resultMap.put("result_code", "FAIL");
+			_resultMap.put("result_str", "A resource that can not be accessed with the privileges it has.");
 			res.getWriter().write(new Gson().toJson(_resultMap));
 			res.setContentType("application/json");
 			res.setCharacterEncoding("UTF-8");
@@ -56,8 +63,23 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 			ip = req.getHeader("Proxy-Client-IP");
 		}
 		if (ip == null || ip.length() == 0) {
-			ip = req.getHeader("WL-Proxy-Client-IP"); // ???
+			ip = req.getHeader("WL-Proxy-Client-IP"); // 웹로직
 		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = req.getHeader("HTTP_CLIENT_IP");
+        }  
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = req.getHeader("HTTP_X_FORWARDED_FOR");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) { 
+            ip = req.getHeader("X-Real-IP"); 
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) { 
+            ip = req.getHeader("X-RealIP"); 
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) { 
+            ip = req.getHeader("REMOTE_ADDR");
+        }
 		if (ip == null || ip.length() == 0) {
 			ip = req.getRemoteAddr();
 		}

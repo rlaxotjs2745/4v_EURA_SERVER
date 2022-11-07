@@ -45,21 +45,34 @@ public class MeetingController {
 
         try {
             Map<String, Object> _rs = new HashMap<String, Object>();
-
+            ArrayList<Object> _rs0 = new ArrayList<Object>();
+            ArrayList<Object> _rs1 = new ArrayList<Object>();
+            
             meetingVO.setSessionid(meetingVO.getMcid());
             MeetingVO rrs = meetMapper.chkRoomInvite(meetingVO);
             if(rrs!=null){
-                _rs.put("mt_name",rrs.getMt_name());
-                _rs.put("mt_start_dt",rrs.getMt_start_dt());
-                _rs.put("mt_end_dt",rrs.getMt_end_dt());
-                _rs.put("mt_status",rrs.getMt_status());
-                _rs.put("host_name",rrs.getHost_name());
-                _rs.put("ishost",rrs.getIshost());
-                _rs.put("user_name",rrs.getUser_name());
-                _rs.put("session_name",rrs.getSessionid());
-                _rs.put("keepalive",CONSTANT.keepalive);
-                _rs.put("mdatasec",CONSTANT.mdatasec);
-                _rs.put("rurl",CONSTANT.rurl);
+                Map<String, Object> _mrss0 = new HashMap<String, Object>();
+                Map<String, Object> _mrss1 = new HashMap<String, Object>();
+                _mrss1.put("mt_name",rrs.getMt_name());
+                _mrss1.put("mt_start_dt",rrs.getMt_start_dt());
+                _mrss1.put("mt_end_dt",rrs.getMt_end_dt());
+                _mrss1.put("mt_status",rrs.getMt_status());
+                _mrss1.put("teacher_name",rrs.getHost_name());
+                _mrss1.put("keepalive",CONSTANT.keepalive);
+                _mrss1.put("mdatasec",CONSTANT.mdatasec);
+                // _mrss1.put("rurl",CONSTANT.rurl);
+
+                _mrss0.put("ishost",rrs.getIshost());
+                _mrss0.put("user_name",rrs.getUser_name());
+                _mrss0.put("session_name",rrs.getSessionid());
+                _mrss0.put("token",meetingVO.getToken());
+
+                _rs0.add(_mrss0);
+                _rs1.add(_mrss1);
+
+                _rs.put("session",_rs1);
+                _rs.put("data",_rs0);
+
                 resultVO.setData(_rs);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");

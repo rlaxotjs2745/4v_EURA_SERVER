@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LiveEmotionVO {
+public class LiveEmotionVO extends BaseVO {
     UdataVO udata;
     AnalysisVO mdata;
 }

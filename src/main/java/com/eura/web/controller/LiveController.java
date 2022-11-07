@@ -1,5 +1,6 @@
 package com.eura.web.controller;
 
+import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
@@ -22,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
-public class LiveController {
+public class LiveController extends BaseController {
     private final AnalysisService analysisService;
     private final FileServiceMapper fileServiceMapper;
     private final MeetMapper meetMapper;
