@@ -7,7 +7,6 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -259,8 +258,8 @@ public class MeetController extends BaseController {
                     for(MeetingVO frs0 : frs){
                         Map<String, Object> _frs = new HashMap<String, Object>();
                         _frs.put("idx", frs0.getIdx_attachment_file_info_join());
-                        _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
-                        _frs.put("download", domain + "/download" + frs0.getFile_path() + frs0.getFile_name());
+                        _frs.put("files", frs0.getFile_name());
+                        _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
                         _frss.add(_frs);
                     }
                     _rs.put("mt_files", _frss);
@@ -657,7 +656,8 @@ public class MeetController extends BaseController {
                     for(MeetingVO frs0 : frs){
                         Map<String, Object> _frs = new HashMap<String, Object>();
                         _frs.put("idx", frs0.getIdx_attachment_file_info_join());
-                        _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
+                        _frs.put("files", frs0.getFile_name());
+                        _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
                         _frss.add(_frs);
                     }
                     _rs.put("mt_files", _frss);     // 미팅 첨부파일

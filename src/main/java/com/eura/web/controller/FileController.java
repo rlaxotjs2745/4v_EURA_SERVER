@@ -4,6 +4,9 @@ import com.eura.web.base.BaseController;
 import com.eura.web.model.DTO.FileUploadResponseVO;
 import com.eura.web.model.DTO.RecieveFilesVO;
 import com.eura.web.service.FileService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,13 +15,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URLEncoder;
+
+@Slf4j
 @Controller
 public class FileController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
@@ -107,24 +118,34 @@ public class FileController extends BaseController {
                 .body(resource);
     }
 
-    @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> getDownloadFile(@PathVariable String fileName, HttpServletRequest request){
-        Resource resource = fileService.loadFileAsResource(filepath + fileName);
-        String contentType = null;
-        try {
-            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
-        } catch (IOException ex) {
-            logger.info("Could not determine file type.");
+    /**
+     * 파일 다운로드
+     * @param request
+     * @param response
+     * @throws Exception
+     */
+    @GetMapping("/download")
+    public void getDownloadFile(HttpServletRequest req, HttpServletResponse res) throws Exception {
+        try{
+            String header = req.getHeader("User-Agent");
+            String fnm = req.getParameter("fnm");
+            File _df = new File(filepath + fnm);
+            String originFilenm = _df.getName();
+            String fileName;
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(_df));
+            if ((header.contains("MSIE")) || (header.contains("Trident")) || (header.contains("Edge"))) {
+                fileName = URLEncoder.encode(originFilenm, "UTF-8");
+            } else {
+                fileName = new String(originFilenm.getBytes("UTF-8"), "iso-8859-1");
+            }
+            res.setContentType("application/octet-stream");
+            res.setHeader("Content-Disposition", "attachment; filename=\""+ fileName + "\"");
+            FileCopyUtils.copy(in, res.getOutputStream());
+            in.close();
+            res.getOutputStream().flush();
+            res.getOutputStream().close();
+        } catch (Exception e) {
+            log.info(e.getMessage());
         }
-
-        if(contentType == null) {
-            contentType = "application/octet-stream; charset=UTF-8";
-        }
-        String browser = getBrowser(request);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"".concat(getFileNm(browser, resource.getFilename())).concat("\""))
-                .header(HttpHeaders.TRANSFER_ENCODING, "binary")
-                .body(resource);
     }
 }

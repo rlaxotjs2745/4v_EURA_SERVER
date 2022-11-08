@@ -37,4 +37,4 @@ log4jdbc:
 mail:
   passwd: asdasd
 
-domain: http://localhost
+domain: http://localhost:10000
