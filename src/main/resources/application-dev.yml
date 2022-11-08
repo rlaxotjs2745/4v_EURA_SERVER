@@ -4,14 +4,14 @@ server:
 #Oracle DataSource
 spring:
   datasource:
-    driverClassName: org.mariadb.jdbc.Driver
+    driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://eura-maria-db.cmjphsu1czot.ap-northeast-2.rds.amazonaws.com:3306/eura_db
     username: eura_user
     password: eura_pass
 
 #업로드 디렉토리는 협의 후 확정
 file:
-  upload-dir: /opt/server/upload/
+  upload-dir: /opt/server/upload
 
 #개발만 디버그 로그 보이게 하기
 logging:
@@ -36,3 +36,5 @@ log4jdbc:
 
 mail:
   passwd: asdasd
+
+domain: http://localhost

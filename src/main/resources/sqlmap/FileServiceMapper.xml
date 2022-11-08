@@ -43,4 +43,35 @@
             #{idx_analysis}, #{file_path}, #{file_name}, #{file_size}
         )
     </insert>
+
+    <!-- 프로필사진 저장 -->
+    <insert id="insertProfileInfo">
+        INSERT INTO TB_PROFILE_INFO (
+            IDX_USER,
+            FILE_PATH,
+            FILE_NAME,
+            REG_DT
+        ) VALUES (
+            #{idx_user},
+            #{file_path},
+            #{file_name},
+            TO_CHAR(#{reg_dt},'yyyy-MM-dd hh24:mi:ss')
+        )
+    </insert>
+
+    <!-- 프로필 첨부파일 정보 -->
+    <select id="selectUserProfileFile" resultType="com.eura.web.model.DTO.ProfileInfoVO">
+        SELECT *
+        FROM TB_PROFILE_INFO
+        WHERE IDX_USER = #{idx_user}
+    </select>
+
+    <!-- 프로필사진 수정 -->
+    <update id="updateProfileInfo">
+        UPDATE TB_PROFILE_INFO
+        SET FILE_PATH = #{file_path},
+            FILE_NAME = #{file_name},
+            REG_DT = TO_CHAR(#{reg_dt},'yyyy-MM-dd hh24:mi:ss')
+        WHERE IDX_USER = #{idx_user}
+    </update>
 </mapper>

@@ -4,13 +4,37 @@ server:
 #Oracle DataSource
 spring:
   datasource:
-    driverClassName: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://eura-maria-db.cmjphsu1czot.ap-northeast-2.rds.amazonaws.com:3306/eura_db
-    username: eura_user
-    password: eura_pass 
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://eura-db.cxmubqzajvkd.ap-northeast-2.rds.amazonaws.com:3306/eura_db
+    username: euradb
+    password: db!#221104fk&$%^
 
 #업로드 디렉토리는 협의 후 확정
 file:
-  upload-dir: /opt/server/upload/
+  upload-dir: /home/ec2-user/EURA-upload
+
+#운영은 에러 로그 보이게 하기
+logging:
+  level:
+    root: warn
+    com:
+      eura: debug
+  file:
+    path: /Users/ec2-user/EURA/logs
+    max-history: 7
+
+log4jdbc:
+  spylogdelegator:
+    name: net.sf.log4jdbc.log.slf4j.Slf4jSpyLogDelegator
+  dump:
+    sql:
+      maxlinelength: 0
+  auto:
+    load:
+      popular:
+        drivers: false
+
 mail:
   passwd: mailpass
+
+domain: http://ec2-13-209-47-215.ap-northeast-2.compute.amazonaws.com:10000

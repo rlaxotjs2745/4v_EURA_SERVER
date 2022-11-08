@@ -13,6 +13,10 @@ spring:
       max-request-size: 215MB
   jwt:
     secret: ToiRTMXMHjwLXqkcbzmMWTxzIPhy4JA82M3q
+  web:
+    resources:
+      add-mappings: true
+      static-locations: classpath:static/
 
 #Model Location
 mybatis:

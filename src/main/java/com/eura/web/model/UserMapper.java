@@ -3,7 +3,6 @@ package com.eura.web.model;
 import com.eura.web.model.DTO.PagedUserListVO;
 import com.eura.web.model.DTO.UserVO;
 import org.apache.ibatis.annotations.Mapper;
-// import org.apache.ibatis.annotations.Param;
 
 import java.util.*;
 
@@ -21,11 +20,23 @@ public interface UserMapper {
 
     public Integer getUserCount(Integer user_type);//99 모든 유저
 
-    public Long insertUserInfo(UserVO userVO);
+    public int insertUserInfo(UserVO userVO);
 
     public Integer updateUserInfo(UserVO userVO);
     public Integer updateUserInfoForLogout(String user_id);
 
     public Integer deleteUserInfoByID(String user_id);
     public Integer deleteUserInfoByIdx(Long idx_user);
+
+    public UserVO selectUserProfileFile(long idx_user);
+
+    public void setProfile_y(UserVO findUserVO);
+
+    public void updateAuthKey(UserVO userVo);
+
+    public void updateAuthStatus(UserVO userVo);
+
+    public long findUserIdx(String user_id);
+
+    public void updateUserPw(UserVO userVo);
 }

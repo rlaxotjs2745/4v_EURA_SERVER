@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.eura.web.model.MailMapper">
+
+    <!-- 메일 발송 정보 추가 -->
+    <insert id="insertJoinEmail" parameterType="com.eura.web.model.DTO.MailVO">
+        INSERT INTO TB_MAIL (
+            IDX_USER,
+            RECEIVER,
+            SENDTIME,
+            TITLE,
+            CONTENT,
+            MAIL_TYPE
+        ) VALUES (
+                     #{idx_user},
+                     #{receiver},
+                     #{sendTime},
+                     #{title},
+                     #{content},
+                     #{mail_type}
+                 )
+    </insert>
+
+</mapper>

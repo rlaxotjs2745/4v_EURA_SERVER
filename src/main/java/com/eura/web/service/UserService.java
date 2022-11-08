@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import com.eura.web.util.CONSTANT;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 @Service
@@ -72,16 +74,19 @@ public class UserService {
 
     }
 
-    public Long join(UserVO userVO){
-        Long ret_idx = 0L;
-        //UserVO findUser = userDAO.getUserInfoById(userVO.getUser_id());
+    public long join(UserVO userVO){
 
-        try {
-            ret_idx = userMapper.insertUserInfo(userVO);
-        }
-        catch (Exception e){
+        SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+        String now_date = fm.format(Calendar.getInstance().getTime());
 
-        }
+        userVO.setReg_dt(now_date);
+        userVO.setTemp_pw_issue_dt(now_date);
+        userVO.setLast_upd_dt(now_date);
+        userVO.setLast_pw_upd_dt(now_date);
+
+        userMapper.insertUserInfo(userVO);
+        long ret_idx = userMapper.findUserIdx(userVO.getUser_id());
+
         return ret_idx;
     }
 
@@ -123,4 +128,25 @@ public class UserService {
 
         return new CustomUser(userVO.getUser_id(), userVO.getUser_pwd(), authorities, userVO.getUser_name());
     }
+
+    public UserVO getUserProfileFile(long idx_user) {
+        return userMapper.selectUserProfileFile(idx_user);
+    }
+
+    public void addNewProfile(UserVO findUserVO) {
+        userMapper.setProfile_y(findUserVO);
+    }
+
+    public void updateAuthKey(UserVO userVo) {
+        userMapper.updateAuthKey(userVo);
+    }
+
+    public void updateAuthStatus(UserVO userVo) {
+        userMapper.updateAuthStatus(userVo);
+    }
+
+    public void updateUserPw(UserVO userVo) {
+        userMapper.updateUserPw(userVo);
+    }
+
 }

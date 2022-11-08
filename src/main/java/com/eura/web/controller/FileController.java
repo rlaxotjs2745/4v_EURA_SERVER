@@ -6,29 +6,28 @@ import com.eura.web.model.DTO.RecieveFilesVO;
 import com.eura.web.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-// import java.io.File;
 import java.io.IOException;
-// import java.net.URLDecoder;
-// import java.net.URLEncoder;
-// import java.util.*;
-// import java.util.stream.Collectors;
 
-@RestController
+@Controller
 public class FileController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
-
+    
     // @Autowired
     private FileService fileService;
+    
+    @Value("${file.upload-dir}")
+    private String filepath;
 
     public FileUploadResponseVO storeFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileService.storeFile(file);
@@ -100,6 +99,27 @@ public class FileController extends BaseController {
         res.setHeader("Content-Description", "file download");
         res.setHeader("Content-Disposition", "attachment; filename=\"".concat(getFileNm(browser, resource.getFilename())).concat("\""));
         res.setHeader("Content-Transfer-Encoding", "binary");*/
+        String browser = getBrowser(request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"".concat(getFileNm(browser, resource.getFilename())).concat("\""))
+                .header(HttpHeaders.TRANSFER_ENCODING, "binary")
+                .body(resource);
+    }
+
+    @GetMapping("/download/{fileName:.+}")
+    public ResponseEntity<Resource> getDownloadFile(@PathVariable String fileName, HttpServletRequest request){
+        Resource resource = fileService.loadFileAsResource(filepath + fileName);
+        String contentType = null;
+        try {
+            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            logger.info("Could not determine file type.");
+        }
+
+        if(contentType == null) {
+            contentType = "application/octet-stream; charset=UTF-8";
+        }
         String browser = getBrowser(request);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
