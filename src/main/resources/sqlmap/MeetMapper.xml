@@ -240,7 +240,7 @@
     <update id="putMeetLiveStart">
         UPDATE TB_MEETING
             SET
-                JOIN_DT=NOW()
+                IS_LIVE=1, IS_LIVE_DT=NOW()
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 
@@ -248,7 +248,7 @@
     <update id="putJoinMeetLiveStart">
         UPDATE TB_MEETING_USER_JOIN
             SET
-                IS_LIVE=1, zuid=#{zuid}
+                IS_LIVE=1, ZUID=#{zuid}
             WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
     </update>
 
@@ -257,7 +257,7 @@
         UPDATE TB_MEETING_USER_JOIN
             SET
                 IS_ALIVE=#{is_alive}
-            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND zuid=#{zuid}
+            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND ZUID=#{zuid}
     </update>
 
     <!-- 미팅 들어가기 -->
@@ -312,7 +312,8 @@
         SET
             IS_LIVE = 0,
             MT_END_DT = NOW(),
-            LAST_UPD_DT = NOW()
+            IS_FINISH = 1,
+            IS_FINISH_DT = NOW()
         WHERE IDX_MEETING=#{idx_meeting}
     </update>
 
@@ -322,8 +323,8 @@
         SET
             IS_LIVE = 0,
             IS_FINISH = 1,
-            LAST_UPD_DT = NOW()
-        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
+            IS_FINISH_DT = NOW()
+        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid})
     </update>
 
     <!-- 미팅 참가자 INDEX 정보 추출 -->

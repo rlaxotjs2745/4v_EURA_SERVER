@@ -26,4 +26,14 @@ public class UserVO extends BaseVO {
     private String temp_pw;//	varchar	100					임시 비밀번호	임시 비밀번호 발급이 예이면 값을 가짐
     private String temp_pw_issue_dt;//	datetime						임시 비밀번호 발급 일시	사용 기간 제한위해 사용
     private String last_pw_upd_dt;//	datetime						최종 패스워드 업데이트 일시
+
+    private String authKey; // 가입 인증 번호
+
+    private boolean autoLogin;
+    public boolean isAutoLogin(){
+        return autoLogin;
+    }
+    public void setAutoLogin(boolean autoLogin){
+        this.autoLogin = autoLogin;
+    }
 }

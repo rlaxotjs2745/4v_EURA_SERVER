@@ -34,10 +34,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .httpBasic().disable()
             .csrf().disable()   //csrf 미적용
             .formLogin().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
+            // .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            // .and()
                 .authorizeRequests()
-                    .antMatchers("/meet").authenticated()
+                    // .antMatchers("/meet/**","/modify_profile").authenticated()
                     .anyRequest().permitAll()
                 .and()
                     .exceptionHandling().accessDeniedPage("/denied");

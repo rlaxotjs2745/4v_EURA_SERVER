@@ -42,6 +42,9 @@ public class MeetController extends BaseController {
     @Value("${file.upload-dir}")
     private String filepath;
 
+    @Value("${domain}")
+    private String domain;
+
     /**
      * 미팅 메인
      * @param req
@@ -216,78 +219,7 @@ public class MeetController extends BaseController {
     }
 
     /**
-     * 미팅룸 정보
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @GetMapping("/room/info")
-    public ResultVO getRoomInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
-                MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
-                if(rs!=null){
-                    List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
-                    List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
-
-                    Map<String, Object> _rs = new HashMap<String, Object>();
-                    _rs.put("mt_name", rs.getMt_name());
-                    _rs.put("mt_hostname", rs.getUser_name());
-                    _rs.put("mt_start_dt", rs.getMt_info());
-                    _rs.put("mt_end_dt", rs.getMt_info());
-                    _rs.put("mt_remind_type", rs.getMt_remind_type());
-                    _rs.put("mt_remind_count", rs.getMt_remind_count());
-                    _rs.put("mt_remind_week", rs.getMt_remind_week());
-                    _rs.put("mt_remind_end", rs.getMt_remind_end());
-
-                    ArrayList<Object> _frss = new ArrayList<Object>();
-                    for(MeetingVO frs0 : frs){
-                        Map<String, Object> _frs = new HashMap<String, Object>();
-                        _frs.put("idx", frs0.getIdx_attachment_file_info_join());
-                        _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
-                        _frss.add(_frs);
-                    }
-                    _rs.put("mt_files", _frss);
-
-                    ArrayList<Object> _irss = new ArrayList<Object>();
-                    for(MeetingVO irs0 : irs){
-                        Map<String, Object> _irs = new HashMap<String, Object>();
-                        _irs.put("idx", irs0.getIdx_user());
-                        _irs.put("uname", irs0.getUser_name());
-                        _irs.put("email", irs0.getUser_email());
-                        _irss.add(_irs);
-                    }
-                    _rs.put("mt_invites", _irss);
-
-                    _rs.put("mt_info", rs.getMt_info());
-                    _rs.put("mt_status", rs.getMt_status());
-                    _rs.put("mt_live", rs.getIs_live());
-                    _rs.put("mt_regdt", rs.getReg_dt());
-                    resultVO.setData(_rs);
-
-                    resultVO.setResult_code(CONSTANT.success);
-                    resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
-                }else{
-                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅룸 메인
+     * 미팅룸 메인 - 호스트뷰, 참석자뷰 메인
      * @param req
      * @param meetingVO
      * @return
@@ -327,7 +259,8 @@ public class MeetController extends BaseController {
                     for(MeetingVO frs0 : frs){
                         Map<String, Object> _frs = new HashMap<String, Object>();
                         _frs.put("idx", frs0.getIdx_attachment_file_info_join());
-                        _frs.put("files", frs0.getFile_path() + frs0.getFile_name());
+                        _frs.put("files", frs0.getFile_name());
+                        _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
                         _frss.add(_frs);
                     }
                     _rs.put("mt_files", _frss);
@@ -395,6 +328,371 @@ public class MeetController extends BaseController {
     }
 
     /**
+     * 미팅룸 공개
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/room/open")
+    public ResultVO putMeetOpen(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
+
+                // 미팅 시간 중복 체크
+                MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
+                if(_chk.getChkcnt().equals(1)){
+                    resultVO.setResult_str("미팅 시간이 중복되어 공개할 수 없습니다.");
+                }else{
+                    MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                    if(rrs!=null){
+                        if(rrs.getIdx_user().equals(urs.getIdx_user())){
+                            Integer rs = meetMapper.putMeetOpen(meetingVO);
+                            if(rs==1){
+                                // 참가자 이메일 전송
+                                meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
+
+                                resultVO.setResult_code(CONSTANT.success);
+                                resultVO.setResult_str("미팅룸을 공개하였습니다.");
+                            }else{
+                                resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                            }
+                        }else{
+                            resultVO.setResult_str("이용권한이 없습니다.");
+                        }
+                    }else{
+                        resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 비공개
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/room/close")
+    public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
+
+                // 미팅 시간 중복 체크
+                MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
+                if(_chk.getChkcnt().equals(1)){
+                    resultVO.setResult_str("미팅 시간이 중복되어 비공개할 수 없습니다.");
+                }else{
+                    MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                    if(rrs!=null){
+                        if(rrs.getIdx_user().equals(urs.getIdx_user())){
+                            Integer rs = meetMapper.putMeetClose(meetingVO);
+                            if(rs==1){
+                                // 참가자 이메일 전송
+                                meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
+
+                                resultVO.setResult_code(CONSTANT.success);
+                                resultVO.setResult_str("미팅룸을 비공개하였습니다.");
+                            }else{
+                                resultVO.setResult_str("미팅룸을 비공개하지 못하였습니다.");
+                            }
+                        }else{
+                            resultVO.setResult_str("이용권한이 없습니다.");
+                        }
+                    }else{
+                        resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 취소
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @PutMapping("/room/cancel")
+    public ResultVO putMeetCacncel(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
+                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                if(rrs!=null){
+                    if(rrs.getIdx_user().equals(urs.getIdx_user())){
+                        Integer rs = meetMapper.putMeetCacncel(meetingVO);
+                        if(rs==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMailMeetInvites(meetingVO, rrs, 3);
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                        }
+                    }else{
+                        resultVO.setResult_str("이용권한이 없습니다.");
+                    }
+                }else{
+                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 삭제
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @DeleteMapping("/room/erase")
+    public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
+                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
+                if(rrs!=null){
+                    if(rrs.getIdx_user().equals(urs.getIdx_user())){
+                        Integer rs = meetMapper.deleteMeet(meetingVO);
+                        if(rs==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMailMeetInvites(meetingVO, rrs, 3);
+
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                        }
+                    }else{
+                        resultVO.setResult_str("이용권한이 없습니다.");
+                    }
+                }else{
+                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 달력
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main/calendar")
+    public ResultVO getMainCalendar(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());
+                long time = System.currentTimeMillis(); 
+                SimpleDateFormat tYear = new SimpleDateFormat("yyyy");
+                SimpleDateFormat tMonth = new SimpleDateFormat("mm");
+                Integer _tYear = Integer.valueOf(tYear.format(new Date(time)));
+                Integer _tMonth = Integer.valueOf(tMonth.format(new Date(time)));
+                if(meetingVO.getCalYear() == null){
+                    meetingVO.setCalYear(_tYear);
+                }
+                if(meetingVO.getCalMonth() == null){
+                    meetingVO.setCalYear(_tMonth);
+                }
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+                ArrayList<Object> _mrss = new ArrayList<Object>();
+                for(MeetingVO rs0 : mInfo){
+                    Map<String, Object> _mrs = new HashMap<String, Object>();
+                    _mrs.put("mt_idx", rs0.getIdx_meeting());
+                    _mrs.put("mt_name", rs0.getMt_name());
+                    _mrss.add(_mrs);
+                }
+                _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
+                
+                resultVO.setData(_rs);
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅 달력 일정
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/main/calendar/info")
+    public ResultVO getMainCalendarInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());
+
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+                ArrayList<Object> _mrss = new ArrayList<Object>();
+                for(MeetingVO rs0 : mInfo){
+                    Map<String, Object> _mrs = new HashMap<String, Object>();
+                    _mrs.put("mt_idx", rs0.getIdx_meeting());
+                    _mrs.put("mt_name", rs0.getMt_name());
+                    _mrs.put("mt_hostname", rs0.getUser_name());
+                    _mrs.put("mt_status", rs0.getMt_status());
+                    _mrs.put("mt_start_dt", rs0.getMt_start_dt());
+                    _mrs.put("mt_end_dt", rs0.getMt_end_dt());
+                    _mrs.put("mt_live", rs0.getIs_live());
+                    _mrs.put("mt_info", rs0.getMt_info());
+                    _mrss.add(_mrs);
+                }
+                _rs.put("mt_meetInfo", _mrss);    // 참여중인 미팅룸
+                
+                resultVO.setData(_rs);
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
+     * 미팅룸 정보 - 미팅룸 수정용
+     * @param req
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/room/info")
+    public ResultVO getRoomInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try {
+            UserVO urs =  getChkUserLogin(req);
+            if(urs==null){
+                resultVO.setResult_str("로그인 후에 이용해주세요.");
+            }else{
+                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
+                MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
+                if(rs!=null){
+                    List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+                    List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+
+                    Map<String, Object> _rs = new HashMap<String, Object>();
+                    _rs.put("mt_name", rs.getMt_name());
+                    _rs.put("mt_hostname", rs.getUser_name());
+                    _rs.put("mt_start_dt", rs.getMt_info());
+                    _rs.put("mt_end_dt", rs.getMt_info());
+                    _rs.put("mt_remind_type", rs.getMt_remind_type());
+                    _rs.put("mt_remind_count", rs.getMt_remind_count());
+                    _rs.put("mt_remind_week", rs.getMt_remind_week());
+                    _rs.put("mt_remind_end", rs.getMt_remind_end());
+
+                    ArrayList<Object> _frss = new ArrayList<Object>();
+                    for(MeetingVO frs0 : frs){
+                        Map<String, Object> _frs = new HashMap<String, Object>();
+                        _frs.put("idx", frs0.getIdx_attachment_file_info_join());
+                        _frs.put("files", frs0.getFile_name());
+                        _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
+                        _frss.add(_frs);
+                    }
+                    _rs.put("mt_files", _frss);     // 미팅 첨부파일
+
+                    ArrayList<Object> _irss = new ArrayList<Object>();
+                    for(MeetingVO irs0 : irs){
+                        Map<String, Object> _irs = new HashMap<String, Object>();
+                        _irs.put("idx", irs0.getIdx_user());
+                        _irs.put("uname", irs0.getUser_name());
+                        _irs.put("email", irs0.getUser_email());
+                        _irss.add(_irs);
+                    }
+                    _rs.put("mt_invites", _irss);   // 미팅 참석자
+
+                    _rs.put("mt_info", rs.getMt_info());    // 미팅룸 정보
+                    _rs.put("mt_status", rs.getMt_status());    // 미팅룸 상태 - 0:비공개, 1:공개, 2:취소, 3:삭제
+                    _rs.put("mt_live", rs.getIs_live());        // 미팅 시작 여부 - 0:아니오, 1:예
+                    _rs.put("mt_finish", rs.getIs_finish());    // 미팅 종료 여부 - 0:아니오, 1:예
+                    _rs.put("mt_regdt", rs.getReg_dt());        // 미팅룸 등록일시
+                    resultVO.setData(_rs);
+
+                    resultVO.setResult_code(CONSTANT.success);
+                    resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+                }else{
+                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultVO;
+    }
+
+    /**
      * 미팅룸 생성
      * @param req
      * @param meetingVO
@@ -408,7 +706,7 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO urs =  getChkUserLogin(req);
+            UserVO urs = getChkUserLogin(req);
             if(urs==null){
                 resultVO.setResult_str("로그인 후에 이용해주세요.");
             }else{
@@ -450,7 +748,6 @@ public class MeetController extends BaseController {
                             // 일 단위 중복 체크
                             MeetingVO param = meetingVO;
                             String _enddt = meetingVO.getMt_remind_end();
-                            // log.debug("debug log={}", param);
                             String _sd = meetingVO.getMt_start_dt();
                             String _ed = meetingVO.getMt_end_dt();
 
@@ -1084,298 +1381,6 @@ public class MeetController extends BaseController {
     }
 
     /**
-     * 미팅룸 공개
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @PutMapping("/room/open")
-    public ResultVO putMeetOpen(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
-
-                // 미팅 시간 중복 체크
-                MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
-                if(_chk.getChkcnt().equals(1)){
-                    resultVO.setResult_str("미팅 시간이 중복되어 공개할 수 없습니다.");
-                }else{
-                    MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
-                    if(rrs!=null){
-                        if(rrs.getIdx_user().equals(urs.getIdx_user())){
-                            Integer rs = meetMapper.putMeetOpen(meetingVO);
-                            if(rs==1){
-                                // 참가자 이메일 전송
-                                meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
-
-                                resultVO.setResult_code(CONSTANT.success);
-                                resultVO.setResult_str("미팅룸을 공개하였습니다.");
-                            }else{
-                                resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
-                            }
-                        }else{
-                            resultVO.setResult_str("이용권한이 없습니다.");
-                        }
-                    }else{
-                        resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅룸 비공개
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @PutMapping("/room/close")
-    public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
-
-                // 미팅 시간 중복 체크
-                MeetingVO _chk = meetMapper.chkRoomDupTime(meetingVO);
-                if(_chk.getChkcnt().equals(1)){
-                    resultVO.setResult_str("미팅 시간이 중복되어 비공개할 수 없습니다.");
-                }else{
-                    MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
-                    if(rrs!=null){
-                        if(rrs.getIdx_user().equals(urs.getIdx_user())){
-                            Integer rs = meetMapper.putMeetClose(meetingVO);
-                            if(rs==1){
-                                // 참가자 이메일 전송
-                                meetingService.sendMailMeetInvites(meetingVO, rrs, 4);
-
-                                resultVO.setResult_code(CONSTANT.success);
-                                resultVO.setResult_str("미팅룸을 비공개하였습니다.");
-                            }else{
-                                resultVO.setResult_str("미팅룸을 비공개하지 못하였습니다.");
-                            }
-                        }else{
-                            resultVO.setResult_str("이용권한이 없습니다.");
-                        }
-                    }else{
-                        resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅 취소
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @PutMapping("/room/cancel")
-    public ResultVO putMeetCacncel(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
-                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
-                if(rrs!=null){
-                    if(rrs.getIdx_user().equals(urs.getIdx_user())){
-                        Integer rs = meetMapper.putMeetCacncel(meetingVO);
-                        if(rs==1){
-                            // 참가자 이메일 전송
-                            meetingService.sendMailMeetInvites(meetingVO, rrs, 3);
-
-                            resultVO.setResult_code(CONSTANT.success);
-                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
-                        }else{
-                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
-                        }
-                    }else{
-                        resultVO.setResult_str("이용권한이 없습니다.");
-                    }
-                }else{
-                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅룸 삭제
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @DeleteMapping("/room/erase")
-    public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
-                MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
-                if(rrs!=null){
-                    if(rrs.getIdx_user().equals(urs.getIdx_user())){
-                        Integer rs = meetMapper.deleteMeet(meetingVO);
-                        if(rs==1){
-                            // 참가자 이메일 전송
-                            meetingService.sendMailMeetInvites(meetingVO, rrs, 3);
-
-                            resultVO.setResult_code(CONSTANT.success);
-                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
-                        }else{
-                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
-                        }
-                    }else{
-                        resultVO.setResult_str("이용권한이 없습니다.");
-                    }
-                }else{
-                    resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅 달력
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @GetMapping("/main/calendar")
-    public ResultVO getMainCalendar(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());
-                long time = System.currentTimeMillis(); 
-                SimpleDateFormat tYear = new SimpleDateFormat("yyyy");
-                SimpleDateFormat tMonth = new SimpleDateFormat("mm");
-                Integer _tYear = Integer.valueOf(tYear.format(new Date(time)));
-                Integer _tMonth = Integer.valueOf(tMonth.format(new Date(time)));
-                if(meetingVO.getCalYear() == null){
-                    meetingVO.setCalYear(_tYear);
-                }
-                if(meetingVO.getCalMonth() == null){
-                    meetingVO.setCalYear(_tMonth);
-                }
-                Map<String, Object> _rs = new HashMap<String, Object>();
-                List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
-                ArrayList<Object> _mrss = new ArrayList<Object>();
-                for(MeetingVO rs0 : mInfo){
-                    Map<String, Object> _mrs = new HashMap<String, Object>();
-                    _mrs.put("mt_idx", rs0.getIdx_meeting());
-                    _mrs.put("mt_name", rs0.getMt_name());
-                    _mrss.add(_mrs);
-                }
-                _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
-                
-                resultVO.setData(_rs);
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
-     * 미팅 달력 일정
-     * @param req
-     * @param meetingVO
-     * @return
-     * @throws Exception
-     */
-    @GetMapping("/main/calendar/info")
-    public ResultVO getMainCalendarInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            UserVO urs =  getChkUserLogin(req);
-            if(urs==null){
-                resultVO.setResult_str("로그인 후에 이용해주세요.");
-            }else{
-                meetingVO.setIdx_user(urs.getIdx_user());
-
-                Map<String, Object> _rs = new HashMap<String, Object>();
-                List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
-                ArrayList<Object> _mrss = new ArrayList<Object>();
-                for(MeetingVO rs0 : mInfo){
-                    Map<String, Object> _mrs = new HashMap<String, Object>();
-                    _mrs.put("mt_idx", rs0.getIdx_meeting());
-                    _mrs.put("mt_name", rs0.getMt_name());
-                    _mrs.put("mt_hostname", rs0.getUser_name());
-                    _mrs.put("mt_status", rs0.getMt_status());
-                    _mrs.put("mt_start_dt", rs0.getMt_start_dt());
-                    _mrs.put("mt_end_dt", rs0.getMt_end_dt());
-                    _mrs.put("mt_live", rs0.getIs_live());
-                    _mrs.put("mt_info", rs0.getMt_info());
-                    _mrss.add(_mrs);
-                }
-                _rs.put("mt_meetInfo", _mrss);    // 참여중인 미팅룸
-                
-                resultVO.setData(_rs);
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultVO;
-    }
-
-    /**
      * 미팅 시작
      * @param req
      * @param meetingVO
@@ -1405,7 +1410,7 @@ public class MeetController extends BaseController {
 
                     // 미팅에 참여중인지 확인
                     MeetingVO _chkMeet = meetMapper.chkMeetLiveJoin(meetingVO);
-                    if(!_chkMeet.getToken().isEmpty()){
+                    if(_chkMeet != null){
                         Map<String, Object> _rs = new HashMap<String, Object>();
                         _rs.put("mcid", "euraclass" + meetingVO.getIdx_meeting().toString());
                         _rs.put("token", _chkMeet.getToken());
@@ -1431,19 +1436,22 @@ public class MeetController extends BaseController {
                         _rs.put("token", _jwt);
                         resultVO.setData(_rs);
                         
+                        // 호스트
                         if(rrs.getIdx_user().equals(urs.getIdx_user())){
                             Integer rs = meetMapper.putMeetLiveStart(meetingVO);
                             if(rs==1){
-                                // 참가자 이메일 전송
-                                meetingService.sendMailMeetInvites(meetingVO, rrs, 1);
-
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
-
+                                
                                 resultVO.setResult_code(CONSTANT.success);
                                 resultVO.setResult_str("미팅을 시작하였습니다.");
+                                
+                                // 참가자 이메일 전송
+                                meetingService.sendMailMeetInvites(meetingVO, rrs, 1);
                             }else{
                                 resultVO.setResult_str("미팅을 시작할 수 없습니다.");
                             }
+                        
+                        // 참가자
                         }else{
                             if(rrs.getIs_live().equals(urs.getIdx_user())){
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장

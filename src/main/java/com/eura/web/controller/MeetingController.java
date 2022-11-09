@@ -60,7 +60,6 @@ public class MeetingController {
                 _mrss1.put("teacher_name",rrs.getHost_name());
                 _mrss1.put("keepalive",CONSTANT.keepalive);
                 _mrss1.put("mdatasec",CONSTANT.mdatasec);
-                // _mrss1.put("rurl",CONSTANT.rurl);
 
                 _mrss0.put("ishost",rrs.getIshost());
                 _mrss0.put("user_name",rrs.getUser_name());
@@ -98,7 +97,7 @@ public class MeetingController {
         resultVO.setResult_str("Data error");
 
         try {
-            Integer rs = meetMapper.putMeetLiveStart(meetingVO);
+            Integer rs = meetMapper.putJoinMeetLiveStart(meetingVO);
             if(rs == 1){
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("참가 정보 수신을 완료하였습니다.");

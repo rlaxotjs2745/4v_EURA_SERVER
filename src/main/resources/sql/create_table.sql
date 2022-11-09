@@ -24,6 +24,7 @@ CREATE TABLE `TB_USER` (
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `LAST_UPD_DT` datetime DEFAULT NULL ON UPDATE current_timestamp() COMMENT '수정 일시',
   `LAST_PW_UPD_DT` datetime DEFAULT NULL COMMENT '최종 패스워드 업데이트 일시',
+  `AUTHKEY` int(11) DEFAULT 0 COMMENT '회원가입 인증 키',
   PRIMARY KEY (`IDX_USER`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='회원정보';
 
@@ -57,13 +58,15 @@ CREATE TABLE `TB_MEETING` (
   `MT_INFO` varchar(3000) DEFAULT NULL COMMENT '미팅 설명',
   `MT_STATUS` tinyint(1) DEFAULT 0 COMMENT '미팅룸 상태 - 0:비공개, 1:공개, 2:취소, 3:삭제',
   `IS_LIVE` tinyint(1) DEFAULT 0 COMMENT '미팅 시작 여부 - 0:아니오, 1:예',
+  `IS_LIVE_DT` datetime DEFAULT NULL COMMENT '미팅 시작 일시',
   `IS_FINISH` tinyint(1) DEFAULT 0 COMMENT '미팅 종료 여부 - 0:아니오, 1:예',
+  `IS_FINISH_DT` datetime DEFAULT NULL COMMENT '미팅 종료 일시',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `LAST_UPD_DT` datetime DEFAULT NULL ON UPDATE current_timestamp() COMMENT '수정 일시',
   `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
   `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
   PRIMARY KEY (`IDX_MEETING`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COMMENT='미팅룸 정보';
 
 CREATE TABLE `TB_MEETING_USER_JOIN` (
   `IDX_MEETING_USER_JOIN` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -105,7 +108,7 @@ CREATE TABLE `TB_ANALYSIS` (
   `VALENCE` double DEFAULT NULL,
   `SADNESS` double DEFAULT NULL,
   `ENGAGEMENT` double DEFAULT NULL,
-  `TIMESTAMP` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `TIMESTAMP` timestamp NULL DEFAULT NULL,
   `FILENAME` varchar(400) DEFAULT NULL,
   `SMILE` double DEFAULT NULL,
   `INNERBROWRAISE` double DEFAULT NULL,
@@ -128,7 +131,7 @@ CREATE TABLE `TB_ANALYSIS` (
   `EYEWIDEN` double DEFAULT NULL,
   `CHEEKRAISE` double DEFAULT NULL,
   `LIPSTRETCH` double DEFAULT NULL,
-  `REG_DT` datetime DEFAULT NULL,
+  `REG_DT` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`IDX_ANALYSIS`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='감정 분석 데이터';
 
@@ -155,3 +158,14 @@ CREATE TABLE `TB_ANALYSIS_FILE` (
     `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',
     PRIMARY KEY (`IDX_ANALYSIS_FILE_JOIN`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='감정분석 데이터 내 파일 정보';
+
+CREATE TABLE `TB_MAIL` (
+  `IDX_MAIL_RESERVED` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `IDX_USER` int(10) unsigned DEFAULT NULL COMMENT '발송회원 ',
+  `RECEIVER` varchar(400) DEFAULT NULL COMMENT '메일주소(회원메일) ',
+  `SENDTIME` datetime DEFAULT current_timestamp() COMMENT '발송시간 ',
+  `TITLE` varchar(1000) DEFAULT NULL COMMENT '메일 제목 ',
+  `CONTENT` varchar(2000) DEFAULT NULL COMMENT '메일 내용 ',
+  `MAIL_TYPE` tinyint(4) DEFAULT NULL COMMENT '0:회원가입인증 , 1:비밀번호찾기 , ...',
+  PRIMARY KEY (`IDX_MAIL_RESERVED`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='메일 발송 정보 ';

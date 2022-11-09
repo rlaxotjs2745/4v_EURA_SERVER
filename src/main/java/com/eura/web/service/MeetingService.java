@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import com.eura.web.model.DTO.FileUploadResponseVO;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -166,7 +165,7 @@ public class MeetingService extends BaseController {
             fileList = req.getFiles("file");
         }
         if(fileList.size()>0){
-            long time = System.currentTimeMillis();
+            // long time = System.currentTimeMillis();
             String path = "/meetroom/" + _idx + "/";
             String fullpath = this.filepath + path;
             File fileDir = new File(fullpath);
@@ -177,17 +176,16 @@ public class MeetingService extends BaseController {
             for(MultipartFile mf : fileList) {
                 Map<String, Object> _frs = new HashMap<String, Object>();
                 String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                String saveFileName = String.format("%d_%s", time, originFileName);
                 try { // 파일생성
-                    mf.transferTo(new File(fullpath, saveFileName));
+                    mf.transferTo(new File(fullpath, originFileName));
                     MeetingVO paramVo = new MeetingVO();
                     paramVo.setIdx_meeting(_idx);
                     paramVo.setFile_path(path);
-                    paramVo.setFile_name(saveFileName);
+                    paramVo.setFile_name(originFileName);
                     paramVo.setFile_size(mf.getSize());
                     fileServiceMapper.addMeetFile(paramVo);
                     _frs.put("filepath",path);
-                    _frs.put("filename",saveFileName);
+                    _frs.put("filename",originFileName);
                     _frs.put("filesize",mf.getSize());
                     _frss.add(_frs);
                 } catch (Exception e) {

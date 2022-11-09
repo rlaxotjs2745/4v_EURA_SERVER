@@ -3,6 +3,7 @@ package com.eura.web.model;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.eura.web.model.DTO.MeetingVO;
+import com.eura.web.model.DTO.ProfileInfoVO;
 
 @Mapper
 public interface FileServiceMapper {
@@ -21,5 +22,12 @@ public interface FileServiceMapper {
     // 감정 분석 데이터 내의 파일 저장
     public Integer addEmotionFile(MeetingVO meetingVO) throws Exception;
 
+    //프로필사진 저장
+    public void insertProfileInfo(ProfileInfoVO profileInfo);
 
+    //프로필 정보 가져요기
+    public ProfileInfoVO selectUserProfileFile(int idx_user);
+
+    //프로필사진 수정
+    public void updateProfileInfo(ProfileInfoVO profileInfo);
 }

@@ -56,56 +56,23 @@
         <if test='user_type != 99'> WHERE USER_TYPE = #{user_type}</if> ;
     </select>
 
-    <select id="selectList" parameterType="com.eura.web.model.DTO.UserVO" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM (
-            SELECT t.*
-            FROM C##FACT_USR.TB_USER t
-        ) WHERE ROWNUM <![CDATA[ <= ]]> 501
-    </select>
-
     <insert id="insertUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
         INSERT INTO TB_USER (
             USER_NAME,
             USER_ID,
             USER_PWD,
             USER_PHONE,
-            EQ_TYPE01,
-            EQ_TYPE02,
-            EQ_TYPE03,
-            EQ_TYPE04,
-            EQ_TYPE05,
-            EQ_TYPE06,
-            EQ_TYPE07,
-            EQ_TYPE08,
-            EQ_TYPE09,
-            EQ_TYPE10,
-            USER_STATUS,
             PRIVACY_TERMS,
             SERVICE_USE_TERMS,
-            PROFILE_Y,
-            TEMP_PW_Y,
-            TEMP_PW
+            PROFILE_Y
         ) VALUES (
             #{user_name},
             #{user_id},
             #{user_pwd},
             #{user_phone},
-            #{eq_type01},
-            #{eq_type02},
-            #{eq_type03},
-            #{eq_type04},
-            #{eq_type05},
-            #{eq_type06},
-            #{eq_type07},
-            #{eq_type08},
-            #{eq_type09},
-            #{eq_type10},
-            #{user_status},
             #{privacy_terms},
             #{service_use_terms},
-            #{profile_y},
-            #{temp_pw_y},
-            #{temp_pw}
+            #{profile_y}
         )
     </insert>
 
@@ -126,4 +93,49 @@
     <delete id="deleteUserInfoByIdx" parameterType="long">
         DELETE TB_USER WHERE IDX_USER = #{idx_user}
     </delete>
+
+    <select id="selectUserProfileFile" resultType="com.eura.web.model.DTO.UserVO">
+        SELECT *
+        FROM TB_USER
+        WHERE IDX_USER = #{idx_user}
+    </select>
+
+    <!-- 프로필 사진 추가여부 설정 -->
+    <update id="setProfile_y" parameterType="com.eura.web.model.DTO.UserVO">
+        UPDATE TB_USER
+        SET
+            PROFILE_Y = #{profile_y}
+        WHERE IDX_USER=#{idx_user}
+    </update>
+
+    <!-- authKey키 생성(가입인증 번호 발급) -->
+    <update id="updateAuthKey" parameterType="com.eura.web.model.DTO.UserVO">
+        UPDATE TB_USER
+        SET
+            AUTHKEY = #{authKey}
+        WHERE IDX_USER=#{idx_user}
+    </update>
+
+    <!-- 회원상태 변경(가입인증 메일 확인) -->
+    <update id="updateAuthStatus" parameterType="com.eura.web.model.DTO.UserVO">
+        UPDATE TB_USER
+        SET
+            USER_STATUS = 1
+        WHERE USER_ID = #{user_id}
+            AND AUTHKEY = #{authKey}
+    </update>
+
+    <select id="findUserIdx" resultType="long">
+        SELECT idx_user FROM TB_USER WHERE user_id=#{user_id}
+    </select>
+
+    <!--임시 비밀번호 발급 -->
+    <update id="updateUserPw" parameterType="com.eura.web.model.DTO.UserVO">
+        UPDATE TB_USER
+        SET
+            TEMP_PW_Y = #{temp_pw_y},
+            TEMP_PW = #{temp_pw},
+            TEMP_PW_ISSUE_DT = #{temp_pw_issue_dt}
+        WHERE IDX_USER=#{idx_user}
+    </update>
 </mapper>

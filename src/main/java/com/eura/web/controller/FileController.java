@@ -4,31 +4,41 @@ import com.eura.web.base.BaseController;
 import com.eura.web.model.DTO.FileUploadResponseVO;
 import com.eura.web.model.DTO.RecieveFilesVO;
 import com.eura.web.service.FileService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-// import java.io.File;
-import java.io.IOException;
-// import java.net.URLDecoder;
-// import java.net.URLEncoder;
-// import java.util.*;
-// import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 
-@RestController
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URLEncoder;
+
+@Slf4j
+@Controller
 public class FileController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
-
+    
     // @Autowired
     private FileService fileService;
+    
+    @Value("${file.upload-dir}")
+    private String filepath;
 
     public FileUploadResponseVO storeFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileService.storeFile(file);
@@ -106,5 +116,36 @@ public class FileController extends BaseController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"".concat(getFileNm(browser, resource.getFilename())).concat("\""))
                 .header(HttpHeaders.TRANSFER_ENCODING, "binary")
                 .body(resource);
+    }
+
+    /**
+     * 파일 다운로드
+     * @param request
+     * @param response
+     * @throws Exception
+     */
+    @GetMapping("/download")
+    public void getDownloadFile(HttpServletRequest req, HttpServletResponse res) throws Exception {
+        try{
+            String header = req.getHeader("User-Agent");
+            String fnm = req.getParameter("fnm");
+            File _df = new File(filepath + fnm);
+            String originFilenm = _df.getName();
+            String fileName;
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(_df));
+            if ((header.contains("MSIE")) || (header.contains("Trident")) || (header.contains("Edge"))) {
+                fileName = URLEncoder.encode(originFilenm, "UTF-8");
+            } else {
+                fileName = new String(originFilenm.getBytes("UTF-8"), "iso-8859-1");
+            }
+            res.setContentType("application/octet-stream");
+            res.setHeader("Content-Disposition", "attachment; filename=\""+ fileName + "\"");
+            FileCopyUtils.copy(in, res.getOutputStream());
+            in.close();
+            res.getOutputStream().flush();
+            res.getOutputStream().close();
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
     }
 }

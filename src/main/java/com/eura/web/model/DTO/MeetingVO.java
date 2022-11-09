@@ -15,6 +15,7 @@ public class MeetingVO extends BaseVO {
     private String mt_info;         //	varchar	3000					미팅 정보
     private Integer mt_status;      //	tinyint			0			미팅룸 상태	0:비공개, 1:공개, 2:취소, 3:삭제(정보를 남겨야,, db 정리할 때 유리)
     private Integer is_live;        //	tinyint			0			라이브 시작 여부	0:아니오, 1:예
+    private Integer is_finish;      // 미팅 종료 여부 - 0:아니오, 1:예
 
     private Integer idx_meeting_user_join;
     private Integer idx_attachment_file_info_join;
