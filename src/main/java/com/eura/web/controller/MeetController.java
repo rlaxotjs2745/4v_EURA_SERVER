@@ -163,6 +163,7 @@ public class MeetController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
+
         try {
             UserVO urs =  getChkUserLogin(req);
             if(urs==null){
