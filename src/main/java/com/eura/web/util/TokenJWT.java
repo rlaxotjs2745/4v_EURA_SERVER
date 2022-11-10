@@ -64,6 +64,7 @@ public class TokenJWT {
         payloads.put("iat", _sDt);
         payloads.put("exp", _eDt);
         payloads.put("tpc", userPk);
+        payloads.put("userid", _data.get("userid"));
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
         Date ext = new Date(); // 토큰 만료 시간

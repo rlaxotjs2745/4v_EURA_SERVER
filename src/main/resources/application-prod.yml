@@ -37,4 +37,4 @@ log4jdbc:
 mail:
   passwd: mailpass
 
-domain: http://ec2-13-209-47-215.ap-northeast-2.compute.amazonaws.com:10000
+domain: http://13.209.47.215:10000

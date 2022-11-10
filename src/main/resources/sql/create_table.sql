@@ -24,7 +24,7 @@ CREATE TABLE `TB_USER` (
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `LAST_UPD_DT` datetime DEFAULT NULL ON UPDATE current_timestamp() COMMENT '수정 일시',
   `LAST_PW_UPD_DT` datetime DEFAULT NULL COMMENT '최종 패스워드 업데이트 일시',
-  `AUTHKEY` int(11) DEFAULT 0 COMMENT '회원가입 인증 키',
+  `AUTHKEY` VARCHAR(20) DEFAULT NULL COMMENT '회원가입 인증 키',
   PRIMARY KEY (`IDX_USER`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='회원정보';
 
@@ -40,8 +40,9 @@ CREATE TABLE `TB_PROFILE_INFO` (
   `IDX_PROFILE_INFO` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `IDX_USER` int(10) unsigned DEFAULT NULL COMMENT 'TB_USER IDX_USER',
   `FILE_PATH` varchar(1000) DEFAULT NULL,
-  `FILE_NAME` varchar(100) DEFAULT NULL,
+  `FILE_NAME` varchar(1000) DEFAULT NULL,
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
+  `LAST_UPD_DT` datetime DEFAULT NULL ON UPDATE current_timestamp() COMMENT '수정 일시',
   PRIMARY KEY (`IDX_PROFILE_INFO`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COMMENT='회원 사진 파일 정보';
 

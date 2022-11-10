@@ -7,6 +7,7 @@ import com.eura.web.service.FileService;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,9 +28,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 
 @Slf4j
+@CrossOrigin
 @Controller
 public class FileController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
@@ -147,5 +150,20 @@ public class FileController extends BaseController {
         } catch (Exception e) {
             log.info(e.getMessage());
         }
+    }
+
+    /**
+     * 이미지 연결
+     * @param req
+     * @param res
+     * @return ResponseBody byte
+     * @throws IOException
+     */
+    @RequestMapping(value = "/pic", produces = MediaType.IMAGE_JPEG_VALUE)
+    public @ResponseBody byte[] getFileStream(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String fnm = req.getParameter("fnm");
+        File _df = new File(filepath + fnm);
+		InputStream in = new FileInputStream(_df);
+		return IOUtils.toByteArray(in);
     }
 }

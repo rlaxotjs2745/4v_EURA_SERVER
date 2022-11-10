@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/mt")
@@ -38,16 +39,12 @@ public class MeetingController {
      * @throws Exception
      */
     @PostMapping(value="/uchk", consumes = "application/json", produces = "application/json")
-    public ResultVO chkUser(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
+    public Map<String, Object> chkUser(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        Map<String, Object> resultVO = new HashMap<String, Object>();
+        resultVO.put("result_code",CONSTANT.fail);
+        resultVO.put("result_str","Data error");
 
         try {
-            Map<String, Object> _rs = new HashMap<String, Object>();
-            ArrayList<Object> _rs0 = new ArrayList<Object>();
-            ArrayList<Object> _rs1 = new ArrayList<Object>();
-            
             meetingVO.setSessionid(meetingVO.getMcid());
             MeetingVO rrs = meetMapper.chkRoomInvite(meetingVO);
             if(rrs!=null){
@@ -66,15 +63,12 @@ public class MeetingController {
                 _mrss0.put("session_name",rrs.getSessionid());
                 _mrss0.put("token",meetingVO.getToken());
 
-                _rs0.add(_mrss0);
-                _rs1.add(_mrss1);
-
-                _rs.put("session",_rs1);
-                _rs.put("data",_rs0);
-
-                resultVO.setData(_rs);
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
+                resultVO.put("result_code",CONSTANT.success);
+                resultVO.put("result_str","미팅룸 정보를 불러왔습니다.");
+                resultVO.put("session", _mrss1);
+                resultVO.put("data", _mrss0);
+            }else{
+                resultVO.put("result_str","참여 회원이 아닙니다.");
             }
         } catch (Exception e) {
             e.printStackTrace();

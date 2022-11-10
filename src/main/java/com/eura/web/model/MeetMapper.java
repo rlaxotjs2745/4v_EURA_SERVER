@@ -1,6 +1,8 @@
 package com.eura.web.model;
 
 import com.eura.web.model.DTO.MeetingVO;
+import com.eura.web.model.DTO.UserVO;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -90,4 +92,7 @@ public interface MeetMapper {
 
     // 미팅 참가자 INDEX 정보 추출
     public MeetingVO getMeetInvite(MeetingVO meetingVO) throws Exception;
+
+    // 참여자에서 본인이 있다면 참여자 정보와 연동
+    public Integer chkMeetInviteChain(UserVO paramVo) throws Exception;
 }

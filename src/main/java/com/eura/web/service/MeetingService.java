@@ -32,6 +32,7 @@ public class MeetingService extends BaseController {
     @Autowired
     private MeetMapper meetMapper;
     
+    @Autowired
     private MailSender mailSender;
 
     @Autowired
@@ -42,6 +43,9 @@ public class MeetingService extends BaseController {
 
     @Value("${file.upload-dir}")
     public String filepath;
+
+    @Value("${domain}")
+    public String domain;
 
     /**
      * 미팅룸 생성
@@ -120,6 +124,12 @@ public class MeetingService extends BaseController {
         if(_stat==4){
             mail = "mail_alarm_open.html";
         }
+        if(_stat==5){
+            mail = "mail_auth.html";
+        }
+        if(_stat==6){
+            mail = "mail_password.html";
+        }
         String _fpath = filepath + "/html/" + mail;
         FileInputStream fis = new FileInputStream(_fpath);
         return IOUtils.toString(fis, "UTF-8");
@@ -133,21 +143,73 @@ public class MeetingService extends BaseController {
      * @throws Exception
      */
 
-    public void sendMailMeetInvites(MeetingVO meetingVO, MeetingVO rrs, Integer _mFTyp) throws Exception {
+    public void sendMail(MeetingVO meetingVO, MeetingVO rrs, Integer _mFTyp) throws Exception {
         // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
+        String _ebody = _data.replace("${DOMAIN}", domain);
+
+        // 회원가입 인증 메일
+        if(_mFTyp==5){
+            _ebody = _ebody.replace("${URL}", domain + "/signUpConfirm?email="+ meetingVO.getUser_email() +"&authKey="+meetingVO.getAuthKey())
+                            .replace("${USEREMAIL}", meetingVO.getUser_email())
+                            .replace("${USERNAME}", meetingVO.getUser_name());
+            try {
+                mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _ebody);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        // 임시 비밀번호
+        }else if(_mFTyp==6){
+            _ebody = _ebody.replace("${PASSWD}", meetingVO.getTemp_pw())
+                            .replace("${USEREMAIL}", meetingVO.getUser_email())
+                            .replace("${USERNAME}", meetingVO.getUser_name());
+            mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _ebody);
 
         // 참가자 이메일 전송
-        List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
-        for(MeetingVO _ss : irs){
-            String _unm = _ss.getUser_name();
-            if(_ss.getUser_name().equals("") || _ss.getUser_name().isEmpty()){
-                _unm = _ss.getUser_email();
+        }else{
+            List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+            for(MeetingVO _ss : irs){
+                String _unm = _ss.getUser_name();
+                if(_ss.getUser_name().equals("") || _ss.getUser_name().isEmpty()){
+                    _unm = _ss.getUser_email();
+                }
+                _ebody = _ebody.replace("${USERNAME}", _unm)
+                                .replace("${USEREMAIL}", _ss.getUser_email())
+                                .replace("${MEETNAME}", rrs.getMt_name());
+                
+                mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _ebody);
             }
-            String _ebody = _data.replace("${MEETNAME}", rrs.getMt_name())
-                                .replace("${USERNAME}", _unm);
-            mailSender.sender(_ss.getUser_email(), rrs.getMt_name(), _ebody);
         }
+    }
+
+    /**
+     * 파일 저장
+     * @param req
+     * @param _idx
+     * @return MeetingVO
+     * @throws Exception
+     */
+    public MeetingVO saveFile(MultipartFile _file, String _path) throws Exception {
+        MeetingVO paramVo = new MeetingVO();
+        String originFileName = _file.getOriginalFilename();
+        if(originFileName != ""){
+            String fullpath = this.filepath + _path;
+            File fileDir = new File(fullpath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+
+            try { // 파일생성
+                _file.transferTo(new File(fullpath, originFileName));
+                paramVo.setFile_path(_path);
+                paramVo.setFile_name(originFileName);
+                paramVo.setFile_size(_file.getSize());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return paramVo;
     }
 
     /**
