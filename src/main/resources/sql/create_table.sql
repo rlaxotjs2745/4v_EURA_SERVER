@@ -139,9 +139,12 @@ CREATE TABLE `TB_ANALYSIS` (
 CREATE TABLE `TB_MEETING_MOVIE_FILE` (
   `IDX_MOVIE_FILE` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `IDX_MEETING` int(10) unsigned DEFAULT NULL COMMENT '미팅룸 INDEX - TB_MEETING IDX_MEETING',
+  `FILE_NO` int(11) DEFAULT 0 COMMENT '파일 순서',
   `FILE_PATH` varchar(1000) DEFAULT NULL COMMENT '파일 경로',
-  `FILE_NAME` varchar(100) DEFAULT NULL COMMENT '파일 이름',
+  `FILE_NAME` varchar(1000) DEFAULT NULL COMMENT '파일 이름',
   `FILE_SIZE` int(10) unsigned DEFAULT NULL COMMENT '파일 크기',
+  `DURATION` int(11) DEFAULT 0 COMMENT '재생시간',
+  `RECORD_DT` datetime DEFAULT NULL COMMENT '녹화 시작 시간',
   `REG_DT` datetime DEFAULT current_timestamp() COMMENT '등록 일시',
   `DELETE_STAT` tinyint(1) DEFAULT 0 COMMENT '삭제여부 - 0:미삭제, 1:삭제',
   `DEL_DT` datetime DEFAULT NULL COMMENT '삭제 일시',

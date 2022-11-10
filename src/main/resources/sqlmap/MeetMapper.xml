@@ -301,8 +301,8 @@
     <select id="chkRoomInvite" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT 
             A.MT_NAME
-            , UNIX_TIMESTAMP(A.MT_START_DT) AS MT_START_DT
-            , UNIX_TIMESTAMP(A.MT_END_DT) AS MT_END_DT
+            , A.MT_START_DT
+            , A.MT_END_DT
             , IF(A.IS_FINISH=1,2,IF(A.IS_LIVE=1,1,0)) AS MT_STATUS
             , (SELECT USER_NAME FROM TB_USER WHERE IDX_USER=A.IDX_USER) AS HOST_NAME
             , C.USER_NAME
@@ -322,7 +322,7 @@
             MT_END_DT = NOW(),
             IS_FINISH = 1,
             IS_FINISH_DT = NOW()
-        WHERE IDX_MEETING=#{idx_meeting}
+        WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </update>
 
     <!-- APP 미팅룸 종료 시 영상 파일 받기 -->

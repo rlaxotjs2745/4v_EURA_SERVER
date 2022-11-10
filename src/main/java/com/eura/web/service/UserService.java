@@ -124,7 +124,7 @@ public class UserService {
         }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_MEMBER"/*CONSTANT.getRoleString(adminVO.getAdmin_type())*/));
+        authorities.add(new SimpleGrantedAuthority("ROLE_MEMBER"));
 
         return new CustomUser(userVO.getUser_id(), userVO.getUser_pwd(), authorities, userVO.getUser_name());
     }
