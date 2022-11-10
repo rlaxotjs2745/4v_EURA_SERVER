@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 
 @Slf4j
-@CrossOrigin
 @Controller
 public class FileController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);

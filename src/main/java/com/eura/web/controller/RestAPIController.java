@@ -28,9 +28,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@CrossOrigin
+// @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/")
 public class RestAPIController extends BaseController {
     private final UserService userService;
     private final UserMapper userMapper;
@@ -208,7 +209,7 @@ public class RestAPIController extends BaseController {
      * @param userVo
      * @return
      */
-    @PostMapping("/api_post_login")
+    @PostMapping(value="/api_post_login", consumes = "application/json", produces = "application/json")
     public ResultVO api_post_login(HttpServletRequest req, HttpServletResponse response, @RequestBody UserVO userVo){
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail+"01");

@@ -26,7 +26,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 @Slf4j
-@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
