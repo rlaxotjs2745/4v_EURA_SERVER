@@ -35,6 +35,6 @@ log4jdbc:
         drivers: false
 
 mail:
-  passwd: asdasd
+  passwd: "asdasd"
 
-domain: http://localhost:10000
+domain: http://192.168.0.7:10000

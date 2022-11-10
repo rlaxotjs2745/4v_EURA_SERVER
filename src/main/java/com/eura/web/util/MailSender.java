@@ -18,8 +18,8 @@ public class MailSender {
     private String FROM = "eura@eura.co.kr";
     private String FROMNAME = "EURA";
     private String SMTP_USERNAME = "sungwoong@4thevision.com";
-    private String HOST = "email-smtp.ap-northeast-2.amazonaws.com";
-    private int PORT = 587;
+    private String HOST = "smtps.hiworks.com";
+    private int PORT = 465;
 
     public void sender(String To, String Subject, String Body) throws Exception {
         Properties props = System.getProperties();

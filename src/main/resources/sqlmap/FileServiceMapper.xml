@@ -49,13 +49,11 @@
         INSERT INTO TB_PROFILE_INFO (
             IDX_USER,
             FILE_PATH,
-            FILE_NAME,
-            REG_DT
+            FILE_NAME
         ) VALUES (
             #{idx_user},
             #{file_path},
-            #{file_name},
-            TO_CHAR(#{reg_dt},'yyyy-MM-dd hh24:mi:ss')
+            #{file_name}
         )
     </insert>
 
@@ -70,8 +68,7 @@
     <update id="updateProfileInfo">
         UPDATE TB_PROFILE_INFO
         SET FILE_PATH = #{file_path},
-            FILE_NAME = #{file_name},
-            REG_DT = TO_CHAR(#{reg_dt},'yyyy-MM-dd hh24:mi:ss')
+            FILE_NAME = #{file_name}
         WHERE IDX_USER = #{idx_user}
     </update>
 </mapper>

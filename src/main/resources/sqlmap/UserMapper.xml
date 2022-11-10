@@ -64,7 +64,9 @@
             USER_PHONE,
             PRIVACY_TERMS,
             SERVICE_USE_TERMS,
-            PROFILE_Y
+            PROFILE_Y,
+            EQ_TYPE01,
+            EQ_TYPE02
         ) VALUES (
             #{user_name},
             #{user_id},
@@ -72,11 +74,30 @@
             #{user_phone},
             #{privacy_terms},
             #{service_use_terms},
-            #{profile_y}
+            #{profile_y},
+            #{eq_type01},
+            #{eq_type02}
         )
     </insert>
 
+    <!-- 회원정보 변경 -->
     <update id="updateUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
+        UPDATE TB_USER
+            SET LAST_UPD_DT = NOW()
+            <if test="user_name != null">
+                , USER_NAME = #{user_name}
+            </if>
+            <if test="user_pwd != null">
+                , USER_PWD = #{user_pwd}
+            </if>
+            <if test="user_phone != null">
+                , USER_PHONE = #{user_phone}
+            </if>
+            <if test="eq_type01 != null">
+                , EQ_TYPE01 = #{eq_type01}
+                , EQ_TYPE02 = #{eq_type02}
+            </if>
+            WHERE USER_ID = #{user_id}
     </update>
 
     <update id="updateUserInfoForLogout" parameterType="string">
@@ -138,4 +159,19 @@
             TEMP_PW_ISSUE_DT = #{temp_pw_issue_dt}
         WHERE IDX_USER=#{idx_user}
     </update>
+
+    <!-- 회원 로그인 히스토리 -->
+    <insert id="putUserLoginHistory">
+        INSERT INTO TB_USER_LOGIN_HISTORY (idx_user, remote_ip) VALUES (#{idx_user}, #{remote_ip})
+    </insert>
+
+    <!-- 참석자 검색 -->
+    <select id="getUserSearch" resultType="com.eura.web.model.DTO.UserVO">
+        SELECT A.*, IFNULL(B.FILE_PATH, '') AS FILE_PATH, IFNULL(B.FILE_NAME, '') AS FILE_NAME FROM TB_USER A
+        LEFT OUTER JOIN TB_PROFILE_INFO B ON B.IDX_USER=A.IDX_USER
+        WHERE A.USER_STATUS=1
+            AND INSTR(A.USER_NAME, #searchTxt)>0
+            OR INSTR(A.USER_ID, #searchTxt)>0
+            ORDER BY A.IDX_USER
+    </select>
 </mapper>

@@ -74,7 +74,7 @@ public class UserService {
 
     }
 
-    public long join(UserVO userVO){
+    public Integer join(UserVO userVO){
 
         SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
         String now_date = fm.format(Calendar.getInstance().getTime());
@@ -85,7 +85,7 @@ public class UserService {
         userVO.setLast_pw_upd_dt(now_date);
 
         userMapper.insertUserInfo(userVO);
-        long ret_idx = userMapper.findUserIdx(userVO.getUser_id());
+        Integer ret_idx = userMapper.findUserIdx(userVO.getUser_id());
 
         return ret_idx;
     }

@@ -36,7 +36,13 @@ public interface UserMapper {
 
     public void updateAuthStatus(UserVO userVo);
 
-    public long findUserIdx(String user_id);
+    public Integer findUserIdx(String user_id);
 
     public void updateUserPw(UserVO userVo);
+
+    // 회원 로그인 히스토리
+    public void putUserLoginHistory(UserVO userVo);
+
+    // 참석자 검색
+    public List<UserVO> getUserSearch(UserVO userVo);
 }

@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.*;
 
 @Slf4j
+@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")

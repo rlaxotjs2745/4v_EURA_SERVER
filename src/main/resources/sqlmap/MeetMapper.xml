@@ -49,6 +49,9 @@
             <if test="calMonth != null">
                 AND RIGHT(LEFT(A.MT_START_DT,7),2)=#{calMonth}
             </if>
+            <if test="calDay != null">
+                AND RIGHT(LEFT(A.MT_START_DT,10),2)=#{calDay}
+            </if>
             ORDER BY 
             <choose>
                 <!-- pageSort - 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
@@ -101,9 +104,10 @@
 
     <!-- 미팅룸 정보 -->
     <select id="getRoomInfo" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT * 
-            FROM TB_MEETING 
-            WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+        SELECT A.*, B.USER_NAME
+            FROM TB_MEETING A
+            JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
+            WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
     </select>
 
     <!-- 미팅룸 첨부 파일 리스트 -->
@@ -115,11 +119,15 @@
 
     <!-- 미팅룸 참여자 리스트 -->
     <select id="getMeetInvites" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME
+        SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME, IFNULL(D.FILE_NAME,'') AS FILE_NAME, IFNULL(D.FILE_PATH,'') AS FILE_PATH
             FROM TB_MEETING_USER_JOIN A 
                 LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
                 JOIN TB_MEETING C ON C.IDX_MEETING=A.IDX_MEETING AND C.IDX_USER!=A.IDX_USER
-            WHERE A.IDX_MEETING=#{idx_meeting} AND A.DELETE_STAT=0
+                LEFT OUTER JOIN TB_PROFILE_INFO D ON D.IDX_USER=A.IDX_USER
+            WHERE A.DELETE_STAT=0
+            <if test="idx_meeting != null">
+                AND A.IDX_MEETING=#{idx_meeting}
+            </if>
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>
@@ -332,4 +340,12 @@
         SELECT IDX_USER, IDX_MEETING FROM TB_MEETING_USER_JOIN
             WHERE TOKEN=#{token} AND SESSIONID=#{sessionid}
     </select>
+
+    <!-- 참여자에서 본인이 있다면 참여자 정보와 연동 -->
+    <update id="chkMeetInviteChain">
+        UPDATE TB_MEETING_USER_JOIN 
+            SET 
+                IDX_USER=#{idx_user}
+            WHERE USER_EMAIL=#{user_id} AND IDX_USER=0
+    </update>
 </mapper>

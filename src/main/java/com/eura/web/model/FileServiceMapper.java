@@ -26,7 +26,7 @@ public interface FileServiceMapper {
     public void insertProfileInfo(ProfileInfoVO profileInfo);
 
     //프로필 정보 가져요기
-    public ProfileInfoVO selectUserProfileFile(int idx_user);
+    public ProfileInfoVO selectUserProfileFile(Integer idx_user);
 
     //프로필사진 수정
     public void updateProfileInfo(ProfileInfoVO profileInfo);

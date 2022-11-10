@@ -5,9 +5,7 @@ import com.eura.web.model.MailMapper;
 import com.eura.web.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.security.provider.SecureRandom;
 
-import java.util.Date;
 import java.util.Random;
 
 @Service("mailService")
