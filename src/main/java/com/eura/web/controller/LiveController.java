@@ -5,11 +5,14 @@ import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
+import com.eura.web.model.DTO.MeetEndVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
 import com.eura.web.util.CONSTANT;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.*;
 
 @Slf4j
@@ -73,7 +77,6 @@ public class LiveController extends BaseController {
                 }
 
                 if(fileList.size()>0){
-                    long time = System.currentTimeMillis();
                     String path = "/emotiondata/" + mcid + "/" + _urs.getIdx_user() + "/";
                     String fullpath = this.filepath + path;
                     File fileDir = new File(fullpath);
@@ -84,13 +87,12 @@ public class LiveController extends BaseController {
                     for(MultipartFile mf : fileList) {
                         if(mf.getOriginalFilename()!=null){
                             String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                            String saveFileName = String.format("%d_%s", time, originFileName);
                             try { // 파일생성
-                                mf.transferTo(new File(fullpath, saveFileName));
+                                mf.transferTo(new File(fullpath, originFileName));
                                 MeetingVO paramVo = new MeetingVO();
                                 paramVo.setIdx_analysis(liveEmotionVO.getIdx_analysis());
                                 paramVo.setFile_path(path);
-                                paramVo.setFile_name(saveFileName);
+                                paramVo.setFile_name(originFileName);
                                 paramVo.setFile_size(mf.getSize());
                                 fileServiceMapper.addEmotionFile(paramVo);        // 미팅 감정 파일 저장
                             } catch (Exception e) {
@@ -125,29 +127,42 @@ public class LiveController extends BaseController {
             Integer rs = meetMapper.endMeetLive(meetingVO);
             if(rs == 1){
                 List<MultipartFile> fileList = req.getFiles("file");
-                if(req.getFiles("file").get(0).getSize() != 0){
-                    fileList = req.getFiles("file");
-                }
                 if(fileList.size()>0){
-                    long time = System.currentTimeMillis();
+                    if(req.getFiles("file").get(0).getSize() != 0){
+                        fileList = req.getFiles("file");
+                    }
                     String path = "/meetmovie/" + meetingVO.getMcid() + "/";
                     String fullpath = this.filepath + path;
                     File fileDir = new File(fullpath);
                     if (!fileDir.exists()) {
                         fileDir.mkdirs();
                     }
-
+                    Type ulist = new TypeToken<ArrayList<MeetEndVO>>(){}.getType();
+                    List<MeetEndVO> _fs0 = new Gson().fromJson(meetingVO.getFilelist(), ulist); 
                     for(MultipartFile mf : fileList) {
                         String originFileName = mf.getOriginalFilename();   // 원본 파일 명
-                        String saveFileName = String.format("%d_%s", time, originFileName);
                         try { // 파일생성
-                            mf.transferTo(new File(fullpath, saveFileName));
+                            Integer _fileNo = 0;
+                            Integer _duration = 0;
+                            String _recordDt = "";
+                            
+                            for(MeetEndVO _fs1 : _fs0){
+                                if(_fs1.getFile_name().equals(originFileName)){
+                                    _fileNo = _fs1.getFile_no();
+                                    _duration = _fs1.getDuration();
+                                    _recordDt = _fs1.getRecord_dt();
+                                }
+                            }
+                            mf.transferTo(new File(fullpath, originFileName));
                             MeetingVO paramVo = new MeetingVO();
                             paramVo.setToken(meetingVO.getToken());
                             paramVo.setMcid(meetingVO.getMcid());
                             paramVo.setFile_path(path);
-                            paramVo.setFile_name(saveFileName);
+                            paramVo.setFile_name(originFileName);
                             paramVo.setFile_size(mf.getSize());
+                            paramVo.setFile_no(_fileNo);
+                            paramVo.setDuration(_duration);
+                            paramVo.setRecord_dt(_recordDt);
                             fileServiceMapper.addMeetMovieFile(paramVo);        // 미팅 동영상 파일 저장
                         } catch (Exception e) {
                             e.printStackTrace();

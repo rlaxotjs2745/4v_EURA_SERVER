@@ -12,7 +12,7 @@ spring:
       max-file-size: 200MB
       max-request-size: 215MB
   jwt:
-    secret: ToiRTMXMHjwLXqkcbzmMWTxzIPhy4JA82M3q
+    secret: k9McIikyWC2xy7f0Rg3rIIlMn8hUBJnyLj8c
   web:
     resources:
       add-mappings: true

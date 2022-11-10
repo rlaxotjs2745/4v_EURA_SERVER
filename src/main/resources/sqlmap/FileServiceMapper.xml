@@ -29,9 +29,9 @@
     <!-- 미팅 동영상 파일 저장 -->
     <insert id="addMeetMovieFile">
         INSERT INTO TB_MEETING_MOVIE_FILE (
-            IDX_MEETING, FILE_PATH, FILE_NAME, FILE_SIZE
+            IDX_MEETING, FILE_PATH, FILE_NAME, FILE_SIZE, FILE_NO, DURATION, RECORD_DT
         ) VALUES (
-            (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}), #{file_path}, #{file_name}, #{file_size}
+            (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid}), #{file_path}, #{file_name}, #{file_size}, #{file_no}, #{duration}, #{record_dt}
         )
     </insert>
 

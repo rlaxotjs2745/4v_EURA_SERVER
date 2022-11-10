@@ -37,4 +37,4 @@ log4jdbc:
 mail:
   passwd: mailpass
 
-domain: http://13.209.47.215:10000
+domain: http://54.180.128.152:10000

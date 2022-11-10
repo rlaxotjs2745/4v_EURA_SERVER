@@ -1,5 +1,7 @@
 package com.eura.web.model.DTO;
 
+import java.util.List;
+
 import lombok.*;
 
 @Getter
@@ -41,4 +43,5 @@ public class MeetingVO extends BaseVO {
     private String zuid;        // ZOOM User ID
     private Integer is_alive;   // ZOOM 감정 분석 상태 - 0:미진행, 1:진행
     private String result;      // 강의 종료 데이터
+    private String filelist;
 }

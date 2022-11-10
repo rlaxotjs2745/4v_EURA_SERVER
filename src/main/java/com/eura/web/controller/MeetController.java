@@ -5,6 +5,7 @@ package com.eura.web.controller;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -1468,11 +1469,11 @@ public class MeetController extends BaseController {
                 meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
-                    String _auth = "0"; // 게스트 권한 부여
+                    Integer _auth = 0; // 게스트 권한 부여
 
                     // 호스트 권한 부여
                     if(rrs.getIdx_user().equals(urs.getIdx_user())){
-                        _auth = "1";
+                        _auth = 1;
                     }
 
                     // 미팅에 참여중인지 확인
@@ -1486,16 +1487,15 @@ public class MeetController extends BaseController {
                         resultVO.setResult_code(CONSTANT.success);
                         resultVO.setResult_str("이미 미팅에 참여를 시작하여 미팅 장소로 이동합니다.");
                     }else{
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         // Date sdate = dateFormat.parse(rrs.getMt_start_dt());
                         Date edate = dateFormat.parse(rrs.getMt_end_dt());
-                        Date _nowd = new Date();
-                        Long _sDt = _nowd.getTime();
+                        Long _sDt = Instant.now().getEpochSecond(); // 현재 시간
                         Long _eDt = edate.getTime();
         
                         String _userPk = "euraclass" + rrs.getIdx_meeting().toString();
                         Map<String, Object> _data = new HashMap<String, Object>();
-                        _data.put("userid",urs.getUser_email());
+                        _data.put("userid",urs.getUser_id());
                         String _jwt = tokenJWT.createToken(_userPk, _sDt, _eDt, rrs.getMt_end_dt(), _data, _auth);
                         meetingVO.setToken(_jwt);
                         meetingVO.setSessionid(_userPk);
@@ -1506,7 +1506,7 @@ public class MeetController extends BaseController {
                         resultVO.setData(_rs);
                         
                         // 호스트
-                        if(rrs.getIdx_user().equals(urs.getIdx_user())){
+                        if(_auth == 1){
                             Integer rs = meetMapper.putMeetLiveStart(meetingVO);
                             if(rs==1){
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
@@ -1522,7 +1522,7 @@ public class MeetController extends BaseController {
                         
                         // 참가자
                         }else{
-                            if(rrs.getIs_live().equals(urs.getIdx_user())){
+                            if(rrs.getIs_live().equals(1)){
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
 
                                 resultVO.setResult_code(CONSTANT.success);
@@ -1550,7 +1550,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @PutMapping("/room/finish")
-    public ResultVO closeLiveMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception{
+    public ResultVO closeLiveMeeting(HttpServletRequest req, MeetingVO meetingVO) throws Exception{
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -1566,7 +1566,7 @@ public class MeetController extends BaseController {
                     if(_rs.getIs_live() == 1){
                         meetMapper.closeMeet(meetingVO);
                         resultVO.setResult_code(CONSTANT.success);
-                        resultVO.setResult_str("Update Complete");
+                        resultVO.setResult_str("강의를 종료하였습니다.");
                     } else {
                         resultVO.setResult_code(CONSTANT.fail);
                         resultVO.setResult_str("해당 강의가 진행중이 아닙니다.");
@@ -1590,7 +1590,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @GetMapping("/result/meeting")
-    public ResultVO getResultMeeting(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+    public ResultVO getResultMeeting(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -1639,7 +1639,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @GetMapping("/result/attachfile")
-    public ResultVO getResultAttachFile(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+    public ResultVO getResultAttachFile(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -1667,7 +1667,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @GetMapping("/result/participant")
-    public ResultVO getResultParticipant(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+    public ResultVO getResultParticipant(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");

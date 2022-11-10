@@ -5,6 +5,7 @@
  */
 package com.eura.web.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,22 +52,22 @@ public class MeetingController {
                 Map<String, Object> _mrss0 = new HashMap<String, Object>();
                 Map<String, Object> _mrss1 = new HashMap<String, Object>();
                 _mrss1.put("mt_name",rrs.getMt_name());
-                _mrss1.put("mt_start_dt",rrs.getMt_start_dt());
-                _mrss1.put("mt_end_dt",rrs.getMt_end_dt());
+                _mrss1.put("mt_start_dt", rrs.getMt_start_dt());
+                _mrss1.put("mt_end_dt", rrs.getMt_end_dt());
                 _mrss1.put("mt_status",rrs.getMt_status());
                 _mrss1.put("teacher_name",rrs.getHost_name());
                 _mrss1.put("keepalive",CONSTANT.keepalive);
                 _mrss1.put("mdatasec",CONSTANT.mdatasec);
 
-                _mrss0.put("ishost",rrs.getIshost());
+                _mrss0.put("ishost",Integer.valueOf(rrs.getIshost()));
                 _mrss0.put("user_name",rrs.getUser_name());
                 _mrss0.put("session_name",rrs.getSessionid());
                 _mrss0.put("token",meetingVO.getToken());
 
                 resultVO.put("result_code",CONSTANT.success);
                 resultVO.put("result_str","미팅룸 정보를 불러왔습니다.");
-                resultVO.put("session", _mrss1);
-                resultVO.put("data", _mrss0);
+                resultVO.put("session", _mrss0);
+                resultVO.put("data", _mrss1);
             }else{
                 resultVO.put("result_str","참여 회원이 아닙니다.");
             }

@@ -35,4 +35,8 @@ public class BaseVO {
     private String temp_pw;//	varchar	100					임시 비밀번호	임시 비밀번호 발급이 예이면 값을 가짐
     private String title;
     private String searchTxt;   // 검색어
+
+    private Integer file_no;
+    private Integer duration;
+    private String record_dt;
 }

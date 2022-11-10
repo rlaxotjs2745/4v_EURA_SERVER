@@ -170,8 +170,8 @@
         SELECT A.*, IFNULL(B.FILE_PATH, '') AS FILE_PATH, IFNULL(B.FILE_NAME, '') AS FILE_NAME FROM TB_USER A
         LEFT OUTER JOIN TB_PROFILE_INFO B ON B.IDX_USER=A.IDX_USER
         WHERE A.USER_STATUS=1
-            AND INSTR(A.USER_NAME, #searchTxt)>0
-            OR INSTR(A.USER_ID, #searchTxt)>0
+            AND INSTR(A.USER_NAME, #searchTxt)<![CDATA[>]]>0
+            OR INSTR(A.USER_ID, #searchTxt)<![CDATA[>]]>0
             ORDER BY A.IDX_USER
     </select>
 </mapper>
