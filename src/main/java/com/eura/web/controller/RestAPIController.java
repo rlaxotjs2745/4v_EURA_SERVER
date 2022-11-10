@@ -361,6 +361,10 @@ public class RestAPIController extends BaseController {
 
         userVO.setUser_id(user_id);
         if(userVO.getUser_pwd() != null){
+            if(userVO.getUser_pwd_origin()==null){
+                resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
+                return resultVO;
+            }
             Matcher matcherPw = Pattern.compile(REGEXPW).matcher(userVO.getUser_pwd());
             if (userVO.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);

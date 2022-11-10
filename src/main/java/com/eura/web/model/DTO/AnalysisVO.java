@@ -15,7 +15,7 @@ public class AnalysisVO extends BaseVO{
     double surprise;
     double valence;
     double engagement;
-    Integer Timestamp;
+    Integer time_stamp;
     String FileName;
     double smile;
     double innerBrowRaise;
