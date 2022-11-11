@@ -58,7 +58,7 @@ public class BaseController {
                 } else{
                     reFileNm = new String(fileNm.getBytes("UTF-8"), "ISO-8859-1");
                 }
-                if(browser.equals("Safari") || browser.equals("Firefox")) reFileNm = URLDecoder.decode(reFileNm);
+                if(browser.equals("Safari") || browser.equals("Firefox")) reFileNm = URLDecoder.decode(reFileNm, "UTF-8");
             }
         } catch(Exception e){} return reFileNm;
     }

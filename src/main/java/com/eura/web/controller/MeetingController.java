@@ -5,7 +5,6 @@
  */
 package com.eura.web.controller;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;

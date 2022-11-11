@@ -20,11 +20,6 @@ public class ProfileFileServiceImpl implements ProfileFileService {
     }
 
     @Override
-    public ProfileInfoVO getUserProfileFile(int idx_user) {
-        return fileServiceMapper.selectUserProfileFile(idx_user);
-    }
-
-    @Override
     public void updateProfileFile(ProfileInfoVO profileInfo) {
         fileServiceMapper.updateProfileInfo(profileInfo);
     }

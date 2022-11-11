@@ -1,7 +1,5 @@
 package com.eura.web.model.DTO;
 
-import java.util.List;
-
 import lombok.*;
 
 @Getter
