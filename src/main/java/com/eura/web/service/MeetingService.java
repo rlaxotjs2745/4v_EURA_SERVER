@@ -153,7 +153,7 @@ public class MeetingService extends BaseController {
 
         // 회원가입 인증 메일
         if(_mFTyp==5){
-            _ebody = _ebody.replace("${URL}", w3domain + "/signUpConfirm?email="+ meetingVO.getUser_email() +"&authKey="+meetingVO.getAuthKey())
+            _ebody = _ebody.replace("${URL}", w3domain + "/login?confirm=true&email=" + meetingVO.getUser_email() + "&authKey=" + meetingVO.getAuthKey())
                             .replace("${USEREMAIL}", meetingVO.getUser_email())
                             .replace("${USERNAME}", meetingVO.getUser_name());
             try {

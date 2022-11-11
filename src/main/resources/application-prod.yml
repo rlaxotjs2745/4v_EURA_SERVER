@@ -37,5 +37,5 @@ log4jdbc:
 mail:
   passwd: "foicfoic22!"
 
-domain: http://54.180.128.152:10000
-w3domain: http://13.124.92.172:3000
+domain: http://api.eura.site
+w3domain: http://eura.site

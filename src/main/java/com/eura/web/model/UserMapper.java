@@ -15,8 +15,6 @@ public interface UserMapper {
     public UserVO getUserInfoByNameAndMPhoneNum(String user_name, String mphone_num);
 
     public List<UserVO> getAllUserList();
-    public List<UserVO> getUserPagingList(Integer page_num, Integer amount, String order_field);
-    public List<PagedUserListVO> getUserSpecialInfoPagingList(Integer page_num, Integer amount, String order_field);
 
     public Integer getUserCount(Integer user_type);//99 모든 유저
 

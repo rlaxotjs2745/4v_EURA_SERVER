@@ -3,7 +3,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.eura.web.model.UserMapper">
-    <select id="getUserInfoById" parameterType="String" resultType="com.eura.web.model.DTO.UserVO">
+    <select id="getUserInfoById" resultType="com.eura.web.model.DTO.UserVO">
         SELECT A.*, B.FILE_PATH, B.FILE_NAME 
         FROM TB_USER A 
         LEFT OUTER JOIN TB_PROFILE_INFO B ON B.IDX_USER=A.IDX_USER 
@@ -18,7 +18,7 @@
         SELECT * FROM TB_USER WHERE user_id=#{user_id} AND user_pwd=#{user_pwd}
     </select>
 
-    <select id="getUserInfoByNameAndMPhoneNum" parameterType="hashmap" resultType="com.eura.web.model.DTO.UserVO">
+    <select id="getUserInfoByNameAndMPhoneNum" resultType="com.eura.web.model.DTO.UserVO">
         SELECT * FROM TB_USER WHERE USER_NAME=#{user_name} AND USER_PHONE=#{user_phone}
     </select>
 
@@ -26,40 +26,12 @@
         SELECT * FROM TB_USER;
     </select>
 
-    <select id="getUserSpecialInfoPagingList" parameterType="hashmap" resultType="com.eura.web.model.DTO.PagedUserListVO">
-        SELECT
-            user_id
-            ,user_name
-            ,mphone_num
-        FROM (
-            SELECT ROW_NUMBER() OVER(ORDER by #{order_field} DESC) AS row_num
-                ,user_id
-                ,user_name
-                ,mphone_num
-            FROM TB_USER
-            WHERE ROWNUM <![CDATA[<=]]> #{page_num}*#{amount}
-        )
-        WHERE row_num <![CDATA[>]]> (#{page_num} -1)*#{amount}
-    </select>
-
-    <select id="getUserPagingList" parameterType="hashmap" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT
-            *
-        FROM (
-            SELECT ROW_NUMBER() OVER(ORDER by #{order_field} DESC) AS row_num
-                t.*
-            FROM TB_USER t
-            WHERE ROWNUM <![CDATA[<=]]> #{page_num}*#{amount}
-        )
-        WHERE row_num <![CDATA[>]]> (#{page_num} -1)*#{amount}
-    </select>
-
-    <select id="getUserCount" parameterType="Integer" resultType="Integer">
+    <select id="getUserCount" resultType="Integer">
         SELECT COUNT(*) FROM TB_USER
         <if test='user_type != 99'> WHERE USER_TYPE = #{user_type}</if> ;
     </select>
 
-    <insert id="insertUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
+    <insert id="insertUserInfo">
         INSERT INTO TB_USER (
             USER_NAME,
             USER_ID,
@@ -84,7 +56,7 @@
     </insert>
 
     <!-- 회원정보 변경 -->
-    <update id="updateUserInfo" parameterType="com.eura.web.model.DTO.UserVO">
+    <update id="updateUserInfo">
         UPDATE TB_USER
             SET LAST_UPD_DT = NOW()
             <if test="user_name != null">
@@ -103,18 +75,18 @@
             WHERE USER_ID = #{user_id}
     </update>
 
-    <update id="updateUserInfoForLogout" parameterType="string">
+    <update id="updateUserInfoForLogout">
         UPDATE TB_USER
         SET
             LAST_UPD_DATE = SYSDATE
         WHERE USER_ID=#{user_id}
     </update>
 
-    <delete id="deleteUserInfoByID" parameterType="string">
+    <delete id="deleteUserInfoByID">
         DELETE TB_USER WHERE USER_ID = #{user_id}
     </delete>
 
-    <delete id="deleteUserInfoByIdx" parameterType="long">
+    <delete id="deleteUserInfoByIdx">
         DELETE TB_USER WHERE IDX_USER = #{idx_user}
     </delete>
 
@@ -125,7 +97,7 @@
     </select>
 
     <!-- 프로필 사진 추가여부 설정 -->
-    <update id="setProfile_y" parameterType="com.eura.web.model.DTO.UserVO">
+    <update id="setProfile_y">
         UPDATE TB_USER
         SET
             PROFILE_Y = #{profile_y}
@@ -133,7 +105,7 @@
     </update>
 
     <!-- authKey키 생성(가입인증 번호 발급) -->
-    <update id="updateAuthKey" parameterType="com.eura.web.model.DTO.UserVO">
+    <update id="updateAuthKey">
         UPDATE TB_USER
         SET
             AUTHKEY = #{authKey}
@@ -141,7 +113,7 @@
     </update>
 
     <!-- 회원상태 변경(가입인증 메일 확인) -->
-    <update id="updateAuthStatus" parameterType="com.eura.web.model.DTO.UserVO">
+    <update id="updateAuthStatus">
         UPDATE TB_USER
         SET
             USER_STATUS = 1
@@ -149,12 +121,12 @@
             AND AUTHKEY = #{authKey}
     </update>
 
-    <select id="findUserIdx" resultType="long">
+    <select id="findUserIdx" resultType="Integer">
         SELECT idx_user FROM TB_USER WHERE user_id=#{user_id}
     </select>
 
     <!--임시 비밀번호 발급 -->
-    <update id="updateUserPw" parameterType="com.eura.web.model.DTO.UserVO">
+    <update id="updateUserPw">
         UPDATE TB_USER
         SET
             TEMP_PW_Y = #{temp_pw_y},

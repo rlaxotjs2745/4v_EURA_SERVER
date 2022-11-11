@@ -74,7 +74,7 @@ public class MeetController extends BaseController {
                     _rs.put("ui_name", uInfo.getUser_name());
                     ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
                     String _upic = "";
-                    if(!uPic.getFile_name().isEmpty()){
+                    if(!uPic.getFile_name().isEmpty() && uPic.getFile_name() != null){
                         _upic = domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
                     }
                     _rs.put("ui_pic", _upic);
@@ -253,7 +253,11 @@ public class MeetController extends BaseController {
                     _irs.put("idx", irs0.getIdx_user());
                     _irs.put("uname", irs0.getUser_name());
                     _irs.put("email", irs0.getUser_email());
-                    _irs.put("ui_pic", domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name());
+                    String _upic = "";
+                    if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
+                        _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                    }
+                    _irs.put("ui_pic", _upic);
                     _irss.add(_irs);
                 }
                 _rs.put("mt_invites", _irss);
@@ -377,7 +381,7 @@ public class MeetController extends BaseController {
                     _irs.put("is_live", irs0.getIs_live());
                     _irs.put("is_alive", irs0.getIs_alive());
                     String _pic = "";
-                    if(irs0.getFile_name()!=""){
+                    if(irs0.getFile_name()!="" && irs0.getFile_name() != null){
                         _pic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
                     }
                     _irs.put("ui_pic", _pic);
@@ -743,7 +747,11 @@ public class MeetController extends BaseController {
                         _irs.put("idx", irs0.getIdx_user());
                         _irs.put("uname", irs0.getUser_name());
                         _irs.put("email", irs0.getUser_email());
-                        _irs.put("ui_pic", domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name());
+                        String _upic = "";
+                        if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
+                            _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                        }
+                        _irs.put("ui_pic", _upic);
                         _irss.add(_irs);
                     }
                     _rs.put("mt_invites", _irss);   // 미팅 참석자

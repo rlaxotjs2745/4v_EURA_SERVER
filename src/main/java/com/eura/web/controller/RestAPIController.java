@@ -14,6 +14,7 @@ import com.eura.web.util.CONSTANT;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -226,15 +227,8 @@ public class RestAPIController extends BaseController {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getUser_pwd())) {
                             resultVO.setResult_code(CONSTANT.success+"01");
                             resultVO.setResult_str("로그인 되었습니다.");
-
-                            Cookie myCookie = new Cookie("user_id", findUser.getUser_id());
-                            if(userVo.isAutoLogin() == true){
-                                myCookie.setMaxAge(60*60*24*365);
-                            } else {
-                                myCookie.setMaxAge(-1);
-                            }
-                            myCookie.setPath("/");
-                            response.addCookie(myCookie);
+                            String _cStr = "user_id="+ findUser.getUser_id() +"; domain=.eura.site; Path=/;";
+                            response.addHeader("Set-Cookie", _cStr);
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
@@ -244,14 +238,27 @@ public class RestAPIController extends BaseController {
                             resultVO.setResult_code(CONSTANT.success+"02");
                             resultVO.setResult_str("임시 비밀번호로 로그인 되었습니다.");
 
-                            Cookie myCookie = new Cookie("user_id", findUser.getUser_id());
-                            if(userVo.isAutoLogin() == true){
-                                myCookie.setMaxAge(60*60*24*365);
-                            } else {
-                                myCookie.setMaxAge(-1);
-                            }
-                            myCookie.setPath("/");
-                            response.addCookie(myCookie);
+                            // Cookie myCookie = new Cookie("user_id", findUser.getUser_id());
+                            // if(userVo.isAutoLogin() == true){
+                            //     myCookie.setMaxAge(60*60*24*365);
+                            // } else {
+                            //     myCookie.setMaxAge(-1);
+                            // }
+                            // myCookie.setPath("/");
+                            // myCookie.setSecure(true);
+                            // response.addCookie(myCookie);
+                            // String _cStr = "user_id="+ findUser.getUser_id() +"; path=/; Secure; SameSite=None;";
+                            // response.addHeader("Set-Cookie", _cStr);
+
+                            ResponseCookie cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                // .domain("*") 
+                                .sameSite("")
+                                .secure(false)
+                                .httpOnly(true)
+                                // .path("/")
+                                .build();
+                            response.addHeader("Set-Cookie", cookie.toString());
+
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
@@ -484,7 +491,7 @@ public class RestAPIController extends BaseController {
             mailSendVO.setIdx_user(findUser.getIdx_user());
             mailSendVO.setReceiver(findUser.getUser_id());
             mailSendVO.setTitle(title);
-            mailSendVO.setContent(w3domain +"/signUpConfirm?email=" + findUser.getUser_id() + "&authKey=" + authKey);
+            mailSendVO.setContent(w3domain + "/login?confirm=true&email=" + findUser.getUser_id() + "&authKey=" + authKey);
             mailSendVO.setMail_type(0);
 
             SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");

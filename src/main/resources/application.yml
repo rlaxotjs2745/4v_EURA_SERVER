@@ -1,11 +1,6 @@
 spring:
   profiles:
-    active: dev
-  mvc:
-    view:
-      prefix: /WEB-INF/jsp/
-      suffix: .jsp
-    static-path-pattern: /resources/static/**
+    active: prod
   servlet:
     multipart:
       enabled: true
@@ -13,10 +8,6 @@ spring:
       max-request-size: 215MB
   jwt:
     secret: k9McIikyWC2xy7f0Rg3rIIlMn8hUBJnyLj8c
-  web:
-    resources:
-      add-mappings: true
-      static-locations: classpath:static/
 
 #Model Location
 mybatis:
