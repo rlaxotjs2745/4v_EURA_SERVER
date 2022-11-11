@@ -47,6 +47,9 @@ public class MeetingService extends BaseController {
     @Value("${domain}")
     public String domain;
 
+    @Value("${w3domain}")
+    public String w3domain;
+
     /**
      * 미팅룸 생성
      * @param req
@@ -146,11 +149,11 @@ public class MeetingService extends BaseController {
     public void sendMail(MeetingVO meetingVO, MeetingVO rrs, Integer _mFTyp) throws Exception {
         // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
-        String _ebody = _data.replace("${DOMAIN}", domain);
+        String _ebody = _data.replace("${DOMAIN}", w3domain);
 
         // 회원가입 인증 메일
         if(_mFTyp==5){
-            _ebody = _ebody.replace("${URL}", domain + "/signUpConfirm?email="+ meetingVO.getUser_email() +"&authKey="+meetingVO.getAuthKey())
+            _ebody = _ebody.replace("${URL}", w3domain + "/signUpConfirm?email="+ meetingVO.getUser_email() +"&authKey="+meetingVO.getAuthKey())
                             .replace("${USEREMAIL}", meetingVO.getUser_email())
                             .replace("${USERNAME}", meetingVO.getUser_name());
             try {

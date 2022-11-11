@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 public class RestAPIController extends BaseController {
@@ -52,6 +51,9 @@ public class RestAPIController extends BaseController {
 
     @Value("${domain}")
     private String domain;
+
+    @Value("${w3domain}")
+    private String w3domain;
 
     public static final String REGEXPW = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,20}$";
 
@@ -147,7 +149,7 @@ public class RestAPIController extends BaseController {
                 mailSendVO.setIdx_user(idx_user);
                 mailSendVO.setReceiver(userVo.getUser_id());
                 mailSendVO.setTitle(title);
-                mailSendVO.setContent(domain +"/signUpConfirm?email=" + userVo.getUser_id() + "&authKey=" + authKey);
+                mailSendVO.setContent(w3domain +"/signUpConfirm?email=" + userVo.getUser_id() + "&authKey=" + authKey);
                 mailSendVO.setMail_type(0);
 
                 SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
@@ -208,7 +210,7 @@ public class RestAPIController extends BaseController {
      * @param userVo
      * @return
      */
-    @PostMapping("/api_post_login")
+    @PostMapping(value="/api_post_login")
     public ResultVO api_post_login(HttpServletRequest req, HttpServletResponse response, @RequestBody UserVO userVo){
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail+"01");
@@ -233,6 +235,8 @@ public class RestAPIController extends BaseController {
                             }
                             myCookie.setPath("/");
                             response.addCookie(myCookie);
+                            findUser.setRemote_ip(getClientIP(req));
+                            userMapper.putUserLoginHistory(findUser);
                         }
                     }
                     else if (findUser.getTemp_pw_y() == 1) {
@@ -248,10 +252,10 @@ public class RestAPIController extends BaseController {
                             }
                             myCookie.setPath("/");
                             response.addCookie(myCookie);
+                            findUser.setRemote_ip(getClientIP(req));
+                            userMapper.putUserLoginHistory(findUser);
                         }
                     }
-                    findUser.setRemote_ip(getClientIP(req));
-                    userMapper.putUserLoginHistory(findUser);
                 } else {
                     resultVO.setResult_code(CONSTANT.fail+"02");
                     resultVO.setResult_str("이메일 인증을 진행해주세요");
@@ -361,6 +365,10 @@ public class RestAPIController extends BaseController {
 
         userVO.setUser_id(user_id);
         if(userVO.getUser_pwd() != null){
+            if(userVO.getUser_pwd_origin()==null){
+                resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
+                return resultVO;
+            }
             Matcher matcherPw = Pattern.compile(REGEXPW).matcher(userVO.getUser_pwd());
             if (userVO.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
@@ -476,7 +484,7 @@ public class RestAPIController extends BaseController {
             mailSendVO.setIdx_user(findUser.getIdx_user());
             mailSendVO.setReceiver(findUser.getUser_id());
             mailSendVO.setTitle(title);
-            mailSendVO.setContent(domain +"/signUpConfirm?email=" + findUser.getUser_id() + "&authKey=" + authKey);
+            mailSendVO.setContent(w3domain +"/signUpConfirm?email=" + findUser.getUser_id() + "&authKey=" + authKey);
             mailSendVO.setMail_type(0);
 
             SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
@@ -505,4 +513,33 @@ public class RestAPIController extends BaseController {
         return resultVO;
     }
 
+    /**
+     * 내 정보 가져오기
+     * @param userVo
+     * @return ResultVO
+     * @throws Exception
+     */
+    @PostMapping("/myinfo")
+    public ResultVO getMyInfo(@RequestBody UserVO userVo) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("NO INFO");
+
+        UserVO rs = userService.findUserById(userVo.getUser_id());
+
+        if(rs != null){
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            _rs.put("user_name",rs.getUser_name());
+            String _upic = "";
+            if(!rs.getFile_name().isEmpty()){
+                _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+            }
+            _rs.put("user_pic", _upic);
+            resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("OK");
+        }
+
+        return resultVO;
+    }
 }

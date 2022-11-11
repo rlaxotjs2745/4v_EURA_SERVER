@@ -26,7 +26,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 @Slf4j
-@CrossOrigin
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
@@ -41,43 +40,42 @@ public class LiveController extends BaseController {
     /**
      * 참석자 감정 분석 자료
      * @param req
-     * @param liveEmotionVO
+     * @param mcid
+     * @param zuid
+     * @param token
+     * @param timestamp
+     * @param emotion
      * @return
      * @throws Exception
      */
     @PostMapping(value = "/analyse")
-    public ResultVO analyseFace(MultipartHttpServletRequest req,
-                                @RequestPart("mcid") String mcid,
-                                @RequestPart("zuid") String zuid,
-                                @RequestPart("token") String token,
-                                @RequestPart("emotion") String emotion) throws Exception {
+    public ResultVO analyseFace(MultipartHttpServletRequest req, LiveEmotionVO liveEmotionVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
         try{
-            AnalysisVO analysisVO = new Gson().fromJson(emotion, AnalysisVO.class);
+            AnalysisVO analysisVO = new Gson().fromJson(liveEmotionVO.getEmotion(), AnalysisVO.class);
 
             MeetingVO meetingVO = new MeetingVO();
-            meetingVO.setSessionid(mcid);
-            meetingVO.setToken(token);
+            meetingVO.setSessionid(liveEmotionVO.getMcid());
+            meetingVO.setToken(liveEmotionVO.getToken());
             MeetingVO _urs = meetMapper.getMeetInvite(meetingVO);
             if(_urs==null){
                 resultVO.setResult_str("이용 가능한 회원이 아닙니다.");
             }else{
-                LiveEmotionVO liveEmotionVO = new LiveEmotionVO();
-                liveEmotionVO.setToken(token);
-                liveEmotionVO.setMcid(mcid);
-                liveEmotionVO.setEmotion(analysisVO);
-                analysisService.insertAnalysisData(liveEmotionVO);
+                analysisVO.setMcid(liveEmotionVO.getMcid());
+                analysisVO.setToken(liveEmotionVO.getToken());
+                analysisVO.setTime_stamp(liveEmotionVO.getTimestamp());
+                analysisService.insertAnalysisData(analysisVO);
                 
                 List<MultipartFile> fileList = req.getFiles("file");
-                if(req.getFiles("file").get(0).getSize() != 0){
-                    fileList = req.getFiles("file");
-                }
+                // if(req.getFiles("file").get(0).getSize() != 0){
+                //     fileList = req.getFiles("file");
+                // }
 
                 if(fileList.size()>0){
-                    String path = "/emotiondata/" + mcid + "/" + _urs.getIdx_user() + "/";
+                    String path = "/emotiondata/" + liveEmotionVO.getMcid() + "/" + _urs.getIdx_user() + "/";
                     String fullpath = this.filepath + path;
                     File fileDir = new File(fullpath);
                     if (!fileDir.exists()) {
@@ -90,7 +88,7 @@ public class LiveController extends BaseController {
                             try { // 파일생성
                                 mf.transferTo(new File(fullpath, originFileName));
                                 MeetingVO paramVo = new MeetingVO();
-                                paramVo.setIdx_analysis(liveEmotionVO.getIdx_analysis());
+                                paramVo.setIdx_analysis(analysisVO.getIdx_analysis());
                                 paramVo.setFile_path(path);
                                 paramVo.setFile_name(originFileName);
                                 paramVo.setFile_size(mf.getSize());
@@ -128,9 +126,9 @@ public class LiveController extends BaseController {
             if(rs == 1){
                 List<MultipartFile> fileList = req.getFiles("file");
                 if(fileList.size()>0){
-                    if(req.getFiles("file").get(0).getSize() != 0){
-                        fileList = req.getFiles("file");
-                    }
+                    // if(req.getFiles("file").get(0).getSize() != 0){
+                    //     fileList = req.getFiles("file");
+                    // }
                     String path = "/meetmovie/" + meetingVO.getMcid() + "/";
                     String fullpath = this.filepath + path;
                     File fileDir = new File(fullpath);

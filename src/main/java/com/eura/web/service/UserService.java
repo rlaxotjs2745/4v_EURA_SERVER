@@ -41,7 +41,7 @@ public class UserService {
     }
 
     public UserVO findUserById(String user_id){
-        UserVO findUser = userMapper.getUserInfoById( user_id);
+        UserVO findUser = userMapper.getUserInfoById(user_id);
         return findUser;
     }
 

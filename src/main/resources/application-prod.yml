@@ -35,6 +35,7 @@ log4jdbc:
         drivers: false
 
 mail:
-  passwd: mailpass
+  passwd: "foicfoic22!"
 
 domain: http://54.180.128.152:10000
+w3domain: http://13.124.92.172:3000

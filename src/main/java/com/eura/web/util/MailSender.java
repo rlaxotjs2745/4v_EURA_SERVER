@@ -15,9 +15,9 @@ public class MailSender {
     @Value("${mail.passwd}")
     private String mailpasswd;
 
-    private String FROM = "eura@eura.co.kr";
+    private String FROM = "admin@eura.site";
     private String FROMNAME = "EURA";
-    private String SMTP_USERNAME = "sungwoong@4thevision.com";
+    private String SMTP_USERNAME = "admin@eura.site";
     private String HOST = "smtps.hiworks.com";
     private int PORT = 465;
 
