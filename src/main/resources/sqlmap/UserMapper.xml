@@ -4,7 +4,10 @@
 
 <mapper namespace="com.eura.web.model.UserMapper">
     <select id="getUserInfoById" parameterType="String" resultType="com.eura.web.model.DTO.UserVO">
-        SELECT * FROM TB_USER WHERE user_id=#{user_id}
+        SELECT A.*, B.FILE_PATH, B.FILE_NAME 
+        FROM TB_USER A 
+        LEFT OUTER JOIN TB_PROFILE_INFO B ON B.IDX_USER=A.IDX_USER 
+        WHERE A.USER_ID=#{user_id}
     </select>
 
     <select id="getUserInfoByIdx" resultType="com.eura.web.model.DTO.UserVO">

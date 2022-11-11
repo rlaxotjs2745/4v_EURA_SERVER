@@ -73,7 +73,11 @@ public class MeetController extends BaseController {
                 if(uInfo!=null){
                     _rs.put("ui_name", uInfo.getUser_name());
                     ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
-                    _rs.put("ui_pic", domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name());
+                    String _upic = "";
+                    if(!uPic.getFile_name().isEmpty()){
+                        _upic = domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
+                    }
+                    _rs.put("ui_pic", _upic);
                 }
                 
                 // 개인화 - 다음일정 - 참여중인 미팅룸
