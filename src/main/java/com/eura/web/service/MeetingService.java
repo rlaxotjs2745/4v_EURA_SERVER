@@ -180,7 +180,7 @@ public class MeetingService extends BaseController {
                 _ebody = _ebody.replace("${USERNAME}", _unm)
                                 .replace("${USEREMAIL}", _ss.getUser_email())
                                 .replace("${MEETNAME}", rrs.getMt_name())
-                                .replace("${URL}", w3domain);
+                                .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
                 
                 mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _ebody);
             }
