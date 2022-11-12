@@ -1,7 +1,6 @@
 package com.eura.web.controller;
 
 import javax.annotation.Resource;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import com.eura.web.base.BaseController;
@@ -14,6 +13,7 @@ import com.eura.web.util.CONSTANT;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,9 +35,6 @@ public class RestAPIController extends BaseController {
     private final UserMapper userMapper;
     private final MeetMapper meetMapper;
 
-    @Resource(name = "fileService")
-    public FileService fileService;
-
     @Resource(name = "profileFileService")
     public ProfileFileService profileFileService;
 
@@ -55,17 +52,18 @@ public class RestAPIController extends BaseController {
     @Value("${w3domain}")
     private String w3domain;
 
-    public static final String REGEXPW = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,20}$";
-
+    // public static final String REGEXPW = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,20}$";
+    
     /**
      * 로그인 확인
+     * 
      * @param request
      * @param response
      * @param user_id
      * @return
      */
     @PostMapping("/index")
-    public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id){
+    public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("유저 정보가 존재합니다.");
@@ -73,14 +71,14 @@ public class RestAPIController extends BaseController {
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
 
-        if(flashMap!=null) {
-            findUserVo =(UserVO)flashMap.get("userVo");
+        if (flashMap != null) {
+            findUserVo = (UserVO) flashMap.get("userVo");
         }
-        if(user_id!=null) {
-            findUserVo =userService.findUserById(user_id);
+        if (user_id != null) {
+            findUserVo = userService.findUserById(user_id);
         }
 
-        if (findUserVo == null) {//로그인 필요
+        if (findUserVo == null) {// 로그인 필요
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("로그인이 필요합니다");
             return resultVO;
@@ -91,6 +89,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입
+     * 
      * @param userVo
      * @param file
      * @return
@@ -102,9 +101,9 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("입력 정보를 다시 확인해주세요.");
 
-        if(userVo!=null && userVo.getUser_id() !=null && userVo.getUser_name() != null && userVo.getUser_pwd()!=null){
+        if (userVo != null && userVo.getUser_id() != null && userVo.getUser_name() != null && userVo.getUser_pwd() != null) {
             UserVO findUser = userService.findUserById(userVo.getUser_id());
-            if(findUser != null){
+            if (findUser != null) {
                 resultVO.setResult_str("이미 사용중인 아이디입니다.");
                 return resultVO;
             } else {
@@ -114,8 +113,8 @@ public class RestAPIController extends BaseController {
                 userVo.setProfile_y(0);
                 userVo.setTemp_pw_y(0);
                 Integer idx_user = userService.join(userVo);
-                if(file != null){
-                    UserVO findUserVO = userService.getUserProfileFile(idx_user);
+                if (file != null) {
+                    UserVO findUserVO = userService.getUserProfileFile(idx_user); // 프로필 사진 정보
 
                     String _path = "/profile/" + idx_user + "/";
                     MeetingVO _frs = meetingService.saveFile(file, _path);
@@ -124,11 +123,11 @@ public class RestAPIController extends BaseController {
                     profileInfo.setFile_name(_frs.getFile_name());
                     profileInfo.setFile_path(_path);
 
-                    if(findUserVO.getProfile_y() == 0){
+                    if (findUserVO.getProfile_y() == 0) {
                         profileFileService.uploadProfileFile(profileInfo);
                         findUserVO.setProfile_y(1);
-                        userService.addNewProfile(findUserVO);
-                    } else if(findUserVO.getProfile_y() == 1) {
+                        userService.addNewProfile(findUserVO); // 프로필 사진 DB 저장
+                    } else if (findUserVO.getProfile_y() == 1) {
                         profileFileService.updateProfileFile(profileInfo);
                     }
                 }
@@ -137,30 +136,26 @@ public class RestAPIController extends BaseController {
                 userVo.setIdx_user(idx_user);
                 meetMapper.chkMeetInviteChain(userVo);
 
-                //메일 발송
+                // 메일 발송
                 String authKey = mailService.generateAuthNo(6);
-                // String Message = "<h1>[이메일 인증]</h1><br><p>아래 링크를 클릭하시면 이메일 인증이 완료됩니다.</p>"
-                //         + "<a href=\""+ domain +"/signUpConfirm?email=" + userVo.getUser_id()
-                //         + "&authKey=" + authKey + "\" target=\"_blenk\">이메일 인증 확인</a>";
-                // String to = userVo.getUser_id();
                 String title = "[EURA] 회원가입 인증 메일";
 
                 MailVO mailSendVO = new MailVO();
                 mailSendVO.setIdx_user(idx_user);
                 mailSendVO.setReceiver(userVo.getUser_id());
                 mailSendVO.setTitle(title);
-                mailSendVO.setContent(w3domain +"/signUpConfirm?email=" + userVo.getUser_id() + "&authKey=" + authKey);
+                mailSendVO.setContent(w3domain + "/login?confirm=true&email=" + userVo.getUser_id() + "&authKey=" + authKey);
                 mailSendVO.setMail_type(0);
 
-                SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+                SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 Calendar time = Calendar.getInstance();
                 String now_date = fm.format(time.getTime());
                 mailSendVO.setSendTime(now_date);
 
-                mailService.insertJoinEmail(mailSendVO);
+                mailService.insertJoinEmail(mailSendVO); // 메일 발송 기록
 
                 userVo.setAuthKey(authKey);
-                userService.updateAuthKey(userVo);
+                userService.updateAuthKey(userVo); // 인증키 저장
 
                 MeetingVO meetingVO = new MeetingVO();
                 meetingVO.setAuthKey(authKey);
@@ -168,7 +163,6 @@ public class RestAPIController extends BaseController {
                 meetingVO.setUser_email(userVo.getUser_id());
                 meetingVO.setUser_name(userVo.getUser_name());
                 meetingService.sendMail(meetingVO, null, 5);
-                // mailSender.sender(to, title, Message);
 
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("가입에 성공했습니다");
@@ -179,24 +173,25 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입 인증
+     * 
      * @param email
      * @param authKey
      * @return
      */
     @GetMapping("/signUpConfirm")
-    public ResultVO signUpConfirm(@RequestParam("email") String email, @RequestParam("authKey") String authKey){
+    public ResultVO signUpConfirm(@RequestParam("email") String email, @RequestParam("authKey") String authKey) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("메일 인증에 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
-        if(email != null && authKey != null){
+        if (email != null && authKey != null) {
             UserVO userVO = new UserVO();
             userVO.setAuthKey(authKey);
             userVO.setUser_id(email);
             userService.updateAuthStatus(userVO);
 
             UserVO findUser = userService.findUserById(email);
-            if(findUser.getUser_status() == 1){
+            if (findUser.getUser_status() == 1) {
                 resultVO.setResult_str("메일 인증에 성공했습니다");
                 resultVO.setResult_code(CONSTANT.success);
             }
@@ -206,58 +201,51 @@ public class RestAPIController extends BaseController {
 
     /**
      * 로그인
+     * 
      * @param response
      * @param userVo
      * @return
      */
-    @PostMapping(value="/api_post_login")
-    public ResultVO api_post_login(HttpServletRequest req, HttpServletResponse response, @RequestBody UserVO userVo){
+    @PostMapping(value = "/api_post_login")
+    public ResultVO api_post_login(HttpServletRequest req, HttpServletResponse response, @RequestBody UserVO userVo) throws Exception {
         ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail+"01");
+        resultVO.setResult_code(CONSTANT.fail + "01");
         resultVO.setResult_str("로그인 정보를 다시 확인해주세요.");
 
-        if(userVo.getUser_id() != null || userVo.getUser_pwd() != null){
+        if (userVo.getUser_id() != null || userVo.getUser_pwd() != null) {
             UserVO findUser = userService.findUserById(userVo.getUser_id());
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-            if(findUser!=null){
-                if(findUser.getUser_status() == 1) {
+            if (findUser != null) {
+                if (findUser.getUser_status() == 1) {
                     if (findUser.getTemp_pw_y() == 0) {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getUser_pwd())) {
-                            resultVO.setResult_code(CONSTANT.success+"01");
+                            resultVO.setResult_code(CONSTANT.success + "01");
                             resultVO.setResult_str("로그인 되었습니다.");
-
-                            Cookie myCookie = new Cookie("user_id", findUser.getUser_id());
-                            if(userVo.isAutoLogin() == true){
-                                myCookie.setMaxAge(60*60*24*365);
-                            } else {
-                                myCookie.setMaxAge(-1);
-                            }
-                            myCookie.setPath("/");
-                            response.addCookie(myCookie);
+                            String _cStr = "user_id=" + findUser.getUser_id() + "; domain=.eura.site; Path=/;";
+                            response.addHeader("Set-Cookie", _cStr);
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
-                    }
-                    else if (findUser.getTemp_pw_y() == 1) {
+                    } else if (findUser.getTemp_pw_y() == 1) {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getTemp_pw())) {
-                            resultVO.setResult_code(CONSTANT.success+"02");
+                            resultVO.setResult_code(CONSTANT.success + "02");
                             resultVO.setResult_str("임시 비밀번호로 로그인 되었습니다.");
+                            ResponseCookie cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                    // .domain("*")
+                                    .sameSite("")
+                                    .secure(false)
+                                    .httpOnly(true)
+                                    // .path("/")
+                                    .build();
+                            response.addHeader("Set-Cookie", cookie.toString());
 
-                            Cookie myCookie = new Cookie("user_id", findUser.getUser_id());
-                            if(userVo.isAutoLogin() == true){
-                                myCookie.setMaxAge(60*60*24*365);
-                            } else {
-                                myCookie.setMaxAge(-1);
-                            }
-                            myCookie.setPath("/");
-                            response.addCookie(myCookie);
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
                     }
                 } else {
-                    resultVO.setResult_code(CONSTANT.fail+"02");
+                    resultVO.setResult_code(CONSTANT.fail + "02");
                     resultVO.setResult_str("이메일 인증을 진행해주세요");
                 }
             }
@@ -267,20 +255,21 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원 가입 검증
+     * 
      * @param req
      * @param session
      * @param userVo
      * @return
      */
     @PostMapping("/join_default")
-    public ResultVO join_default(HttpServletRequest req, HttpSession session, @RequestBody UserVO userVo){
+    public ResultVO join_default(HttpServletRequest req, HttpSession session, @RequestBody UserVO userVo) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        if(userVo.getUser_name()!=null &&
-            userVo.getUser_id()!=null&&
-            userVo.getUser_pwd()!=null){
+        if (userVo.getUser_name() != null &&
+                userVo.getUser_id() != null &&
+                userVo.getUser_pwd() != null) {
 
             String regexId = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
             Matcher matcherId = Pattern.compile(regexId).matcher(userVo.getUser_id());
@@ -290,7 +279,7 @@ public class RestAPIController extends BaseController {
                 return resultVO;
             }
 
-            Matcher matcherPw = Pattern.compile(REGEXPW).matcher(userVo.getUser_pwd());
+            Matcher matcherPw = Pattern.compile(CONSTANT.REGEXPW).matcher(userVo.getUser_pwd());
             if (userVo.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
                 resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 설정해주세요.");
@@ -298,7 +287,7 @@ public class RestAPIController extends BaseController {
             }
 
             UserVO findUser = userService.findUserById(userVo.getUser_id());
-            if(findUser != null){
+            if (findUser != null) {
                 resultVO.setResult_str("이미 사용중인 아이디입니다.");
                 return resultVO;
             }
@@ -310,6 +299,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 프로필 사진 변경
+     * 
      * @param file
      * @param session
      * @param user_id
@@ -321,7 +311,7 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_str("사진 저장에 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
-        if(file != null){
+        if (file != null) {
             UserVO findUserVO = userService.findUserById(user_id);
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
@@ -331,19 +321,19 @@ public class RestAPIController extends BaseController {
             profileInfo.setFile_name(_frs.getFile_name());
             profileInfo.setFile_path(_path);
 
-            if(findUserVO.getProfile_y() == 0){
+            if (findUserVO.getProfile_y() == 0) {
                 profileFileService.uploadProfileFile(profileInfo);
                 findUserVO.setProfile_y(1);
                 userService.addNewProfile(findUserVO);
 
                 resultVO.setResult_str("프로필이 등록되었습니다.");
-                resultVO.setResult_code(CONSTANT.success+"01");
+                resultVO.setResult_code(CONSTANT.success + "01");
 
-            } else if(findUserVO.getProfile_y() == 1) {
+            } else if (findUserVO.getProfile_y() == 1) {
                 profileFileService.updateProfileFile(profileInfo);
 
                 resultVO.setResult_str("프로필이 수정되었습니다.");
-                resultVO.setResult_code(CONSTANT.success+"02");
+                resultVO.setResult_code(CONSTANT.success + "02");
             }
         }
 
@@ -352,6 +342,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원정보 변경
+     * 
      * @param user_id
      * @param userVO
      * @return ResultVO
@@ -364,12 +355,12 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
 
         userVO.setUser_id(user_id);
-        if(userVO.getUser_pwd() != null){
-            if(userVO.getUser_pwd_origin()==null){
+        if (userVO.getUser_pwd() != null) {
+            if (userVO.getUser_pwd_origin() == null) {
                 resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
                 return resultVO;
             }
-            Matcher matcherPw = Pattern.compile(REGEXPW).matcher(userVO.getUser_pwd());
+            Matcher matcherPw = Pattern.compile(CONSTANT.REGEXPW).matcher(userVO.getUser_pwd());
             if (userVO.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
                 resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 설정해주세요.");
@@ -378,16 +369,16 @@ public class RestAPIController extends BaseController {
 
             UserVO rs = userService.findUserById(user_id);
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            if(passwordEncoder.matches(userVO.getUser_pwd_origin(), rs.getUser_pwd())){
+            if (passwordEncoder.matches(userVO.getUser_pwd_origin(), rs.getUser_pwd())) {
                 String change_pwd = passwordEncoder.encode(userVO.getUser_pwd());
                 userVO.setUser_pwd(change_pwd);
                 userMapper.updateUserInfo(userVO);
                 resultVO.setResult_str("프로필이 수정되었습니다.");
                 resultVO.setResult_code(CONSTANT.success);
-            }else{
+            } else {
                 resultVO.setResult_str("프로필을 수정 할 수 없습니다.");
             }
-        }else{
+        } else {
             userMapper.updateUserInfo(userVO);
             resultVO.setResult_str("프로필이 수정되었습니다.");
             resultVO.setResult_code(CONSTANT.success);
@@ -398,6 +389,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 임시 비밀번호 발급
+     * 
      * @param userVO
      * @return
      * @throws Exception
@@ -410,21 +402,18 @@ public class RestAPIController extends BaseController {
 
         UserVO finduser = userService.findUserById(userVO.getUser_id());
 
-        if(finduser!=null){
+        if (finduser != null) {
             String tempPW = mailService.getRamdomPassword();
-            // String Message = "<h1>[임시 비밀번호]</h1><br><p>아래의 비밀번호로 로그인 후 비밀번호를 변경해 주세요.</p>"
-            //         + "임시 비밀번호 : " + tempPW;
-            // String to = finduser.getUser_id();
             String title = "[EURA] 임시 비밀번호 발급 메일";
 
             MailVO mailSendVO = new MailVO();
             mailSendVO.setIdx_user(finduser.getIdx_user());
             mailSendVO.setReceiver(finduser.getUser_id());
             mailSendVO.setTitle(title);
-            mailSendVO.setContent("");
+            mailSendVO.setContent("임시 비밀번호 : " + tempPW);
             mailSendVO.setMail_type(1);
 
-            SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Calendar time = Calendar.getInstance();
             String now_date = fm.format(time.getTime());
             mailSendVO.setSendTime(now_date);
@@ -446,7 +435,6 @@ public class RestAPIController extends BaseController {
             meetingVO.setTemp_pw(tempPW);
             meetingVO.setTitle(title);
             meetingService.sendMail(meetingVO, null, 6);
-            // mailSender.sender(to, title, Message);
 
             Map<String, Object> map = new HashMap<>();
             map.put("tempPW", tempPW);
@@ -460,6 +448,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입 인증 메일 다시 받기
+     * 
      * @param userVo
      * @return
      * @throws Exception
@@ -472,22 +461,18 @@ public class RestAPIController extends BaseController {
 
         UserVO findUser = userService.findUserById(userVo.getUser_id());
 
-        if(findUser != null){
+        if (findUser != null) {
             String authKey = mailService.generateAuthNo(6);
-            // String Message = "<h1>[이메일 인증]</h1><br><p>아래 링크를 클릭하시면 이메일 인증이 완료됩니다.</p>"
-                    // + "<a href=\""+ domain +"/signUpConfirm?email=" + findUser.getUser_id()
-                    // + "&authKey=" + authKey + "\" target=\"_blenk\">이메일 인증 확인</a>";
-            // String to = findUser.getUser_id();
             String title = "[EURA] 회원가입 인증 메일";
 
             MailVO mailSendVO = new MailVO();
             mailSendVO.setIdx_user(findUser.getIdx_user());
             mailSendVO.setReceiver(findUser.getUser_id());
             mailSendVO.setTitle(title);
-            mailSendVO.setContent(w3domain +"/signUpConfirm?email=" + findUser.getUser_id() + "&authKey=" + authKey);
+            mailSendVO.setContent(w3domain + "/login?confirm=true&email=" + findUser.getUser_id() + "&authKey=" + authKey);
             mailSendVO.setMail_type(0);
 
-            SimpleDateFormat fm = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat fm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Calendar time = Calendar.getInstance();
             String now_date = fm.format(time.getTime());
             mailSendVO.setSendTime(now_date);
@@ -496,15 +481,14 @@ public class RestAPIController extends BaseController {
 
             findUser.setAuthKey(authKey);
             findUser.setUser_status(0);
-            userService.updateAuthKey(findUser);
+            userService.updateAuthKey(findUser);    // 인증키 저장
 
             MeetingVO meetingVO = new MeetingVO();
             meetingVO.setAuthKey(authKey);
             meetingVO.setTitle(title);
             meetingVO.setUser_email(findUser.getUser_id());
             meetingVO.setUser_name(findUser.getUser_name());
-            meetingService.sendMail(meetingVO, null, 5);
-            // mailSender.sender(to, title, Message);
+            meetingService.sendMail(meetingVO, null, 5);    // 메일 발송
 
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("메일이 재발송 되었습니다.");
@@ -515,6 +499,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 내 정보 가져오기
+     * 
      * @param userVo
      * @return ResultVO
      * @throws Exception
@@ -527,11 +512,11 @@ public class RestAPIController extends BaseController {
 
         UserVO rs = userService.findUserById(userVo.getUser_id());
 
-        if(rs != null){
+        if (rs != null) {
             Map<String, Object> _rs = new HashMap<String, Object>();
-            _rs.put("user_name",rs.getUser_name());
+            _rs.put("user_name", rs.getUser_name());
             String _upic = "";
-            if(!rs.getFile_name().isEmpty()){
+            if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
                 _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
             }
             _rs.put("user_pic", _upic);

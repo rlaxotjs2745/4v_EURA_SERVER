@@ -5,10 +5,7 @@
 package com.eura.web.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-// import org.springframework.web.cors.CorsConfiguration;
-// import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -37,6 +34,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true)
+                .exposedHeaders("Set-Cookie")
                 .maxAge(3000);
     }
 }

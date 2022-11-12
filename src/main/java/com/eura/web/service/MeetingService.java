@@ -153,7 +153,7 @@ public class MeetingService extends BaseController {
 
         // 회원가입 인증 메일
         if(_mFTyp==5){
-            _ebody = _ebody.replace("${URL}", w3domain + "/signUpConfirm?email="+ meetingVO.getUser_email() +"&authKey="+meetingVO.getAuthKey())
+            _ebody = _ebody.replace("${URL}", w3domain + "/login?confirm=true&email=" + meetingVO.getUser_email() + "&authKey=" + meetingVO.getAuthKey())
                             .replace("${USEREMAIL}", meetingVO.getUser_email())
                             .replace("${USERNAME}", meetingVO.getUser_name());
             try {
@@ -179,7 +179,8 @@ public class MeetingService extends BaseController {
                 }
                 _ebody = _ebody.replace("${USERNAME}", _unm)
                                 .replace("${USEREMAIL}", _ss.getUser_email())
-                                .replace("${MEETNAME}", rrs.getMt_name());
+                                .replace("${MEETNAME}", rrs.getMt_name())
+                                .replace("${URL}", w3domain);
                 
                 mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _ebody);
             }
@@ -222,8 +223,8 @@ public class MeetingService extends BaseController {
      * @return
      * @throws Exception
      */
-    public ArrayList<Object> meetFileSave(MultipartHttpServletRequest req, Integer _idx) throws Exception {
-        ArrayList<Object> _frss = new ArrayList<Object>();
+    public List<MeetingVO> meetFileSave(MultipartHttpServletRequest req, Integer _idx) throws Exception {
+        List<MeetingVO> _frss = new ArrayList<>();
 
         List<MultipartFile> fileList = req.getFiles("file");
         if(req.getFiles("file").get(0).getSize() != 0){
@@ -239,7 +240,7 @@ public class MeetingService extends BaseController {
             }
 
             for(MultipartFile mf : fileList) {
-                Map<String, Object> _frs = new HashMap<String, Object>();
+                // Map<String, Object> _frs = new HashMap<>();
                 String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                 try { // 파일생성
                     mf.transferTo(new File(fullpath, originFileName));
@@ -249,10 +250,10 @@ public class MeetingService extends BaseController {
                     paramVo.setFile_name(originFileName);
                     paramVo.setFile_size(mf.getSize());
                     fileServiceMapper.addMeetFile(paramVo);
-                    _frs.put("filepath",path);
-                    _frs.put("filename",originFileName);
-                    _frs.put("filesize",mf.getSize());
-                    _frss.add(_frs);
+                    // _frs.put("filepath",path);
+                    // _frs.put("filename",originFileName);
+                    // _frs.put("filesize",mf.getSize());
+                    _frss.add(paramVo);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -267,7 +268,7 @@ public class MeetingService extends BaseController {
      * @param _frss
      * @throws Exception
      */
-    public void meetFileCopy(Integer _idx, ArrayList<Object> _frss) throws Exception {
+    public void meetFileCopy(Integer _idx, List<MeetingVO> _frss) throws Exception {
         try {
             String path = "/meetroom/" + _idx + "/";
             String fullpath = this.filepath + path;
@@ -275,11 +276,12 @@ public class MeetingService extends BaseController {
             if (!fileDir.exists()) {
                 fileDir.mkdirs();
             }
-            for(int ii=0;ii<_frss.size();ii++){
-                Map<String, Object> _frsa = (Map<String, Object>) _frss.get(ii);
-                String _sfnm = _frsa.get("filename").toString();
-                Long _sfze = Long.valueOf(_frsa.get("filesize").toString());
-                File file = new File(this.filepath + _frsa.get("filepath").toString() + _sfnm);
+            // for(int ii=0;ii<_frss.size();ii++){
+                // Object _frsa = _frss.get(ii);
+            for(MeetingVO _frsa : _frss){
+                String _sfnm = _frsa.getFile_name();
+                Long _sfze = Long.valueOf(_frsa.getFile_size().toString());
+                File file = new File(this.filepath + _frsa.getFile_path() + _sfnm);
                 File newFile = new File(fullpath + _sfnm);
                 FileUtils.copyFile(file, newFile);
 

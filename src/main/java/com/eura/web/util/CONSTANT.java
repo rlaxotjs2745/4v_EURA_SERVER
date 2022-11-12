@@ -17,4 +17,5 @@ public class CONSTANT {
     public static Integer keepalive = 5;
     public static Integer mdatasec = 5;
     public static String rurl = "/mt/";
+    public static String REGEXPW = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,20}$";
 }
