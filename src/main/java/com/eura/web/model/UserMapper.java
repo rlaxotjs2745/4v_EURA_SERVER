@@ -1,6 +1,5 @@
 package com.eura.web.model;
 
-import com.eura.web.model.DTO.PagedUserListVO;
 import com.eura.web.model.DTO.UserVO;
 import org.apache.ibatis.annotations.Mapper;
 

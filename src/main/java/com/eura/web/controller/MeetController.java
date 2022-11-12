@@ -833,7 +833,7 @@ public class MeetController extends BaseController {
 
                             if(_dayChk.equals(0)){
                                 Integer _idx = 0;
-                                ArrayList<Object> _frss = new ArrayList<Object>();
+                                List<MeetingVO> _frss = new ArrayList<>();
                                 for(Integer i=0;i<_cnt;i++){
                                     String _sdate = getCalDate(_sd, 0, 0, i);
                                     String _edate = getCalDate(_ed, 0, 0, i);
@@ -905,7 +905,7 @@ public class MeetController extends BaseController {
                                 if(_dayChk.equals(0)){
                                     Integer _idx = 0;
                                     Integer _fcnt = 0;
-                                    ArrayList<Object> _frss = new ArrayList<Object>();
+                                    List<MeetingVO> _frss = new ArrayList<>();
                                     for(Integer i=1;i<=_cnt;i++){   // 주 반복
                                         for(Integer j=0;j<=6;j++){  // 일~월 1~7
                                             Integer _dw = getCalDayOfWeek(_sd, 0, 0, j+((i-1)*7));
@@ -965,7 +965,7 @@ public class MeetController extends BaseController {
 
                             if(_dayChk.equals(0)){
                                 Integer _idx = 0;
-                                ArrayList<Object> _frss = new ArrayList<Object>();
+                                List<MeetingVO> _frss = new ArrayList<>();
                                 for(Integer i=0;i<_cnt;i++){
                                     String _sdate = getCalDate(_sd, 0, i, 0);
                                     String _edate = getCalDate(_ed, 0, i, 0);
@@ -1015,7 +1015,7 @@ public class MeetController extends BaseController {
 
                             if(_dayChk.equals(0)){
                                 Integer _idx = 0;
-                                ArrayList<Object> _frss = new ArrayList<Object>();
+                                List<MeetingVO> _frss = new ArrayList<>();
                                 for(Integer i=0;i<_cnt;i++){
                                     String _sdate = getCalDate(_sd, i, 0, 0);
                                     String _edate = getCalDate(_ed, i, 0, 0);
@@ -1258,7 +1258,7 @@ public class MeetController extends BaseController {
                                     }
 
                                     Integer _idx = 0;
-                                    ArrayList<Object> _frss = new ArrayList<Object>();
+                                    List<MeetingVO> _frss = new ArrayList<>();
 
                                     // 일 주기
                                     if(meetingVO.getMt_remind_type().equals(1)){
@@ -1498,7 +1498,6 @@ public class MeetController extends BaseController {
                         resultVO.setResult_str("이미 미팅에 참여를 시작하여 미팅 장소로 이동합니다.");
                     }else{
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        // Date sdate = dateFormat.parse(rrs.getMt_start_dt());
                         Date edate = dateFormat.parse(rrs.getMt_end_dt());
                         Long _sDt = Instant.now().getEpochSecond(); // 현재 시간
                         Long _eDt = edate.getTime();
