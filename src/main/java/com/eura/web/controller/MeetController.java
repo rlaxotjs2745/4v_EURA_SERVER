@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.eura.web.base.BaseController;
+import com.eura.web.model.AnalysisMapper;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
+import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ProfileInfoVO;
 import com.eura.web.model.DTO.ResultVO;
@@ -41,6 +43,7 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
+    private final AnalysisMapper analysisMapper;
 
     @Value("${file.upload-dir}")
     private String filepath;
@@ -1616,6 +1619,9 @@ public class MeetController extends BaseController {
                 _rs.put("mtName", meetingInfo.getMt_name());
                 _rs.put("mtStartDt", meetingInfo.getMt_start_dt());
                 _rs.put("mtEndDt", meetingInfo.getMt_end_dt());
+
+                // 감정 데이터 리스팅
+                AnalysisVO analyinfo = analysisMapper.getAnalysisData(meetingVO);
 
 
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
