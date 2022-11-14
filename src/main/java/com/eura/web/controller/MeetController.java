@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.eura.web.base.BaseController;
+import com.eura.web.model.AnalysisMapper;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
+import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ProfileInfoVO;
 import com.eura.web.model.DTO.ResultVO;
@@ -41,6 +43,7 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
+    private final AnalysisMapper analysisMapper;
 
     @Value("${file.upload-dir}")
     private String filepath;
@@ -1615,8 +1618,12 @@ public class MeetController extends BaseController {
                 Map<String, Object> _rs = new HashMap<String, Object>();
 
                 _rs.put("mtName", meetingInfo.getMt_name());
-                _rs.put("mtStartTime", meetingInfo.getMt_start_dt());
-                _rs.put("mtEndTime", meetingInfo.getMt_end_dt());
+                _rs.put("mtStartDt", meetingInfo.getMt_start_dt());
+                _rs.put("mtEndDt", meetingInfo.getMt_end_dt());
+
+                // 감정 데이터 리스팅
+                AnalysisVO analyinfo = analysisMapper.getAnalysisData(meetingVO);
+
 
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -1631,7 +1638,7 @@ public class MeetController extends BaseController {
                 // 미구현 내용: 감정 분석 결과 분석으로 집중도 분석 요약 그래프에 들어갈 퍼센트 만들어야 함
 
                 resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("강의 정보를 불러오는 데에 성공했습니다.");
+                resultVO.setResult_str("강의 정보 호출 완료");
                 resultVO.setData(_rs);
             }
         } catch (Exception e){
@@ -1660,7 +1667,7 @@ public class MeetController extends BaseController {
             _rs.put("mtAttachedFiles", meetMapper.getMeetFiles(meetingVO));
 
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("파일 정보를 불러오는 데에 성공했습니다.");
+            resultVO.setResult_str("첨부 파일 리스트 호출 완료");
             resultVO.setData(_rs);
         } catch (Exception e){
             e.printStackTrace();
@@ -1690,7 +1697,7 @@ public class MeetController extends BaseController {
             // 미구현 내용: 감정 분석 결과를 분석하여 집중도 추가 필요함
 
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("인원 정보를 불러오는 데에 성공했습니다.");
+            resultVO.setResult_str("참여자 정보 호출 완료");
             resultVO.setData(_rs);
         } catch (Exception e){
             e.printStackTrace();
@@ -1699,7 +1706,33 @@ public class MeetController extends BaseController {
         return resultVO;
     }
 
+    /**
+     * 영상 파일 리스트
+     * @param req
+     * @param meetingVO
+     * @return ResultVO
+     * @throws Exception
+     */
+    @GetMapping("/result/moviefile")
+    public ResultVO getResulMovieFile(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
 
+        try {
+            Map<String, Object> _rs = new HashMap<String, Object>();
+
+            _rs.put("mtMvoieFiles", meetMapper.getMeetMovieFiles(meetingVO));
+
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("영상 파일 리스트 호출 완료");
+            resultVO.setData(_rs);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
 
     //퍼센트 계산
     // 전체값 a에서 b는 몇퍼센트인가?
