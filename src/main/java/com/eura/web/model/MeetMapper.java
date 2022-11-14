@@ -45,6 +45,9 @@ public interface MeetMapper {
     // 미팅룸 첨부 파일 리스트
     public List<MeetingVO> getMeetFiles(MeetingVO meetingVO) throws Exception;
 
+    // 영상 파일 리스트
+    public List<MeetingVO> getMeetMovieFiles(MeetingVO meetingVO) throws Exception;
+
     // 미팅룸 참여자 리스트
     public List<MeetingVO> getMeetInvites(MeetingVO meetingVO) throws Exception;
 

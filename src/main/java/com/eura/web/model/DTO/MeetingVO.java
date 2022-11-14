@@ -42,4 +42,6 @@ public class MeetingVO extends BaseVO {
     private Integer is_alive;   // ZOOM 감정 분석 상태 - 0:미진행, 1:진행
     private String result;      // 강의 종료 데이터
     private String filelist;
+    private Integer duration;   // 영상 길이
+    private String record_dt;   // 영상 녹화 시간
 }

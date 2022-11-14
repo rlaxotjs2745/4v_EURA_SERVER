@@ -78,4 +78,11 @@
             #{lipStretch}
         )
     </insert>
+
+    <select id="getAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
+        SELECT *
+            FROM TB_ANALYSIS
+            WHERE IDX_MEETING=#{idx_meeting}
+            ORDER BY TIMESTAMP ASC
+    </select>
 </mapper>

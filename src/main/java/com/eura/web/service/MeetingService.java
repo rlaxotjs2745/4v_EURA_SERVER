@@ -180,7 +180,7 @@ public class MeetingService extends BaseController {
                 _ebody = _ebody.replace("${USERNAME}", _unm)
                                 .replace("${USEREMAIL}", _ss.getUser_email())
                                 .replace("${MEETNAME}", rrs.getMt_name())
-                                .replace("${URL}", w3domain);
+                                .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
                 
                 mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _ebody);
             }
@@ -227,11 +227,10 @@ public class MeetingService extends BaseController {
         List<MeetingVO> _frss = new ArrayList<>();
 
         List<MultipartFile> fileList = req.getFiles("file");
-        if(req.getFiles("file").get(0).getSize() != 0){
-            fileList = req.getFiles("file");
-        }
         if(fileList.size()>0){
-            // long time = System.currentTimeMillis();
+            if(req.getFiles("file").get(0).getSize() != 0){
+                fileList = req.getFiles("file");
+            }
             String path = "/meetroom/" + _idx + "/";
             String fullpath = this.filepath + path;
             File fileDir = new File(fullpath);
@@ -240,7 +239,6 @@ public class MeetingService extends BaseController {
             }
 
             for(MultipartFile mf : fileList) {
-                // Map<String, Object> _frs = new HashMap<>();
                 String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                 try { // 파일생성
                     mf.transferTo(new File(fullpath, originFileName));
@@ -250,9 +248,6 @@ public class MeetingService extends BaseController {
                     paramVo.setFile_name(originFileName);
                     paramVo.setFile_size(mf.getSize());
                     fileServiceMapper.addMeetFile(paramVo);
-                    // _frs.put("filepath",path);
-                    // _frs.put("filename",originFileName);
-                    // _frs.put("filesize",mf.getSize());
                     _frss.add(paramVo);
                 } catch (Exception e) {
                     e.printStackTrace();
