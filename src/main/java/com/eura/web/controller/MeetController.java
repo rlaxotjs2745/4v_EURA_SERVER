@@ -533,9 +533,9 @@ public class MeetController extends BaseController {
                             meetingService.sendMail(meetingVO, rrs, 3);
 
                             resultVO.setResult_code(CONSTANT.success);
-                            resultVO.setResult_str("미팅룸을 공개하였습니다.");
+                            resultVO.setResult_str("미팅룸을 취소하였습니다.");
                         }else{
-                            resultVO.setResult_str("미팅룸을 공개하지 못하였습니다.");
+                            resultVO.setResult_str("미팅룸을 취소하지 못하였습니다.");
                         }
                     }else{
                         resultVO.setResult_str("이용권한이 없습니다.");
@@ -1106,21 +1106,22 @@ public class MeetController extends BaseController {
                                         }
 
                                         // 미팅룸 첨부파일 삭제
-                                        if(meetingVO.getFile_del() != null && meetingVO.getFile_del() != ""){
+                                        if(meetingVO.getFile_del() != null && !meetingVO.getFile_del().isEmpty() && !meetingVO.getFile_del().equals("")){
                                             String[] fileIdx = meetingVO.getFile_del().split(",");
                                             for(String fidx : fileIdx){
                                                 MeetingVO ee = new MeetingVO();
                                                 ee.setIdx_meeting(meetingVO.getIdx_meeting());
                                                 ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
-                                                fileServiceMapper.getMeetFile(ee);
 
                                                 // 파일 삭제
                                                 MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
-                                                File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                                if(f.exists()){
-                                                    f.delete();
+                                                if(finfo!=null){
+                                                    File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                                    if(f.exists()){
+                                                        f.delete();
+                                                    }
+                                                    fileServiceMapper.delMeetFile(ee);
                                                 }
-                                                fileServiceMapper.delMeetFile(ee);
                                             }
                                         }
 

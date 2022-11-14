@@ -23,7 +23,7 @@
     <select id="getMeetFile" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT FILE_PATH, FILE_NAME
         FROM TB_ATTACHMENT_FILE_INFO_JOIN 
-        WHERE DELETE_STAT=0 AND IDX_ATTACHMENT_FILE_INFO_JOIN=#{idx_attachment_file_info_join}
+        WHERE DELETE_STAT=0 AND IDX_ATTACHMENT_FILE_INFO_JOIN=#{idx_attachment_file_info_join} AND IDX_MEETING=#{idx_meeting}
     </select>
 
     <!-- 미팅 동영상 파일 저장 -->
