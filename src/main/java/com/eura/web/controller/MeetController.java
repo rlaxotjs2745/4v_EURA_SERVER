@@ -222,34 +222,34 @@ public class MeetController extends BaseController {
     @GetMapping("/invite")
     public ResultVO getMeetInvite(HttpServletRequest req, UserVO userVO) throws Exception {
         ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
+        resultVO.setResult_code(CONSTANT.success);
+        resultVO.setResult_str("회원 정보를 불러왔습니다.");
+        resultVO.setData(null);
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
-            Map<String, Object> _rs = new HashMap<String, Object>();
-            
-            userVO.setIdx_user(uInfo.getIdx_user());
-            List<UserVO> irs = userMapper.getUserSearch(userVO);
-            ArrayList<Object> _irss = new ArrayList<Object>();
-            for(UserVO irs0 : irs){
-                Map<String, Object> _irs = new HashMap<String, Object>();
-                _irs.put("idx", irs0.getIdx_user());
-                _irs.put("uname", irs0.getUser_name());
-                _irs.put("email", irs0.getUser_email());
-                String _upic = "";
-                if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
-                    _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+            if(!userVO.getSearchTxt().isEmpty()){
+                UserVO uInfo = userService.findUserById(getUserID(req));
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                
+                userVO.setIdx_user(uInfo.getIdx_user());
+                List<UserVO> irs = userMapper.getUserSearch(userVO);
+                ArrayList<Object> _irss = new ArrayList<Object>();
+                for(UserVO irs0 : irs){
+                    Map<String, Object> _irs = new HashMap<String, Object>();
+                    _irs.put("idx", irs0.getIdx_user());
+                    _irs.put("uname", irs0.getUser_name());
+                    _irs.put("email", irs0.getUser_email());
+                    String _upic = "";
+                    if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
+                        _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                    }
+                    _irs.put("ui_pic", _upic);
+                    _irss.add(_irs);
                 }
-                _irs.put("ui_pic", _upic);
-                _irss.add(_irs);
+                _rs.put("mt_invites", _irss);
+                
+                resultVO.setData(_rs);
             }
-            _rs.put("mt_invites", _irss);
-            
-            resultVO.setData(_rs);
-
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -746,6 +746,10 @@ public class MeetController extends BaseController {
                 */
                 if(meetingVO.getMt_remind_type()==null){
                     meetingVO.setMt_remind_type(0);
+                }else{
+                    if(!Character.isDigit(meetingVO.getMt_remind_type())){
+                        meetingVO.setMt_remind_type(0);
+                    }
                 }
                 if(meetingVO.getMt_remind_type().equals(0)){
                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
