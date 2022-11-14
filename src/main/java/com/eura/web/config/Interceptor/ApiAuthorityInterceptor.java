@@ -9,20 +9,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.eura.web.model.UserMapper;
-import com.eura.web.model.DTO.UserVO;
 import com.google.gson.Gson;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 @RequiredArgsConstructor
 @Component
 public class ApiAuthorityInterceptor implements HandlerInterceptor {
-    @Autowired
-    private final UserMapper userMapper;
-
 	@Override
 	public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws Exception {
 		String ip = getClientIP(req);
@@ -30,17 +24,16 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
         Boolean _r = false;
         try {
 			if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                for(int i=0;i<o.length;i++){
-                    if(o[i].getName().equals("user_id")){
-                        if(!o[i].getValue().isEmpty()){
-                            UserVO rs =  userMapper.getUserInfoById(o[i].getValue());
-                            if(rs!=null){
-                                _r = true;
-                            }
-                        }
-                    }
-                }
+				Cookie o[] = req.getCookies();
+				if(o!=null){
+					for (Cookie c : o) {
+						if(c.getName().equals("user_id")){
+							if(!c.getValue().isEmpty()){
+								_r = true;
+							}
+						}
+					}
+				}
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -180,10 +180,12 @@ public class BaseController {
         UserVO rs = new UserVO();
         if(req.getCookies() != null){
             Cookie o[] = req.getCookies();
-            for(int i=0;i<o.length;i++){
-                if(o[i].getName().equals("user_id")){
-                    if(!o[i].getValue().isEmpty()){
-                        rs = userMapper.getUserInfoById(o[i].getValue());
+            if(o!=null){
+                for (Cookie c : o) {
+                    if(c.getName().equals("user_id")){
+                        if(!c.getValue().isEmpty()){
+                            rs = userMapper.getUserInfoById(c.getValue());
+                        }
                     }
                 }
             }

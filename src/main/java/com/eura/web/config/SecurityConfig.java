@@ -26,7 +26,7 @@ public class SecurityConfig {
         http
             .httpBasic().disable()
             .formLogin().disable()
-            .cors().disable()   // 테스트
+            // .cors().disable()   // 테스트
             .csrf().disable()
             .logout().disable()
             .authorizeRequests().anyRequest().permitAll();

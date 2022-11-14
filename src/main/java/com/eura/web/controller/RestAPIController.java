@@ -66,7 +66,7 @@ public class RestAPIController extends BaseController {
     public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("유저 정보가 존재합니다.");
+        resultVO.setResult_str("로그인이 필요합니다.");
 
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
@@ -78,9 +78,9 @@ public class RestAPIController extends BaseController {
             findUserVo = userService.findUserById(user_id);
         }
 
-        if (findUserVo == null) {// 로그인 필요
+        if (findUserVo != null) {// 로그인 필요
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("로그인이 필요합니다");
+            resultVO.setResult_str("로그인이 되어있습니다.");
             return resultVO;
         }
 

@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.eura.web.base.BaseController;
-import com.eura.web.model.AnalysisMapper;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
-import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ProfileInfoVO;
 import com.eura.web.model.DTO.ResultVO;
@@ -43,7 +41,6 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
-    private final AnalysisMapper analysisMapper;
 
     @Value("${file.upload-dir}")
     private String filepath;
@@ -417,7 +414,8 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO urs =  getChkUserLogin(req);
+            log.info("Check Login");
+            UserVO urs = getChkUserLogin(req);
             if(urs==null){
                 resultVO.setResult_str("로그인 후에 이용해주세요.");
             }else{
