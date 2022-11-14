@@ -130,6 +130,10 @@ public class MeetController extends BaseController {
             List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
             ArrayList<Object> _mrss = new ArrayList<Object>();
             for(MeetingVO rs0 : mInfo){
+                Integer _auth = 0;
+                if(rs0.getIdx_user().equals(uInfo.getIdx_user())){
+                    _auth = 1;
+                }
                 Map<String, Object> _mrs = new HashMap<String, Object>();
                 _mrs.put("mt_idx", rs0.getIdx_meeting());
                 _mrs.put("mt_name", rs0.getMt_name());
@@ -138,6 +142,7 @@ public class MeetController extends BaseController {
                 _mrs.put("mt_start_dt", rs0.getMt_start_dt());
                 _mrs.put("mt_end_dt", rs0.getMt_end_dt());
                 _mrs.put("mt_live", rs0.getIs_live());
+                _mrs.put("is_host", _auth);
                 _mrss.add(_mrs);
             }
             _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
@@ -182,6 +187,10 @@ public class MeetController extends BaseController {
             List<MeetingVO> mEnd = meetMapper.getMyMeetEndList(meetingVO);    // 지난 미팅
             ArrayList<Object> _merss = new ArrayList<Object>();
             for(MeetingVO rs0 : mEnd){
+                Integer _auth = 0;
+                if(rs0.getIdx_user().equals(uInfo.getIdx_user())){
+                    _auth = 1;
+                }
                 Map<String, Object> _mers = new HashMap<String, Object>();
                 _mers.put("mt_idx", rs0.getIdx_meeting());
                 _mers.put("mt_name", rs0.getMt_name());
@@ -190,6 +199,7 @@ public class MeetController extends BaseController {
                 _mers.put("mt_start_dt", rs0.getMt_start_dt());
                 _mers.put("mt_end_dt", rs0.getMt_end_dt());
                 _mers.put("mt_live", rs0.getIs_live());
+                _mers.put("is_host", _auth);
                 
                 // 참여도 표시
                 Integer _hmind = 0;
