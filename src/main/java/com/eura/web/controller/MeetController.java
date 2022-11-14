@@ -1653,9 +1653,6 @@ public class MeetController extends BaseController {
             _dlists.add(_dlist);
             _rs.put("mtAnalyBtm", _dlist);
 
-            // 미구현 내용: 미팅 녹화 내용 담아주어야 함
-            // 미구현 내용: 감정 분석 결과 분석으로 집중도 분석 요약 그래프에 들어갈 퍼센트 만들어야 함
-
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("강의 정보 호출 완료");
             resultVO.setData(_rs);
