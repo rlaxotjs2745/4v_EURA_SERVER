@@ -35,6 +35,13 @@
         )
     </insert>
 
+    <!-- 미팅 동영상 파일 리스트 -->
+    <select id="getMeetMovieFile" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
+            FROM TB_MEETING_MOVIE_FILE
+            WHERE IDX_MEETING=#{idx_meeting} AND DELETE_STAT=0
+    </select>
+
     <!-- 미팅 감정 파일 저장 -->
     <insert id="addEmotionFile">
         INSERT INTO TB_ANALYSIS_FILE (

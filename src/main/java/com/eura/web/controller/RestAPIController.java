@@ -505,24 +505,33 @@ public class RestAPIController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/myinfo")
-    public ResultVO getMyInfo(@RequestBody UserVO userVo) throws Exception {
+    public ResultVO getMyInfo(HttpServletRequest req) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("NO INFO");
 
-        UserVO rs = userService.findUserById(userVo.getUser_id());
-
-        if (rs != null) {
-            Map<String, Object> _rs = new HashMap<String, Object>();
-            _rs.put("user_name", rs.getUser_name());
-            String _upic = "";
-            if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
-                _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+        UserVO urs =  getChkUserLogin(req);
+        if(urs==null){
+            resultVO.setResult_str("로그인 후에 이용해주세요.");
+        }else{
+            UserVO rs = userService.findUserById(urs.getUser_id());
+            if (rs != null) {
+                Map<String, Object> _rs = new HashMap<String, Object>();
+                _rs.put("idx_user", rs.getIdx_user());
+                _rs.put("user_name", rs.getUser_name());
+                _rs.put("user_phone", rs.getUser_phone());
+                _rs.put("eq_type01", rs.getEq_type01());
+                _rs.put("eq_type02", rs.getEq_type02());
+                
+                String _upic = "";
+                if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
+                    _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+                }
+                _rs.put("user_pic", _upic);
+                resultVO.setData(_rs);
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("OK");
             }
-            _rs.put("user_pic", _upic);
-            resultVO.setData(_rs);
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("OK");
         }
 
         return resultVO;

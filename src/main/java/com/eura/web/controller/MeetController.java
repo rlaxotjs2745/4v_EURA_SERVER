@@ -1617,22 +1617,98 @@ public class MeetController extends BaseController {
 
                 Map<String, Object> _rs = new HashMap<String, Object>();
 
+                // 호스트명
                 _rs.put("mtName", meetingInfo.getMt_name());
-                _rs.put("mtStartDt", meetingInfo.getMt_start_dt());
-                _rs.put("mtEndDt", meetingInfo.getMt_end_dt());
+
+                // 날짜
+                _rs.put("mtMeetiDate", "2022-11-11");
+
+                // 시간
+                _rs.put("mtMeetiTime", "09:00 ~ 10:00");
 
                 // 감정 데이터 리스팅
-                AnalysisVO analyinfo = analysisMapper.getAnalysisData(meetingVO);
+                // AnalysisVO analyinfo = analysisMapper.getAnalysisData(meetingVO);
+
+                // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
+                List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
+                ArrayList<Object> _mls = new ArrayList<Object>();
+                for(MeetingVO _mlist : _mlists){
+                    Map<String, Object> _ul = new HashMap<String, Object>();
+                    _ul.put("idx",_mlist.getIdx_movie_file());    // 참석자 회원 INDEX
+                    _ul.put("fileNo",_mlist.getFile_no()); // 파일 순서
+                    _ul.put("duration",_mlist.getDuration());   // 재생 길이
+                    _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
+                    _ul.put("fileUrl", domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name());    // 영상
+                    _mls.add(_ul);
+                }
+                _rs.put("mtMovieFiles", _mls);
+
+                List<MeetingVO> _mlist = fileServiceMapper.getMeetMovieFile(meetingVO);
+                String _rdt = "";
+                String _edt = meetingInfo.getIs_finish_dt();
+                if(_mlist != null && _mlist.size() > 0){
+                    _rdt = _mlist.get(0).getRecord_dt();
+                }else{
+                    _rdt = meetingInfo.getIs_live_dt();
+                }
 
 
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-                long diff = format.parse(meetingInfo.getMt_end_dt()).getTime() - format.parse(meetingInfo.getMt_start_dt()).getTime();
+                long diff = format.parse(_edt).getTime() - format.parse(_rdt).getTime();
                 String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
                 String minutes = (diff / 1000) / 60 % 60 < 10 ? "0" + (diff / 1000) / 60 % 60 : "" + (diff / 1000) / 60 % 60;
                 String seconds = (diff / 1000) % 60 < 10 ? "0" + (diff / 1000) % 60 : "" + (diff / 1000) % 60;
 
-                _rs.put("mtMeetingTime", hours + ":" + minutes + ":" + seconds);
+                // 소요시간
+                _rs.put("mtMeetTimer", hours + ":" + minutes + ":" + seconds);
+
+
+                // 미팅 분석 결과(첨부파일)
+                _rs.put("mtAttachedFiles", meetMapper.getMeetFiles(meetingVO));
+
+                // 미팅 분석 결과(강의 참여자 명단)
+                List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
+                ArrayList<Object> _uls = new ArrayList<Object>();
+                for(MeetingVO _ulist : _ulists){
+                    Map<String, Object> _ul = new HashMap<String, Object>();
+                    _ul.put("idx",_ulist.getIdx_user());    // 참석자 회원 INDEX
+                    _ul.put("uname",_ulist.getUser_name()); // 참석자명
+                    _ul.put("uemail",_ulist.getUser_email());   // 이메일
+                    _ul.put("value",66);    // 집중도
+                    String _upic = "";
+                    if(!_ulist.getFile_name().isEmpty() && _ulist.getFile_name() != null){
+                        _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                    }
+                    _ul.put("upic",_upic);    // 프로필 사진
+                    _uls.add(_ul);
+                }
+                _rs.put("mtInviteList", _uls);
+
+            
+                Map<String, Object> _uinfo = new HashMap<String, Object>();
+                _uinfo.put("user_total",30);
+                _uinfo.put("user_invite",29);
+                _rs.put("mtInviteInfo", _uinfo);
+
+                // ArrayList<Object> _tglists = new ArrayList<Object>();
+                Map<String, Object> _tglist = new HashMap<String, Object>();
+                _tglist.put("good",65);
+                _tglist.put("bad",25);
+                _tglist.put("off",10);
+
+                // 전체 분석 상단 그래프 데이터
+                _rs.put("mtAnalyTop", _tglist);
+
+                // 전체 분석 하단 인디게이터 데이터
+
+                ArrayList<Object> _dlists = new ArrayList<Object>();
+                Map<String, Object> _dlist = new HashMap<String, Object>();
+                _dlist.put("duration",5);   // 동영상 재생 위치
+                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
+                _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
+                _dlists.add(_dlist);
+                _rs.put("mtAnalyBtm", _dlist);
 
                 // 미구현 내용: 미팅 녹화 내용 담아주어야 함
                 // 미구현 내용: 감정 분석 결과 분석으로 집중도 분석 요약 그래프에 들어갈 퍼센트 만들어야 함
@@ -1644,19 +1720,18 @@ public class MeetController extends BaseController {
         } catch (Exception e){
             e.printStackTrace();
         }
-
         return resultVO;
     }
 
     /**
-     * 미팅 분석 결과(첨부파일)
+     * 미팅 참석자 분석 데이터
      * @param req
      * @param meetingVO(idx_meeting)
      * @return
      * @throws Exception
      */
-    @GetMapping("/result/attachfile")
-    public ResultVO getResultAttachFile(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    @GetMapping("/result/mtinviteinfo")
+    public ResultVO getResultInviteInfo(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -1664,10 +1739,27 @@ public class MeetController extends BaseController {
         try {
             Map<String, Object> _rs = new HashMap<String, Object>();
 
-            _rs.put("mtAttachedFiles", meetMapper.getMeetFiles(meetingVO));
+            // 인디게이터 데이터
+            ArrayList<Object> _dlists = new ArrayList<Object>();
+            Map<String, Object> _dlist = new HashMap<String, Object>();
+            _dlist.put("duration",5);   // 동영상 재생 위치
+            _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
+            _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
+            _dlists.add(_dlist);
+
+            _rs.put("mtData0", _dlists);
+
+            // 분석 요약 데이터
+            Map<String, Object> _d2list = new HashMap<String, Object>();
+            _d2list.put("good",62); // GOOD
+            _d2list.put("bad",13);  // BAD
+            _d2list.put("off",25);  // OFF
+            _d2list.put("tcnt",73); // 현재 점수
+            _d2list.put("acnt",52); // 누적 평균
+            _rs.put("mtData1", _d2list);
 
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("첨부 파일 리스트 호출 완료");
+            resultVO.setResult_str("미팅 참석자 분석 데이터 호출 완료");
             resultVO.setData(_rs);
         } catch (Exception e){
             e.printStackTrace();
@@ -1675,70 +1767,4 @@ public class MeetController extends BaseController {
 
         return resultVO;
     }
-
-    /**
-     * 미팅 분석 결과(강의 참여자 명단)
-     * @param req
-     * @param meetingVO(idx_meeting)
-     * @return
-     * @throws Exception
-     */
-    @GetMapping("/result/participant")
-    public ResultVO getResultParticipant(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try{
-            Map<String, Object> _rs = new HashMap<String, Object>();
-
-            _rs.put("participants", meetMapper.getMeetInvites(meetingVO));
-
-            // 미구현 내용: 감정 분석 결과를 분석하여 집중도 추가 필요함
-
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("참여자 정보 호출 완료");
-            resultVO.setData(_rs);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return resultVO;
-    }
-
-    /**
-     * 영상 파일 리스트
-     * @param req
-     * @param meetingVO
-     * @return ResultVO
-     * @throws Exception
-     */
-    @GetMapping("/result/moviefile")
-    public ResultVO getResulMovieFile(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        ResultVO resultVO = new ResultVO();
-        resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
-
-        try {
-            Map<String, Object> _rs = new HashMap<String, Object>();
-
-            _rs.put("mtMvoieFiles", meetMapper.getMeetMovieFiles(meetingVO));
-
-            resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("영상 파일 리스트 호출 완료");
-            resultVO.setData(_rs);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return resultVO;
-    }
-
-    //퍼센트 계산
-    // 전체값 a에서 b는 몇퍼센트인가?
-    // b / a * 100
-
-    //    a의 bb%는 얼마인가?
-    //    a * 0.bb
-
 }
