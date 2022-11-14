@@ -9,18 +9,24 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.eura.web.model.UserMapper;
+import com.eura.web.model.DTO.UserVO;
 import com.google.gson.Gson;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 @RequiredArgsConstructor
 @Component
 public class ApiAuthorityInterceptor implements HandlerInterceptor {
+    @Autowired
+    private final UserMapper userMapper;
+
 	@Override
 	public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws Exception {
 		String ip = getClientIP(req);
-		System.out.println(ip);
+		// System.out.println(ip);
         Boolean _r = false;
         try {
 			if(req.getCookies() != null){
@@ -29,7 +35,10 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 					for (Cookie c : o) {
 						if(c.getName().equals("user_id")){
 							if(!c.getValue().isEmpty()){
-								_r = true;
+								UserVO rs = userMapper.getUserInfoById(c.getValue());
+								if(rs!=null){
+									_r = true;
+								}
 							}
 						}
 					}
@@ -41,11 +50,11 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 		if(_r==false){
 			Map<String, Object> _resultMap = new HashMap<String, Object>();
 			_resultMap.put("result_code", "FAIL");
-			_resultMap.put("result_str", "A resource that can not be accessed with the privileges it has.");
-			res.getWriter().write(new Gson().toJson(_resultMap));
+			_resultMap.put("result_str", "로그인 후에 이용해주세요.");
 			res.setContentType("application/json");
 			res.setCharacterEncoding("UTF-8");
 			res.setStatus(400);
+			res.getWriter().write(new Gson().toJson(_resultMap));
 		}
 		return _r;
 	}
