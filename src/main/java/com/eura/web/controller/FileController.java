@@ -59,13 +59,13 @@ public class FileController extends BaseController {
     }
 
     /**
-     * 이미지 연결
+     * 파일 Stream
      * @param req
      * @param res
      * @return ResponseBody byte
      * @throws IOException
      */
-    @RequestMapping(value = "/pic", produces = MediaType.IMAGE_JPEG_VALUE)
+    @RequestMapping(value = "/pic")
     public @ResponseBody byte[] getFileStream(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String fnm = req.getParameter("fnm");
         File _df = new File(filepath + fnm);

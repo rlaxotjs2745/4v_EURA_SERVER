@@ -21,6 +21,7 @@ public class MeetingVO extends BaseVO {
 
     private Integer idx_meeting_user_join;
     private Integer idx_attachment_file_info_join;
+    private Integer idx_movie_file;     // TB_MEETING_MOVIE_FILE - IDX_MOVIE_FILE
 
     private String mt_invite_email; // 참석자 email 리스트
     private String file_del;        // 미팅룸 첨부파일 삭제 리스트 TB_ATTACHMENT_FILE_INFO_JOIN IDX_ATTACHMENT_FILE_INFO_JOIN
