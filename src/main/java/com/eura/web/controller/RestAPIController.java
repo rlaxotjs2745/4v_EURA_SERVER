@@ -505,7 +505,7 @@ public class RestAPIController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/myinfo")
-    public ResultVO getMyInfo(HttpServletRequest req, @RequestBody UserVO userVo) throws Exception {
+    public ResultVO getMyInfo(HttpServletRequest req) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("NO INFO");
