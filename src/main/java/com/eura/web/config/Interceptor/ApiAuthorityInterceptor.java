@@ -25,7 +25,7 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 
 	@Override
 	public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws Exception {
-		String ip = getClientIP(req);
+		// String ip = getClientIP(req);
 		// System.out.println(ip);
         Boolean _r = false;
         try {
@@ -50,10 +50,10 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 		if(_r==false){
 			Map<String, Object> _resultMap = new HashMap<String, Object>();
 			_resultMap.put("result_code", "FAIL");
-			_resultMap.put("result_str", "로그인 후에 이용해주세요.");
+			_resultMap.put("result_str", "로그인 후에 이용해주세요..");
 			res.setContentType("application/json");
 			res.setCharacterEncoding("UTF-8");
-			res.setStatus(400);
+			res.setStatus(420);
 			res.getWriter().write(new Gson().toJson(_resultMap));
 		}
 		return _r;
