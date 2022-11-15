@@ -66,7 +66,7 @@ public class RestAPIController extends BaseController {
     public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("유저 정보가 존재합니다.");
+        resultVO.setResult_str("로그인이 필요합니다.");
 
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
@@ -78,9 +78,9 @@ public class RestAPIController extends BaseController {
             findUserVo = userService.findUserById(user_id);
         }
 
-        if (findUserVo == null) {// 로그인 필요
+        if (findUserVo != null) {// 로그인 필요
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("로그인이 필요합니다");
+            resultVO.setResult_str("로그인이 되어있습니다.");
             return resultVO;
         }
 
@@ -510,30 +510,24 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("NO INFO");
 
-        UserVO urs =  getChkUserLogin(req);
-        if(urs==null){
-            resultVO.setResult_str("로그인 후에 이용해주세요.");
-        }else{
-            UserVO rs = userService.findUserById(urs.getUser_id());
-            if (rs != null) {
-                Map<String, Object> _rs = new HashMap<String, Object>();
-                _rs.put("idx_user", rs.getIdx_user());
-                _rs.put("user_name", rs.getUser_name());
-                _rs.put("user_phone", rs.getUser_phone());
-                _rs.put("eq_type01", rs.getEq_type01());
-                _rs.put("eq_type02", rs.getEq_type02());
-                
-                String _upic = "";
-                if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
-                    _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
-                }
-                _rs.put("user_pic", _upic);
-                resultVO.setData(_rs);
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("OK");
+        UserVO rs = userService.findUserById(getUserID(req));
+        if (rs != null) {
+            Map<String, Object> _rs = new HashMap<String, Object>();
+            _rs.put("idx_user", rs.getIdx_user());
+            _rs.put("user_name", rs.getUser_name());
+            _rs.put("user_phone", rs.getUser_phone());
+            _rs.put("eq_type01", rs.getEq_type01());
+            _rs.put("eq_type02", rs.getEq_type02());
+            
+            String _upic = "";
+            if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
+                _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
             }
+            _rs.put("user_pic", _upic);
+            resultVO.setData(_rs);
+            resultVO.setResult_code(CONSTANT.success);
+            resultVO.setResult_str("OK");
         }
-
         return resultVO;
     }
 }

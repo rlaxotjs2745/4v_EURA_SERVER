@@ -23,7 +23,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry
             .addInterceptor(apiAuthorityInterceptor)
-        	.addPathPatterns("/meet/**")
+        	.addPathPatterns("/meet/**","/modify_profile","/modify_myinfo","/myinfo")
             .excludePathPatterns("/*");
     }
 

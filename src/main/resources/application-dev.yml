@@ -22,6 +22,7 @@ logging:
   file:
     path: /Users/winmaster/APPS/apache-tomcat-9/logs
     max-history: 7
+  register-shutdown-hook: true
 
 log4jdbc:
   spylogdelegator:

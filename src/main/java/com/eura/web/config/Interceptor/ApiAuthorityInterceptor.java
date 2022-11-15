@@ -26,21 +26,23 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) throws Exception {
 		String ip = getClientIP(req);
-		System.out.println(ip);
+		// System.out.println(ip);
         Boolean _r = false;
         try {
 			if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                for(int i=0;i<o.length;i++){
-                    if(o[i].getName().equals("user_id")){
-                        if(!o[i].getValue().isEmpty()){
-                            UserVO rs =  userMapper.getUserInfoById(o[i].getValue());
-                            if(rs!=null){
-                                _r = true;
-                            }
-                        }
-                    }
-                }
+				Cookie o[] = req.getCookies();
+				if(o!=null){
+					for (Cookie c : o) {
+						if(c.getName().equals("user_id")){
+							if(!c.getValue().isEmpty()){
+								UserVO rs = userMapper.getUserInfoById(c.getValue());
+								if(rs!=null){
+									_r = true;
+								}
+							}
+						}
+					}
+				}
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -48,11 +50,11 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 		if(_r==false){
 			Map<String, Object> _resultMap = new HashMap<String, Object>();
 			_resultMap.put("result_code", "FAIL");
-			_resultMap.put("result_str", "A resource that can not be accessed with the privileges it has.");
-			res.getWriter().write(new Gson().toJson(_resultMap));
+			_resultMap.put("result_str", "로그인 후에 이용해주세요.");
 			res.setContentType("application/json");
 			res.setCharacterEncoding("UTF-8");
 			res.setStatus(400);
+			res.getWriter().write(new Gson().toJson(_resultMap));
 		}
 		return _r;
 	}
