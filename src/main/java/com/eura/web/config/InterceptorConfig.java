@@ -34,7 +34,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true)
-                .exposedHeaders("Set-Cookie")
+                // .exposedHeaders("Set-Cookie")
                 .maxAge(3000);
     }
 }
