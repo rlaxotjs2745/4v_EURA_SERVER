@@ -248,7 +248,7 @@ public class MeetController extends BaseController {
                     Map<String, Object> _irs = new HashMap<String, Object>();
                     _irs.put("idx", irs0.getIdx_user());
                     _irs.put("uname", irs0.getUser_name());
-                    _irs.put("email", irs0.getUser_email());
+                    _irs.put("email", irs0.getUser_id());
                     String _upic = "";
                     if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
                         _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
