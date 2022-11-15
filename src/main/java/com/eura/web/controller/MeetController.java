@@ -399,7 +399,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/room/open")
+    @PutMapping("/room/open")
     public ResultVO putMeetOpen(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -447,7 +447,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/room/close")
+    @PutMapping("/room/close")
     public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -495,7 +495,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/room/cancel")
+    @PutMapping("/room/cancel")
     public ResultVO putMeetCacncel(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -536,7 +536,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/room/erase")
+    @DeleteMapping("/room/erase")
     public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -1531,7 +1531,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PostMapping("/room/finish")
+    @PutMapping("/room/finish")
     public ResultVO closeLiveMeeting(HttpServletRequest req, MeetingVO meetingVO) throws Exception{
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
