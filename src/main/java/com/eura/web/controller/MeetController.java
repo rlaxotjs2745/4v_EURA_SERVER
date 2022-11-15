@@ -75,21 +75,23 @@ public class MeetController extends BaseController {
                     _upic = domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
                 }
                 _rs.put("ui_pic", _upic);
+                
+                // 개인화 - 다음일정 - 참여중인 미팅룸
+                List<MeetingVO> mSi = meetMapper.getMyMeetShortList(uInfo.getIdx_user());
+                ArrayList<Object> _mSrss = new ArrayList<Object>();
+                for(MeetingVO rs0 : mSi){
+                    Map<String, Object> _mSrs = new HashMap<String, Object>();
+                    _mSrs.put("mt_idx", rs0.getIdx_meeting());
+                    _mSrs.put("mt_name", rs0.getMt_name());
+                    _mSrs.put("mt_status", rs0.getMt_status());
+                    _mSrs.put("mt_start_dt", rs0.getMt_start_dt());
+                    _mSrs.put("mt_end_dt", rs0.getMt_end_dt());
+                    _mSrss.add(_mSrs);
+                }
+                _rs.put("mt_meetShort", _mSrss);
+            }else{
+                _rs.put("mt_meetShort", null);
             }
-            
-            // 개인화 - 다음일정 - 참여중인 미팅룸
-            List<MeetingVO> mSi = meetMapper.getMyMeetShortList(1);
-            ArrayList<Object> _mSrss = new ArrayList<Object>();
-            for(MeetingVO rs0 : mSi){
-                Map<String, Object> _mSrs = new HashMap<String, Object>();
-                _mSrs.put("mt_idx", rs0.getIdx_meeting());
-                _mSrs.put("mt_name", rs0.getMt_name());
-                _mSrs.put("mt_status", rs0.getMt_status());
-                _mSrs.put("mt_start_dt", rs0.getMt_start_dt());
-                _mSrs.put("mt_end_dt", rs0.getMt_end_dt());
-                _mSrss.add(_mSrs);
-            }
-            _rs.put("mt_meetShort", _mSrss);
 
             resultVO.setData(_rs);
             resultVO.setResult_code(CONSTANT.success);
@@ -398,7 +400,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/open")
+    @PostMapping("/room/open")
     public ResultVO putMeetOpen(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -446,7 +448,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/close")
+    @PostMapping("/room/close")
     public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -494,7 +496,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/cancel")
+    @PostMapping("/room/cancel")
     public ResultVO putMeetCacncel(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -535,7 +537,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @DeleteMapping("/room/erase")
+    @PostMapping("/room/erase")
     public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -1530,7 +1532,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/finish")
+    @PostMapping("/room/finish")
     public ResultVO closeLiveMeeting(HttpServletRequest req, MeetingVO meetingVO) throws Exception{
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
