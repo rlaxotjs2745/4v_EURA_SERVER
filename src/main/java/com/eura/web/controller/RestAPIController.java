@@ -57,7 +57,6 @@ public class RestAPIController extends BaseController {
     
     /**
      * 로그인 확인
-     * 
      * @param request
      * @param response
      * @param user_id
@@ -90,7 +89,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입
-     * 
      * @param userVo
      * @param file
      * @return
@@ -174,7 +172,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입 인증
-     * 
      * @param email
      * @param authKey
      * @return
@@ -202,7 +199,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 로그인
-     * 
      * @param response
      * @param userVo
      * @return
@@ -223,8 +219,8 @@ public class RestAPIController extends BaseController {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getUser_pwd())) {
                             resultVO.setResult_code(CONSTANT.success + "01");
                             resultVO.setResult_str("로그인 되었습니다.");
-                            String _cStr = "user_id=" + findUser.getUser_id() + "; domain=.eura.site; Path=/;";
-                            response.addHeader("Set-Cookie", _cStr);
+                            // String _cStr = "user_id=" + findUser.getUser_id() + "; domain=.eura.site; Path=/;";
+                            // response.addHeader("Set-Cookie", _cStr);
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
@@ -232,14 +228,14 @@ public class RestAPIController extends BaseController {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getTemp_pw())) {
                             resultVO.setResult_code(CONSTANT.success + "02");
                             resultVO.setResult_str("임시 비밀번호로 로그인 되었습니다.");
-                            ResponseCookie cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                            // ResponseCookie cookie = ResponseCookie.from("user_id", findUser.getUser_id())
                                     // .domain("*")
-                                    .sameSite("")
-                                    .secure(false)
-                                    .httpOnly(true)
+                                    // .sameSite("")
+                                    // .secure(false)
+                                    // .httpOnly(true)
                                     // .path("/")
-                                    .build();
-                            response.addHeader("Set-Cookie", cookie.toString());
+                                    // .build();
+                            // response.addHeader("Set-Cookie", cookie.toString());
 
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
@@ -256,7 +252,7 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원 가입 검증
-     * 
+     * :: 안씀
      * @param req
      * @param session
      * @param userVo
@@ -300,7 +296,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 프로필 사진 변경
-     * 
      * @param file
      * @param session
      * @param user_id
@@ -343,7 +338,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원정보 변경
-     * 
      * @param user_id
      * @param userVO
      * @return ResultVO
@@ -390,7 +384,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 임시 비밀번호 발급
-     * 
      * @param userVO
      * @return
      * @throws Exception
@@ -449,7 +442,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 회원가입 인증 메일 다시 받기
-     * 
      * @param userVo
      * @return
      * @throws Exception
@@ -500,7 +492,6 @@ public class RestAPIController extends BaseController {
 
     /**
      * 내 정보 가져오기
-     * 
      * @param userVo
      * @return ResultVO
      * @throws Exception

@@ -1519,7 +1519,7 @@ public class MeetController extends BaseController {
     }
 
     /**
-     * 강의실 종료
+     * 미팅룸 종료
      * @param req
      * @param meetingVO
      * @return
