@@ -674,59 +674,63 @@ public class MeetController extends BaseController {
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
-                List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
-                List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+                if(!rs.getIdx_user().equals(uInfo.getIdx_user())){
+                    resultVO.setResult_str("수정 권한이 없습니다.");
+                    return resultVO;
+                }else if(rs.getMt_status() == 3){
+                    resultVO.setResult_str("삭제된 미팅은 수정 할 수 없습니다.");
+                    return resultVO;
+                }else{
+                    Map<String, Object> _rs = new HashMap<String, Object>();
+                    _rs.put("mt_name", rs.getMt_name());
+                    _rs.put("mt_hostname", rs.getUser_name());
+                    _rs.put("mt_start_dt", rs.getMt_start_dt());
+                    _rs.put("mt_end_dt", rs.getMt_end_dt());
+                    _rs.put("mt_remind_type", rs.getMt_remind_type());
+                    _rs.put("mt_remind_count", rs.getMt_remind_count());
+                    _rs.put("mt_remind_week", rs.getMt_remind_week());
+                    _rs.put("mt_remind_end", rs.getMt_remind_end());
+                    _rs.put("mt_info", rs.getMt_info());    // 미팅룸 정보
+                    _rs.put("mt_status", rs.getMt_status());    // 미팅룸 상태 - 0:비공개, 1:공개, 2:취소, 3:삭제
 
-                Map<String, Object> _rs = new HashMap<String, Object>();
-                _rs.put("mt_name", rs.getMt_name());
-                _rs.put("mt_hostname", rs.getUser_name());
-                _rs.put("mt_start_dt", rs.getMt_start_dt());
-                _rs.put("mt_end_dt", rs.getMt_info());
-                _rs.put("mt_remind_type", rs.getMt_remind_type());
-                _rs.put("mt_remind_count", rs.getMt_remind_count());
-                _rs.put("mt_remind_week", rs.getMt_remind_week());
-                _rs.put("mt_remind_end", rs.getMt_remind_end());
-                _rs.put("mt_info", rs.getMt_info());    // 미팅룸 정보
-                _rs.put("mt_status", rs.getMt_status());    // 미팅룸 상태 - 0:비공개, 1:공개, 2:취소, 3:삭제
-                _rs.put("mt_live", rs.getIs_live());        // 미팅 시작 여부 - 0:아니오, 1:예
-                _rs.put("mt_live_dt", rs.getIs_live_dt());        // 미팅 시작 일시
-                _rs.put("mt_finish", rs.getIs_finish());    // 미팅 종료 여부 - 0:아니오, 1:예
-                _rs.put("mt_finish_dt", rs.getIs_finish_dt());    // 미팅 종료 일시
-                _rs.put("mt_regdt", rs.getReg_dt());        // 미팅룸 등록일시
-
-                ArrayList<Object> _frss = new ArrayList<Object>();
-                for(MeetingVO frs0 : frs){
-                    Map<String, Object> _frs = new HashMap<String, Object>();
-                    _frs.put("idx", frs0.getIdx_attachment_file_info_join());
-                    _frs.put("files", frs0.getFile_name());
-                    String _furl = "";
-                    if(StringUtils.isNotEmpty(frs0.getFile_name())){
-                        _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                    // 미팅 첨부파일
+                    List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+                    ArrayList<Object> _frss = new ArrayList<Object>();
+                    for(MeetingVO frs0 : frs){
+                        Map<String, Object> _frs = new HashMap<String, Object>();
+                        _frs.put("idx", frs0.getIdx_attachment_file_info_join());
+                        _frs.put("files", frs0.getFile_name());
+                        String _furl = "";
+                        if(StringUtils.isNotEmpty(frs0.getFile_name())){
+                            _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                        }
+                        _frs.put("download", _furl);
+                        _frss.add(_frs);
                     }
-                    _frs.put("download", _furl);
-                    _frss.add(_frs);
-                }
-                _rs.put("mt_files", _frss);     // 미팅 첨부파일
+                    _rs.put("mt_files", _frss);     // 미팅 첨부파일
 
-                ArrayList<Object> _irss = new ArrayList<Object>();
-                for(MeetingVO irs0 : irs){
-                    Map<String, Object> _irs = new HashMap<String, Object>();
-                    _irs.put("idx", irs0.getIdx_user());
-                    _irs.put("uname", irs0.getUser_name());
-                    _irs.put("email", irs0.getUser_email());
-                    String _upic = "";
-                    if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                        _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                    // 미팅 참석자
+                    List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+                    ArrayList<Object> _irss = new ArrayList<Object>();
+                    for(MeetingVO irs0 : irs){
+                        Map<String, Object> _irs = new HashMap<String, Object>();
+                        _irs.put("idx", irs0.getIdx_user());
+                        _irs.put("uname", irs0.getUser_name());
+                        _irs.put("email", irs0.getUser_email());
+                        String _upic = "";
+                        if(StringUtils.isNotEmpty(irs0.getFile_name())){
+                            _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                        }
+                        _irs.put("ui_pic", _upic);
+                        _irss.add(_irs);
                     }
-                    _irs.put("ui_pic", _upic);
-                    _irss.add(_irs);
+                    _rs.put("mt_invites", _irss);   // 미팅 참석자
+
+                    resultVO.setData(_rs);
+
+                    resultVO.setResult_code(CONSTANT.success);
+                    resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
                 }
-                _rs.put("mt_invites", _irss);   // 미팅 참석자
-
-                resultVO.setData(_rs);
-
-                resultVO.setResult_code(CONSTANT.success);
-                resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
             }else{
                 resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
             }
