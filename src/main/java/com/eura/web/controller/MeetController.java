@@ -29,6 +29,7 @@ import com.eura.web.util.TokenJWT;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -70,7 +71,7 @@ public class MeetController extends BaseController {
                 _rs.put("ui_name", uInfo.getUser_name());
                 ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
                 String _upic = "";
-                if(!uPic.getFile_name().isEmpty() && uPic.getFile_name() != null){
+                if(uPic != null && StringUtils.isNotEmpty(uPic.getFile_name())){
                     _upic = domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
                 }
                 _rs.put("ui_pic", _upic);
@@ -250,7 +251,7 @@ public class MeetController extends BaseController {
                     _irs.put("uname", irs0.getUser_name());
                     _irs.put("email", irs0.getUser_id());
                     String _upic = "";
-                    if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
+                    if(StringUtils.isNotEmpty(irs0.getFile_name())){
                         _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
                     }
                     _irs.put("ui_pic", _upic);
@@ -316,7 +317,11 @@ public class MeetController extends BaseController {
                     Map<String, Object> _frs = new HashMap<String, Object>();
                     _frs.put("idx", frs0.getIdx_attachment_file_info_join());
                     _frs.put("files", frs0.getFile_name());
-                    _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
+                    String _furl = "";
+                    if(StringUtils.isNotEmpty(frs0.getFile_name())){
+                        _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                    }
+                    _frs.put("download", _furl);
                     _frss.add(_frs);
                 }
                 _rs.put("mt_files", _frss);
@@ -367,7 +372,7 @@ public class MeetController extends BaseController {
                 _irs.put("is_live", irs0.getIs_live());
                 _irs.put("is_alive", irs0.getIs_alive());
                 String _pic = "";
-                if(irs0.getFile_name()!="" && irs0.getFile_name() != null){
+                if(StringUtils.isNotEmpty(irs0.getFile_name())){
                     _pic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
                 }
                 _irs.put("ui_pic", _pic);
@@ -694,7 +699,11 @@ public class MeetController extends BaseController {
                     Map<String, Object> _frs = new HashMap<String, Object>();
                     _frs.put("idx", frs0.getIdx_attachment_file_info_join());
                     _frs.put("files", frs0.getFile_name());
-                    _frs.put("download", domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name());
+                    String _furl = "";
+                    if(StringUtils.isNotEmpty(frs0.getFile_name())){
+                        _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                    }
+                    _frs.put("download", _furl);
                     _frss.add(_frs);
                 }
                 _rs.put("mt_files", _frss);     // 미팅 첨부파일
@@ -706,7 +715,7 @@ public class MeetController extends BaseController {
                     _irs.put("uname", irs0.getUser_name());
                     _irs.put("email", irs0.getUser_email());
                     String _upic = "";
-                    if(!irs0.getFile_name().isEmpty() && irs0.getFile_name() != null){
+                    if(StringUtils.isNotEmpty(irs0.getFile_name())){
                         _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
                     }
                     _irs.put("ui_pic", _upic);
@@ -1069,11 +1078,13 @@ public class MeetController extends BaseController {
                                             // 파일 삭제
                                             MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
                                             if(finfo!=null){
-                                                File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                                if(f.exists()){
-                                                    f.delete();
+                                                if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                    File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                                    if(f.exists()){
+                                                        f.delete();
+                                                    }
+                                                    fileServiceMapper.delMeetFile(ee);
                                                 }
-                                                fileServiceMapper.delMeetFile(ee);
                                             }
                                         }
                                     }
@@ -1204,11 +1215,13 @@ public class MeetController extends BaseController {
 
                                         // 파일 삭제
                                         MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
-                                        File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                        if(f.exists()){
-                                            f.delete();
+                                        if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                            File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                            if(f.exists()){
+                                                f.delete();
+                                            }
+                                            fileServiceMapper.delMeetFile(ee);
                                         }
-                                        fileServiceMapper.delMeetFile(ee);
                                     }
                                 }
 
@@ -1560,7 +1573,7 @@ public class MeetController extends BaseController {
 
             Map<String, Object> _rs = new HashMap<String, Object>();
 
-            // 호스트명
+            // 강의명
             _rs.put("mtName", meetingInfo.getMt_name());
 
             // 날짜
@@ -1581,20 +1594,22 @@ public class MeetController extends BaseController {
                 _ul.put("fileNo",_mlist.getFile_no()); // 파일 순서
                 _ul.put("duration",_mlist.getDuration());   // 재생 길이
                 _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
-                _ul.put("fileUrl", domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name());    // 영상
+                String _furl = "";
+                if(StringUtils.isNotEmpty(_mlist.getFile_name())){
+                    _furl = domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name();
+                }
+                _ul.put("fileUrl", _furl);    // 영상
                 _mls.add(_ul);
             }
             _rs.put("mtMovieFiles", _mls);
 
-            List<MeetingVO> _mlist = fileServiceMapper.getMeetMovieFile(meetingVO);
             String _rdt = "";
             String _edt = meetingInfo.getIs_finish_dt();
-            if(_mlist != null && _mlist.size() > 0){
-                _rdt = _mlist.get(0).getRecord_dt();
+            if(_mlists != null && _mlists.size() > 0){
+                _rdt = _mlists.get(0).getRecord_dt();
             }else{
                 _rdt = meetingInfo.getIs_live_dt();
             }
-
 
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -1608,19 +1623,31 @@ public class MeetController extends BaseController {
 
 
             // 미팅 분석 결과(첨부파일)
-            _rs.put("mtAttachedFiles", meetMapper.getMeetFiles(meetingVO));
+            List<MeetingVO> _flists = meetMapper.getMeetFiles(meetingVO);
+            ArrayList<Object> _fls = new ArrayList<Object>();
+            for(MeetingVO _flist : _flists){
+                Map<String, Object> _fl = new HashMap<String, Object>();
+                _fl.put("idx",_flist.getIdx_attachment_file_info_join());    // 첨부파일 INDEX
+                String _furl = "";
+                if(StringUtils.isNotEmpty(_flist.getFile_name())){
+                    _furl = domain + "/pic?fnm=" + _flist.getFile_path() + _flist.getFile_name();
+                }
+                _fl.put("fileUrl",_furl);    // 첨부파일 URL
+                _fls.add(_fl);
+            }
+            _rs.put("mtAttachedFiles", _fls);
 
             // 미팅 분석 결과(강의 참여자 명단)
             List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
             ArrayList<Object> _uls = new ArrayList<Object>();
             for(MeetingVO _ulist : _ulists){
                 Map<String, Object> _ul = new HashMap<String, Object>();
-                _ul.put("idx",_ulist.getIdx_user());    // 참석자 회원 INDEX
+                _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
                 _ul.put("uname",_ulist.getUser_name()); // 참석자명
                 _ul.put("uemail",_ulist.getUser_email());   // 이메일
                 _ul.put("value",66);    // 집중도
                 String _upic = "";
-                if(!_ulist.getFile_name().isEmpty() && _ulist.getFile_name() != null){
+                if(StringUtils.isNotEmpty(_ulist.getFile_name())){
                     _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
                 }
                 _ul.put("upic",_upic);    // 프로필 사진

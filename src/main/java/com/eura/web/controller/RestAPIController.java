@@ -12,6 +12,7 @@ import com.eura.web.util.CONSTANT;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -66,7 +67,7 @@ public class RestAPIController extends BaseController {
     public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("로그인이 필요합니다.");
+        resultVO.setResult_str("로그인 후 이용해주세요.");
 
         UserVO findUserVo = null;
         Map<String, ?> flashMap = RequestContextUtils.getInputFlashMap(request);
@@ -80,7 +81,7 @@ public class RestAPIController extends BaseController {
 
         if (findUserVo != null) {// 로그인 필요
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("로그인이 되어있습니다.");
+            resultVO.setResult_str("로그인 완료");
             return resultVO;
         }
 
@@ -184,7 +185,7 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_str("메일 인증에 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
-        if (email != null && authKey != null) {
+        if (StringUtils.isNotEmpty(email) && StringUtils.isNotEmpty(authKey)) {
             UserVO userVO = new UserVO();
             userVO.setAuthKey(authKey);
             userVO.setUser_id(email);
@@ -212,7 +213,7 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail + "01");
         resultVO.setResult_str("로그인 정보를 다시 확인해주세요.");
 
-        if (userVo.getUser_id() != null || userVo.getUser_pwd() != null) {
+        if (StringUtils.isNotEmpty(userVo.getUser_id()) || StringUtils.isNotEmpty(userVo.getUser_pwd())) {
             UserVO findUser = userService.findUserById(userVo.getUser_id());
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -267,15 +268,15 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-        if (userVo.getUser_name() != null &&
-                userVo.getUser_id() != null &&
-                userVo.getUser_pwd() != null) {
+        if (StringUtils.isNotEmpty(userVo.getUser_name()) &&
+            StringUtils.isNotEmpty(userVo.getUser_id()) &&
+            StringUtils.isNotEmpty(userVo.getUser_pwd())) {
 
             String regexId = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
             Matcher matcherId = Pattern.compile(regexId).matcher(userVo.getUser_id());
             if (!matcherId.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
-                resultVO.setResult_str("아이디는 이메일형식이어야 합니다");
+                resultVO.setResult_str("아이디는 이메일 형식이어야 합니다.");
                 return resultVO;
             }
 
@@ -308,7 +309,7 @@ public class RestAPIController extends BaseController {
     @PostMapping("/modify_profile")
     public ResultVO modify_profile(@RequestParam("file") MultipartFile file, HttpSession session, @CookieValue("user_id") String user_id) throws Exception {
         ResultVO resultVO = new ResultVO();
-        resultVO.setResult_str("사진 저장에 실패했습니다.");
+        resultVO.setResult_str("프로필 사진 등록을 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
         if (file != null) {
@@ -326,13 +327,13 @@ public class RestAPIController extends BaseController {
                 findUserVO.setProfile_y(1);
                 userService.addNewProfile(findUserVO);
 
-                resultVO.setResult_str("프로필이 등록되었습니다.");
+                resultVO.setResult_str("프로필 사진을 등록했습니다.");
                 resultVO.setResult_code(CONSTANT.success + "01");
 
             } else if (findUserVO.getProfile_y() == 1) {
                 profileFileService.updateProfileFile(profileInfo);
 
-                resultVO.setResult_str("프로필이 수정되었습니다.");
+                resultVO.setResult_str("프로필 사진을 등록했습니다.");
                 resultVO.setResult_code(CONSTANT.success + "02");
             }
         }
@@ -351,19 +352,19 @@ public class RestAPIController extends BaseController {
     @PostMapping("/modify_myinfo")
     public ResultVO modify_myinfo(@CookieValue("user_id") String user_id, @RequestBody UserVO userVO) throws Exception {
         ResultVO resultVO = new ResultVO();
-        resultVO.setResult_str("사진 저장에 실패했습니다.");
+        resultVO.setResult_str("프로필 수정을 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
         userVO.setUser_id(user_id);
-        if (userVO.getUser_pwd() != null) {
-            if (userVO.getUser_pwd_origin() == null) {
+        if (StringUtils.isNotEmpty(userVO.getUser_pwd())) {
+            if (StringUtils.isNotEmpty(userVO.getUser_pwd_origin())) {
                 resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
                 return resultVO;
             }
             Matcher matcherPw = Pattern.compile(CONSTANT.REGEXPW).matcher(userVO.getUser_pwd());
             if (userVO.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
-                resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 설정해주세요.");
+                resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 입력해주세요.");
                 return resultVO;
             }
 
@@ -373,14 +374,14 @@ public class RestAPIController extends BaseController {
                 String change_pwd = passwordEncoder.encode(userVO.getUser_pwd());
                 userVO.setUser_pwd(change_pwd);
                 userMapper.updateUserInfo(userVO);
-                resultVO.setResult_str("프로필이 수정되었습니다.");
+                resultVO.setResult_str("프로필이 수정했습니다.");
                 resultVO.setResult_code(CONSTANT.success);
             } else {
-                resultVO.setResult_str("프로필을 수정 할 수 없습니다.");
+                resultVO.setResult_str("프로필을 수정할 수 없습니다.");
             }
         } else {
             userMapper.updateUserInfo(userVO);
-            resultVO.setResult_str("프로필이 수정되었습니다.");
+            resultVO.setResult_str("프로필이 수정했습니다.");
             resultVO.setResult_code(CONSTANT.success);
         }
 
@@ -398,7 +399,7 @@ public class RestAPIController extends BaseController {
     public ResultVO pw_find_mail(@RequestBody UserVO userVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("유저 정보를 다시 확인해주세요.");
+        resultVO.setResult_str("회원 정보를 다시 확인해주세요.");
 
         UserVO finduser = userService.findUserById(userVO.getUser_id());
 
@@ -441,7 +442,7 @@ public class RestAPIController extends BaseController {
             resultVO.setData(map);
 
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("임시 비밀번호가 발급되었습니다.");
+            resultVO.setResult_str("임시 비밀번호를 발급했습니다.");
         }
         return resultVO;
     }
@@ -457,7 +458,7 @@ public class RestAPIController extends BaseController {
     public ResultVO remail_join(@RequestBody UserVO userVo) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("메일 발송에 실패했습니다.");
+        resultVO.setResult_str("인증 메일 발송을 실패했습니다.");
 
         UserVO findUser = userService.findUserById(userVo.getUser_id());
 
@@ -491,7 +492,7 @@ public class RestAPIController extends BaseController {
             meetingService.sendMail(meetingVO, null, 5);    // 메일 발송
 
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("메일이 재발송 되었습니다.");
+            resultVO.setResult_str("인증 메일을 재발송했습니다.");
         }
 
         return resultVO;
@@ -520,7 +521,7 @@ public class RestAPIController extends BaseController {
             _rs.put("eq_type02", rs.getEq_type02());
             
             String _upic = "";
-            if (!rs.getFile_name().isEmpty() && rs.getFile_name() != null) {
+            if (StringUtils.isNotEmpty(rs.getFile_name())) {
                 _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
             }
             _rs.put("user_pic", _upic);
