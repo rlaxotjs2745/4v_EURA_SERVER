@@ -586,14 +586,14 @@ public class MeetController extends BaseController {
             meetingVO.setIdx_user(uInfo.getIdx_user());
             long time = System.currentTimeMillis(); 
             SimpleDateFormat tYear = new SimpleDateFormat("yyyy");
-            SimpleDateFormat tMonth = new SimpleDateFormat("mm");
+            SimpleDateFormat tMonth = new SimpleDateFormat("MM");
             Integer _tYear = Integer.valueOf(tYear.format(new Date(time)));
             Integer _tMonth = Integer.valueOf(tMonth.format(new Date(time)));
             if(meetingVO.getCalYear() == null){
                 meetingVO.setCalYear(_tYear);
             }
             if(meetingVO.getCalMonth() == null){
-                meetingVO.setCalYear(_tMonth);
+                meetingVO.setCalMonth(_tMonth);
             }
             Map<String, Object> _rs = new HashMap<String, Object>();
             List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸

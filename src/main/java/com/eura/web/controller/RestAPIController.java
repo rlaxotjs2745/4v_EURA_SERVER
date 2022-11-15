@@ -351,7 +351,7 @@ public class RestAPIController extends BaseController {
 
         userVO.setUser_id(user_id);
         if (StringUtils.isNotEmpty(userVO.getUser_pwd())) {
-            if (StringUtils.isNotEmpty(userVO.getUser_pwd_origin())) {
+            if (StringUtils.isEmpty(userVO.getUser_pwd_origin())) {
                 resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
                 return resultVO;
             }
@@ -364,7 +364,13 @@ public class RestAPIController extends BaseController {
 
             UserVO rs = userService.findUserById(user_id);
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            if (passwordEncoder.matches(userVO.getUser_pwd_origin(), rs.getUser_pwd())) {
+            String _pwd = "";
+            if(rs.getTemp_pw_y()==1){
+                _pwd = rs.getTemp_pw();
+            }else{
+                _pwd = rs.getUser_pwd();
+            }
+            if (passwordEncoder.matches(userVO.getUser_pwd_origin(), _pwd)) {
                 String change_pwd = passwordEncoder.encode(userVO.getUser_pwd());
                 userVO.setUser_pwd(change_pwd);
                 userMapper.updateUserInfo(userVO);
@@ -375,7 +381,7 @@ public class RestAPIController extends BaseController {
             }
         } else {
             userMapper.updateUserInfo(userVO);
-            resultVO.setResult_str("프로필이 수정했습니다.");
+            resultVO.setResult_str("새로운 비밀번호를 입력해주세요.");
             resultVO.setResult_code(CONSTANT.success);
         }
 
