@@ -1576,8 +1576,14 @@ public class MeetController extends BaseController {
             UserVO uInfo = userService.findUserById(getUserID(req));
             meetingVO.setIdx_user(uInfo.getIdx_user());
             MeetingVO meetingInfo = meetMapper.getRoomInfo(meetingVO);
-
+            Integer _auth = 0;
+            if(meetingInfo.getIdx_user().equals(uInfo.getIdx_user())){
+                _auth = 1;
+            }
             Map<String, Object> _rs = new HashMap<String, Object>();
+
+            // 호스트 여부 - 0:참석자, 1:호스트
+            _rs.put("is_host", _auth);
 
             // 강의명
             _rs.put("mtName", meetingInfo.getMt_name());
@@ -1644,28 +1650,35 @@ public class MeetController extends BaseController {
             _rs.put("mtAttachedFiles", _fls);
 
             // 미팅 분석 결과(강의 참여자 명단)
-            List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
-            ArrayList<Object> _uls = new ArrayList<Object>();
-            for(MeetingVO _ulist : _ulists){
-                Map<String, Object> _ul = new HashMap<String, Object>();
-                _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
-                _ul.put("uname",_ulist.getUser_name()); // 참석자명
-                _ul.put("uemail",_ulist.getUser_email());   // 이메일
-                _ul.put("value",66);    // 집중도
-                String _upic = "";
-                if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                    _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+            if(_auth==1){
+                List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
+                ArrayList<Object> _uls = new ArrayList<Object>();
+                for(MeetingVO _ulist : _ulists){
+                    Map<String, Object> _ul = new HashMap<String, Object>();
+                    _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
+                    _ul.put("uname",_ulist.getUser_name()); // 참석자명
+                    _ul.put("uemail",_ulist.getUser_email());   // 이메일
+                    _ul.put("value",66);    // 집중도
+                    String _upic = "";
+                    if(StringUtils.isNotEmpty(_ulist.getFile_name())){
+                        _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                    }
+                    _ul.put("upic",_upic);    // 프로필 사진
+                    _uls.add(_ul);
                 }
-                _ul.put("upic",_upic);    // 프로필 사진
-                _uls.add(_ul);
+                _rs.put("mtInviteList", _uls);
+            }else{
+                _rs.put("mtInviteList", null);
             }
-            _rs.put("mtInviteList", _uls);
 
-        
-            Map<String, Object> _uinfo = new HashMap<String, Object>();
-            _uinfo.put("user_total",30);
-            _uinfo.put("user_invite",29);
-            _rs.put("mtInviteInfo", _uinfo);
+            if(_auth==1){
+                Map<String, Object> _uinfo = new HashMap<String, Object>();
+                _uinfo.put("user_total",30);
+                _uinfo.put("user_invite",29);
+                _rs.put("mtInviteInfo", _uinfo);
+            }else{
+                _rs.put("mtInviteInfo", null);
+            }
 
             // ArrayList<Object> _tglists = new ArrayList<Object>();
             Map<String, Object> _tglist = new HashMap<String, Object>();
@@ -1678,13 +1691,37 @@ public class MeetController extends BaseController {
 
             // 전체 분석 하단 인디게이터 데이터
 
-            ArrayList<Object> _dlists = new ArrayList<Object>();
-            Map<String, Object> _dlist = new HashMap<String, Object>();
-            _dlist.put("duration",5);   // 동영상 재생 위치
-            _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
-            _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
-            _dlists.add(_dlist);
-            _rs.put("mtAnalyBtm", _dlist);
+            if(_auth==1){
+                ArrayList<Object> _dlists = new ArrayList<Object>();
+                Map<String, Object> _dlist = new HashMap<String, Object>();
+                _dlist.put("duration",5);   // 동영상 재생 위치
+                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
+                _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
+                _dlists.add(_dlist);
+                _rs.put("mtAnalyBtm", _dlist);
+            }else{
+                _rs.put("mtAnalyBtm", null);
+
+                // 참석자 용
+                // 인디게이터 데이터
+                ArrayList<Object> _dlists = new ArrayList<Object>();
+                Map<String, Object> _dlist = new HashMap<String, Object>();
+                _dlist.put("duration",5);   // 동영상 재생 위치
+                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
+                _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
+                _dlists.add(_dlist);
+
+                _rs.put("mtData0", _dlists);
+
+                // 분석 요약 데이터
+                Map<String, Object> _d2list = new HashMap<String, Object>();
+                _d2list.put("good",62); // GOOD
+                _d2list.put("bad",13);  // BAD
+                _d2list.put("off",25);  // OFF
+                _d2list.put("tcnt",73); // 현재 점수
+                _d2list.put("acnt",52); // 누적 평균
+                _rs.put("mtData1", _d2list);
+            }
 
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("강의 정보 호출 완료");
