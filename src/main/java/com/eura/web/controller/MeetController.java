@@ -1619,7 +1619,7 @@ public class MeetController extends BaseController {
                 for(MeetingVO _mlist : _mlists){
                     Map<String, Object> _ul = new HashMap<String, Object>();
                     _ul.put("idx",_mlist.getIdx_movie_file());    // 참석자 회원 INDEX
-                    _ul.put("fileNo",_mlist.getFile_no()); // 파일 순서
+                    _ul.put("fileNo",_mlist.getFile_no());      // 파일 순서
                     _ul.put("duration",_mlist.getDuration());   // 재생 길이
                     _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
@@ -1635,28 +1635,42 @@ public class MeetController extends BaseController {
                 _rs.put("mtMovieFiles", null);
             }
             
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss", Locale.KOREA);
+            SimpleDateFormat ff = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
             String _rdt = "";
-            String _edt = meetingInfo.getIs_finish_dt();
-            if(_mlists != null && _mlists.size() > 0){
-                _rdt = _mlists.get(0).getRecord_dt();
-            }else{
+            String _edt = "";
+            if(!meetingInfo.getIs_live_dt().isEmpty()){
                 _rdt = meetingInfo.getIs_live_dt();
-            }
-            if(StringUtils.isEmpty(_rdt)){
-                _rdt = format.format(new Date());
-            }
-            if(StringUtils.isEmpty(_edt)){
-                _edt = format.format(new Date());
+            }else{
+                if(_mlists != null && _mlists.size() > 0){
+                    _rdt = _mlists.get(0).getRecord_dt();
+                }else{
+                    _rdt = ff.format(new Date());
+                }
             }
 
-            long diff = format.parse(_edt).getTime() - format.parse(_rdt).getTime();
-            String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
-            String minutes = (diff / 1000) / 60 % 60 < 10 ? "0" + (diff / 1000) / 60 % 60 : "" + (diff / 1000) / 60 % 60;
-            String seconds = (diff / 1000) % 60 < 10 ? "0" + (diff / 1000) % 60 : "" + (diff / 1000) % 60;
+            if(meetingInfo.getIs_finish() == 1){
+                _edt = meetingInfo.getIs_finish_dt();
+            }else{
+                _edt = ff.format(new Date());
+            }
+
+            // long diff = format.parse(_edt).getTime() - format.parse(_rdt).getTime();
+            // String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
+            // String minutes = (diff / 1000) / 60 % 60 < 10 ? "0" + (diff / 1000) / 60 % 60 : "" + (diff / 1000) / 60 % 60;
+            // String seconds = (diff / 1000) % 60 < 10 ? "0" + (diff / 1000) % 60 : "" + (diff / 1000) % 60;
 
             // 소요시간
-            _rs.put("mtMeetTimer", hours + ":" + minutes + ":" + seconds);
+            long diff = ff.parse(_edt).getTime() - ff.parse(_rdt).getTime();
+            if(diff>0){
+                long sec = diff / 1000;
+                int hour = (int)sec/(60*60);
+                int minute = (int)sec/60;
+                int second = (int)sec%60;
+                _rs.put("mtMeetTimer", ("0"+hour).substring(0,2) + ":" + ("0"+minute).substring(0,2) + ":" + ("0"+second).substring(0,2));
+            }else{
+                _rs.put("mtMeetTimer", "00:00:00");
+            }
 
 
             // 미팅 분석 결과(첨부파일)
@@ -1728,27 +1742,47 @@ public class MeetController extends BaseController {
             _rs.put("mtAnalyTop", _tglist);
 
             // 전체 분석 하단 인디게이터 데이터
-
             if(_auth==1){
                 ArrayList<Object> _dlists = new ArrayList<Object>();
-                Map<String, Object> _dlist = new HashMap<String, Object>();
-                _dlist.put("duration",5);   // 동영상 재생 위치
-                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
-                _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
-                _dlists.add(_dlist);
-                _rs.put("mtAnalyBtm", _dlist);
+                int mina = 0;
+                int maxa = 100;
+                int minb = -100;
+                int maxb = 0;
+                for(int i=0;i<30;i++){
+                    int a = (int)(Math.random()*(maxa-mina+1)+mina);
+                    int b = (int)(Math.random()*(maxb-minb+1)+minb);
+                    Map<String, Object> _dlist = new HashMap<String, Object>();
+                    Integer _cc = (5*i);
+                    _dlist.put("name","Good");
+                    // _dlist.put("duration",(5*i));   // 동영상 재생 위치
+                    _dlist.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
+                    _dlist.put("value",a);  // GOOD 10
+                    _dlists.add(_dlist);
+                    Map<String, Object> _dlist1 = new HashMap<String, Object>();
+                    _dlist1.put("item","Bad");
+                    // _dlist1.put("duration",(5*i));   // 동영상 재생 위치
+                    _dlist1.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
+                    _dlist1.put("value",b);  // BAD -10
+                    _dlists.add(_dlist1);
+                }
+                _rs.put("mtAnalyBtm", _dlists);
             }else{
                 _rs.put("mtAnalyBtm", null);
 
                 // 참석자 용
                 // 인디게이터 데이터
+                int min = -100;
+                int max = 100;
                 ArrayList<Object> _dlists = new ArrayList<Object>();
-                Map<String, Object> _dlist = new HashMap<String, Object>();
-                _dlist.put("duration",5);   // 동영상 재생 위치
-                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
-                _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
-                _dlists.add(_dlist);
-
+                for(int i=0;i<4;i++){
+                    Integer _cc = (5*i);
+                    int a = (int)(Math.random()*(max-min+1)+min);
+                    Map<String, Object> _dlist = new HashMap<String, Object>();
+                    _dlist.put("duration",_cc);   // 동영상 재생 위치
+                    _dlist.put("timer",String.valueOf(_cc)); // duration을 시간으로 환산
+                    _dlist.put("value",a);  // GOOD~BAD 10 ~ -10
+                    _dlists.add(_dlist);
+                }
                 _rs.put("mtData0", _dlists);
 
                 // 분석 요약 데이터
@@ -1770,6 +1804,7 @@ public class MeetController extends BaseController {
         return resultVO;
     }
 
+
     /**
      * 미팅 참석자 분석 데이터
      * @param req
@@ -1787,13 +1822,17 @@ public class MeetController extends BaseController {
             Map<String, Object> _rs = new HashMap<String, Object>();
 
             // 인디게이터 데이터
+            int min = -100;
+            int max = 100;
             ArrayList<Object> _dlists = new ArrayList<Object>();
-            Map<String, Object> _dlist = new HashMap<String, Object>();
-            _dlist.put("duration",5);   // 동영상 재생 위치
-            _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
-            _dlist.put("value",5);  // GOOD~BAD 10 ~ -10
-            _dlists.add(_dlist);
-
+            for(int i=0;i<30;i++){
+                int a = (int)(Math.random()*(max-min+1)+min);
+                Map<String, Object> _dlist = new HashMap<String, Object>();
+                _dlist.put("duration",(5*(i-1)));   // 동영상 재생 위치
+                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
+                _dlist.put("value",a);  // GOOD~BAD 10 ~ -10
+                _dlists.add(_dlist);
+            }
             _rs.put("mtData0", _dlists);
 
             // 분석 요약 데이터
