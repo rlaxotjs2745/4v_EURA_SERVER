@@ -205,18 +205,22 @@ public class BaseController {
      */
     public String getUserID(HttpServletRequest req) throws Exception{
         String rs = "";
-        if(req.getCookies() != null){
-            Cookie o[] = req.getCookies();
-            if(o!=null){
-                for (Cookie c : o) {
-                    if(c.getName().equals("user_id")){
-                        if(!c.getValue().isEmpty()){
-                            rs = c.getValue();
-                        }
-                    }
-                }
-            }
+        String a = req.getHeader("auth");
+        if(!a.equals("") || a!=null){
+            rs = a;
         }
+        // if(req.getCookies() != null){
+        //     Cookie o[] = req.getCookies();
+        //     if(o!=null){
+        //         for (Cookie c : o) {
+        //             if(c.getName().equals("user_id")){
+        //                 if(!c.getValue().isEmpty()){
+        //                     rs = c.getValue();
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         return rs;
     }
 }
