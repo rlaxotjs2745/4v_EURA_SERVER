@@ -29,21 +29,29 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 		// System.out.println(ip);
         Boolean _r = false;
         try {
-			if(req.getCookies() != null){
-				Cookie o[] = req.getCookies();
-				if(o!=null){
-					for (Cookie c : o) {
-						if(c.getName().equals("user_id")){
-							if(!c.getValue().isEmpty()){
-								UserVO rs = userMapper.getUserInfoById(c.getValue());
-								if(rs!=null){
-									_r = true;
-								}
-							}
-						}
-					}
+			String a = req.getHeader("auth");
+			if(!a.equals("") || a!=null){
+				UserVO rs = userMapper.getUserInfoById(a);
+				if(rs!=null){
+					_r = true;
 				}
-            }
+			}
+
+			// if(req.getCookies() != null){
+			// 	Cookie o[] = req.getCookies();
+			// 	if(o!=null){
+			// 		for (Cookie c : o) {
+			// 			if(c.getName().equals("user_id")){
+			// 				if(!c.getValue().isEmpty()){
+			// 					UserVO rs = userMapper.getUserInfoById(c.getValue());
+			// 					if(rs!=null){
+			// 						_r = true;
+			// 					}
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+            // }
         } catch (Exception e) {
             e.printStackTrace();
         }

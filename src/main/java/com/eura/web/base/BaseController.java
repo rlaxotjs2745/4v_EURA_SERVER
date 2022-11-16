@@ -178,18 +178,22 @@ public class BaseController {
      */
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
-        if(req.getCookies() != null){
-            Cookie o[] = req.getCookies();
-            if(o!=null){
-                for (Cookie c : o) {
-                    if(c.getName().equals("user_id")){
-                        if(!c.getValue().isEmpty()){
-                            rs = userMapper.getUserInfoById(c.getValue());
-                        }
-                    }
-                }
-            }
+        String a = req.getHeader("auth");
+        if(!a.equals("") || a!=null){
+            rs = userMapper.getUserInfoById(a);
         }
+        // if(req.getCookies() != null){
+        //     Cookie o[] = req.getCookies();
+        //     if(o!=null){
+        //         for (Cookie c : o) {
+        //             if(c.getName().equals("user_id")){
+        //                 if(!c.getValue().isEmpty()){
+        //                     rs = userMapper.getUserInfoById(c.getValue());
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         return rs;
     }
 
