@@ -400,7 +400,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @PutMapping("/room/open")
-    public ResultVO putMeetOpen(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    public ResultVO putMeetOpen(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -447,8 +447,8 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/close")
-    public ResultVO putMeetClose(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    @PostMapping("/room/close")
+    public ResultVO putMeetClose(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -495,8 +495,8 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @PutMapping("/room/cancel")
-    public ResultVO putMeetCacncel(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    @PostMapping("/room/cancel")
+    public ResultVO putMeetCacncel(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -536,7 +536,7 @@ public class MeetController extends BaseController {
      * @return
      * @throws Exception
      */
-    @DeleteMapping("/room/erase")
+    @PostMapping("/room/erase")
     public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
@@ -1439,7 +1439,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/room/start")
-    public ResultVO putMeetStart(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    public ResultVO putMeetStart(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -1591,6 +1591,14 @@ public class MeetController extends BaseController {
 
             // 교수명 호스트 이름
             _rs.put("mtName", meetingInfo.getMt_name());
+
+            // 참석여부
+            Integer _livein = 0;
+            MeetingVO _uin = meetMapper.chkMeetLiveJoin(meetingVO);
+            if(_uin!=null){
+                _livein = 1;
+            }
+            _rs.put("join", _livein);   // 미팅 참석 여부
 
             // 강의명
             _rs.put("hostname", meetingInfo.getUser_name());

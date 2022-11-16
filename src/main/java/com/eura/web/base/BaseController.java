@@ -178,22 +178,24 @@ public class BaseController {
      */
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
-        String a = req.getHeader("auth");
-        if(!a.equals("") || a!=null){
+        String a = req.getHeader("uid");
+        if(!a.equals("") || !a.isEmpty() || a != null){
             rs = userMapper.getUserInfoById(a);
         }
-        // if(req.getCookies() != null){
-        //     Cookie o[] = req.getCookies();
-        //     if(o!=null){
-        //         for (Cookie c : o) {
-        //             if(c.getName().equals("user_id")){
-        //                 if(!c.getValue().isEmpty()){
-        //                     rs = userMapper.getUserInfoById(c.getValue());
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        if(rs == null){
+            if(req.getCookies() != null){
+                Cookie o[] = req.getCookies();
+                if(o!=null){
+                    for (Cookie c : o) {
+                        if(c.getName().equals("user_id")){
+                            if(!c.getValue().isEmpty()){
+                                rs = userMapper.getUserInfoById(c.getValue());
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return rs;
     }
 
@@ -205,22 +207,40 @@ public class BaseController {
      */
     public String getUserID(HttpServletRequest req) throws Exception{
         String rs = "";
-        String a = req.getHeader("auth");
-        if(!a.equals("") || a!=null){
-            rs = a;
+        String a = req.getHeader("uid");
+        System.out.println(req.getHeader("uid"));
+        if(a == null){
+            if(req.getCookies() != null){
+                Cookie o[] = req.getCookies();
+                if(o!=null){
+                    for (Cookie c : o) {
+                        if(c.getName().equals("user_id")){
+                            if(!c.getValue().isEmpty()){
+                                rs = c.getValue();
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            if(!a.equals("") || !a.isEmpty() || a != null){
+                rs = req.getHeader("uid");
+            }
+            if(rs == ""){
+                if(req.getCookies() != null){
+                    Cookie o[] = req.getCookies();
+                    if(o!=null){
+                        for (Cookie c : o) {
+                            if(c.getName().equals("user_id")){
+                                if(!c.getValue().isEmpty()){
+                                    rs = c.getValue();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        // if(req.getCookies() != null){
-        //     Cookie o[] = req.getCookies();
-        //     if(o!=null){
-        //         for (Cookie c : o) {
-        //             if(c.getName().equals("user_id")){
-        //                 if(!c.getValue().isEmpty()){
-        //                     rs = c.getValue();
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
         return rs;
     }
 }
