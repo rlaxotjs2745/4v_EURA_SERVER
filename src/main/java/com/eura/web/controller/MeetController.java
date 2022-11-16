@@ -1639,14 +1639,14 @@ public class MeetController extends BaseController {
             SimpleDateFormat ff = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
             String _rdt = "";
             String _edt = "";
-            if(!meetingInfo.getIs_live_dt().isEmpty()){
-                _rdt = meetingInfo.getIs_live_dt();
-            }else{
+            if(meetingInfo.getIs_live_dt() == null){
                 if(_mlists != null && _mlists.size() > 0){
                     _rdt = _mlists.get(0).getRecord_dt();
                 }else{
                     _rdt = ff.format(new Date());
                 }
+            }else{
+                _rdt = meetingInfo.getIs_live_dt();
             }
 
             if(meetingInfo.getIs_finish() == 1){
