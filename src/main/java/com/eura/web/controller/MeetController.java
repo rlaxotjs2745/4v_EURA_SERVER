@@ -1056,7 +1056,7 @@ public class MeetController extends BaseController {
                         }
                         if(meetingVO.getMt_remind_type().equals(0)){
                             Integer _dayChk = 0;
-                            if(getDateDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0){
+                            if(getDateDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0){
                                 _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
                             }
                             if(_dayChk.equals(0)){
@@ -1121,6 +1121,7 @@ public class MeetController extends BaseController {
                             String[] _week = null;
                             if(meetingVO.getMt_remind_end() == null){
                                 resultVO.setResult_str("종료일을 선택해주세요.");
+                                return resultVO;
                             }else{
 
                             // 일 주기
