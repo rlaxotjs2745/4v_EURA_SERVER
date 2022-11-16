@@ -18,6 +18,7 @@ public class MeetingVO extends BaseVO {
     private String is_live_dt;      // 미팅 시작 일시
     private Integer is_finish;      // 미팅 종료 여부 - 0:아니오, 1:예
     private String is_finish_dt;    // 미팅 종료 일시
+    private String join_dt;
 
     private Integer idx_meeting_user_join;
     private Integer idx_attachment_file_info_join;

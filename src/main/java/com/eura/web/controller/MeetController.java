@@ -1576,6 +1576,10 @@ public class MeetController extends BaseController {
             UserVO uInfo = userService.findUserById(getUserID(req));
             meetingVO.setIdx_user(uInfo.getIdx_user());
             MeetingVO meetingInfo = meetMapper.getRoomInfo(meetingVO);
+            if(meetingInfo==null){
+                resultVO.setResult_str("미팅룸 정보가 없습니다.");
+                return resultVO;
+            }
             Integer _auth = 0;
             if(meetingInfo.getIdx_user().equals(uInfo.getIdx_user())){
                 _auth = 1;
@@ -1585,8 +1589,11 @@ public class MeetController extends BaseController {
             // 호스트 여부 - 0:참석자, 1:호스트
             _rs.put("is_host", _auth);
 
-            // 강의명
+            // 교수명 호스트 이름
             _rs.put("mtName", meetingInfo.getMt_name());
+
+            // 강의명
+            _rs.put("hostname", meetingInfo.getUser_name());
 
             // 날짜
             _rs.put("mtMeetiDate", "2022-11-11");
@@ -1599,22 +1606,28 @@ public class MeetController extends BaseController {
 
             // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
             List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
-            ArrayList<Object> _mls = new ArrayList<Object>();
-            for(MeetingVO _mlist : _mlists){
-                Map<String, Object> _ul = new HashMap<String, Object>();
-                _ul.put("idx",_mlist.getIdx_movie_file());    // 참석자 회원 INDEX
-                _ul.put("fileNo",_mlist.getFile_no()); // 파일 순서
-                _ul.put("duration",_mlist.getDuration());   // 재생 길이
-                _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
-                String _furl = "";
-                if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                    _furl = domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name();
+            if(_mlists!=null){
+                ArrayList<Object> _mls = new ArrayList<Object>();
+                for(MeetingVO _mlist : _mlists){
+                    Map<String, Object> _ul = new HashMap<String, Object>();
+                    _ul.put("idx",_mlist.getIdx_movie_file());    // 참석자 회원 INDEX
+                    _ul.put("fileNo",_mlist.getFile_no()); // 파일 순서
+                    _ul.put("duration",_mlist.getDuration());   // 재생 길이
+                    _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
+                    _ul.put("filename",_mlist.getFile_name());    // 파일명
+                    String _furl = "";
+                    if(StringUtils.isNotEmpty(_mlist.getFile_name())){
+                        _furl = domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name();
+                    }
+                    _ul.put("fileUrl", _furl);    // 영상
+                    _mls.add(_ul);
                 }
-                _ul.put("fileUrl", _furl);    // 영상
-                _mls.add(_ul);
+                _rs.put("mtMovieFiles", _mls);
+            }else{
+                _rs.put("mtMovieFiles", null);
             }
-            _rs.put("mtMovieFiles", _mls);
-
+            
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String _rdt = "";
             String _edt = meetingInfo.getIs_finish_dt();
             if(_mlists != null && _mlists.size() > 0){
@@ -1622,8 +1635,12 @@ public class MeetController extends BaseController {
             }else{
                 _rdt = meetingInfo.getIs_live_dt();
             }
-
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if(StringUtils.isEmpty(_rdt)){
+                _rdt = format.format(new Date());
+            }
+            if(StringUtils.isEmpty(_edt)){
+                _edt = format.format(new Date());
+            }
 
             long diff = format.parse(_edt).getTime() - format.parse(_rdt).getTime();
             String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
@@ -1645,6 +1662,7 @@ public class MeetController extends BaseController {
                     _furl = domain + "/pic?fnm=" + _flist.getFile_path() + _flist.getFile_name();
                 }
                 _fl.put("fileUrl",_furl);    // 첨부파일 URL
+                _fl.put("filename",_flist.getFile_name());       // 파일명
                 _fls.add(_fl);
             }
             _rs.put("mtAttachedFiles", _fls);
@@ -1652,31 +1670,43 @@ public class MeetController extends BaseController {
             // 미팅 분석 결과(강의 참여자 명단)
             if(_auth==1){
                 List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
-                ArrayList<Object> _uls = new ArrayList<Object>();
-                for(MeetingVO _ulist : _ulists){
-                    Map<String, Object> _ul = new HashMap<String, Object>();
-                    _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
-                    _ul.put("uname",_ulist.getUser_name()); // 참석자명
-                    _ul.put("uemail",_ulist.getUser_email());   // 이메일
-                    _ul.put("value",66);    // 집중도
-                    String _upic = "";
-                    if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                        _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                if(_ulists!=null){
+                    Integer _joincnt = 0;
+                    ArrayList<Object> _uls = new ArrayList<Object>();
+                    for(MeetingVO _ulist : _ulists){
+                        Map<String, Object> _ul = new HashMap<String, Object>();
+                        _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
+                        _ul.put("uname",_ulist.getUser_name()); // 참석자명
+                        _ul.put("uemail",_ulist.getUser_email());   // 이메일
+                        _ul.put("value",66);    // 집중도
+                        String _upic = "";
+                        if(StringUtils.isNotEmpty(_ulist.getFile_name())){
+                            _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                        }
+                        _ul.put("upic",_upic);    // 프로필 사진
+                        Integer _join = 0;
+                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                            _join = 1;
+                            _joincnt++;
+                        }
+                        _ul.put("join",_join);    // 미팅 참석 여부
+                        _uls.add(_ul);
                     }
-                    _ul.put("upic",_upic);    // 프로필 사진
-                    _uls.add(_ul);
+                    _rs.put("mtInviteList", _uls);
+
+                    Map<String, Object> _uinfo = new HashMap<String, Object>();
+                    _uinfo.put("user_total",_ulists.size());
+                    _uinfo.put("user_invite",_joincnt);
+                    _rs.put("mtInviteInfo", _uinfo);
+                }else{
+                    _rs.put("mtInviteList", null);
+                    Map<String, Object> _uinfo = new HashMap<String, Object>();
+                    _uinfo.put("user_total",0);
+                    _uinfo.put("user_invite",0);
+                    _rs.put("mtInviteInfo", null);
                 }
-                _rs.put("mtInviteList", _uls);
             }else{
                 _rs.put("mtInviteList", null);
-            }
-
-            if(_auth==1){
-                Map<String, Object> _uinfo = new HashMap<String, Object>();
-                _uinfo.put("user_total",30);
-                _uinfo.put("user_invite",29);
-                _rs.put("mtInviteInfo", _uinfo);
-            }else{
                 _rs.put("mtInviteInfo", null);
             }
 
