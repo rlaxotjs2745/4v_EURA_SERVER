@@ -19,13 +19,13 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private ApiAuthorityInterceptor apiAuthorityInterceptor;
 
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry
-            .addInterceptor(apiAuthorityInterceptor)
-        	.addPathPatterns("/meet/**","/meet/**/**","/modify_profile","/modify_myinfo","/myinfo")
-            .excludePathPatterns("/*");
-    }
+    // @Override
+    // public void addInterceptors(InterceptorRegistry registry) {
+    //     registry
+    //         .addInterceptor(apiAuthorityInterceptor)
+    //     	.addPathPatterns("/meet/**","/meet/**/**","/modify_profile","/modify_myinfo","/myinfo")
+    //         .excludePathPatterns("/*");
+    // }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

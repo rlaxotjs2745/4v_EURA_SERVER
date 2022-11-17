@@ -60,9 +60,10 @@ public class RestAPIController extends BaseController {
      * @param response
      * @param user_id
      * @return
+     * @throws Exception
      */
     @PostMapping("/index")
-    public ResultVO home(HttpServletRequest request, HttpServletResponse response, @CookieValue(name = "user_id", required = false) String user_id) {
+    public ResultVO home(HttpServletRequest request, HttpServletResponse response, HttpServletRequest req) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("로그인 후 이용해주세요.");
@@ -73,8 +74,8 @@ public class RestAPIController extends BaseController {
         if (flashMap != null) {
             findUserVo = (UserVO) flashMap.get("userVo");
         }
-        if (user_id != null) {
-            findUserVo = userService.findUserById(user_id);
+        if (getUserID(req) != null) {
+            findUserVo = userService.findUserById(getUserID(req));
         }
 
         if (findUserVo != null) {// 로그인 필요
@@ -301,13 +302,13 @@ public class RestAPIController extends BaseController {
      * @return
      */
     @PostMapping("/modify_profile")
-    public ResultVO modify_profile(@RequestParam("file") MultipartFile file, HttpSession session, @CookieValue("user_id") String user_id) throws Exception {
+    public ResultVO modify_profile(HttpServletRequest req, @RequestParam("file") MultipartFile file, HttpSession session) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("프로필 사진 등록을 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
         if (file != null) {
-            UserVO findUserVO = userService.findUserById(user_id);
+            UserVO findUserVO = userService.findUserById(getUserID(req));
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
             MeetingVO _frs = meetingService.saveFile(file, _path);
@@ -343,12 +344,12 @@ public class RestAPIController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/modify_myinfo")
-    public ResultVO modify_myinfo(@CookieValue("user_id") String user_id, @RequestBody UserVO userVO) throws Exception {
+    public ResultVO modify_myinfo(HttpServletRequest req, @RequestBody UserVO userVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("프로필 수정을 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
-        userVO.setUser_id(user_id);
+        userVO.setUser_id(getUserID(req));
         if (StringUtils.isNotEmpty(userVO.getUser_pwd())) {
             if (StringUtils.isEmpty(userVO.getUser_pwd_origin())) {
                 resultVO.setResult_str("기존 비밀번호를 입력해주세요.");
@@ -361,7 +362,7 @@ public class RestAPIController extends BaseController {
                 return resultVO;
             }
 
-            UserVO rs = userService.findUserById(user_id);
+            UserVO rs = userService.findUserById(getUserID(req));
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String _pwd = "";
             if(rs.getTemp_pw_y()==1){
