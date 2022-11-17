@@ -78,7 +78,7 @@ public class ApiAuthorityInterceptor implements HandlerInterceptor {
 		if(_r==false){
 			Map<String, Object> _resultMap = new HashMap<String, Object>();
 			_resultMap.put("result_code", "FAIL");
-			_resultMap.put("result_str", "로그인 후에 이용해주세요..");
+			_resultMap.put("result_str", "로그인 후에 이용해주세요.");
 			res.setContentType("application/json");
 			res.setCharacterEncoding("UTF-8");
 			res.setStatus(420);

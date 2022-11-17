@@ -51,8 +51,6 @@ public class RestAPIController extends BaseController {
 
     @Value("${w3domain}")
     private String w3domain;
-
-    // public static final String REGEXPW = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[$@$!%*#?&])[A-Za-z[0-9]$@$!%*#?&]{8,20}$";
     
     /**
      * 로그인 확인
@@ -131,9 +129,7 @@ public class RestAPIController extends BaseController {
                     }
                 }
 
-                // 참여자에서 본인이 있다면 참여자 정보와 연동
                 userVo.setIdx_user(idx_user);
-                meetMapper.chkMeetInviteChain(userVo);
 
                 // 메일 발송
                 String authKey = mailService.generateAuthNo(6);
@@ -175,9 +171,10 @@ public class RestAPIController extends BaseController {
      * @param email
      * @param authKey
      * @return
+     * @throws Exception
      */
     @GetMapping("/signUpConfirm")
-    public ResultVO signUpConfirm(@RequestParam("email") String email, @RequestParam("authKey") String authKey) {
+    public ResultVO signUpConfirm(@RequestParam("email") String email, @RequestParam("authKey") String authKey) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_str("메일 인증에 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
@@ -190,6 +187,9 @@ public class RestAPIController extends BaseController {
 
             UserVO findUser = userService.findUserById(email);
             if (findUser.getUser_status() == 1) {
+                // 참여자에서 본인이 있다면 참여자 정보와 연동
+                meetMapper.chkMeetInviteChain(userVO);
+
                 resultVO.setResult_str("메일 인증에 성공했습니다");
                 resultVO.setResult_code(CONSTANT.success);
             }
