@@ -289,6 +289,10 @@ public class MeetController extends BaseController {
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
                 List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+                if(rs.getMt_status()!=1 && !rs.getIdx_user().equals(uInfo.getIdx_user())){
+                    resultVO.setResult_str("미팅룸에 참여할 권한이 없습니다.");
+                    return resultVO;
+                }
 
                 String _auth = "0"; // 게스트 권한 부여
 
@@ -297,7 +301,7 @@ public class MeetController extends BaseController {
                     _auth = "1";
                 }
                 Map<String, Object> _rs = new HashMap<String, Object>();
-                _rs.put("mt_useridx", rs.getIdx_user());
+                // _rs.put("mt_useridx", rs.getIdx_user());
                 _rs.put("mt_ishost", _auth);
                 _rs.put("mt_name", rs.getMt_name());
                 _rs.put("mt_hostname", rs.getUser_name());
@@ -356,7 +360,12 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
+            MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             UserVO uInfo = userService.findUserById(getUserID(req));
+            Integer _auth = 0;
+            if(uInfo.getIdx_user().equals(rs.getIdx_user())){
+                _auth = 1;
+            }
             Map<String, Object> _rs = new HashMap<String, Object>();
             
             meetingVO.setIdx_user(uInfo.getIdx_user());
@@ -367,21 +376,57 @@ public class MeetController extends BaseController {
             meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
             ArrayList<Object> _irss = new ArrayList<Object>();
+            Integer _incnt = 0;
             for(MeetingVO irs0 : irs){
                 Map<String, Object> _irs = new HashMap<String, Object>();
-                _irs.put("idx", irs0.getIdx_user());
-                _irs.put("uname", irs0.getUser_name());
-                _irs.put("email", irs0.getUser_email());
-                _irs.put("is_live", irs0.getIs_live());
-                _irs.put("is_alive", irs0.getIs_alive());
+                _irs.put("idx", irs0.getIdx_user());        // 참석자 회원 INDEX
+                _irs.put("uname", irs0.getUser_name());     // 참석자명
+                _irs.put("email", irs0.getUser_email());    // 참석자 이메일 주소
+                _irs.put("is_host", irs0.getIs_host());     // 호스트 여부 - 0:참석자, 1:호스트
+
+                Integer _iam = 0;
+                if(irs0.getIdx_user().equals(uInfo.getIdx_user())){
+                    _iam = 1;
+                }
+                _irs.put("is_iam", _iam); // 0:남일때, 1:나일때
+
+                // _irs.put("is_live", irs0.getIs_live());     // 참여중
+                // _irs.put("is_alive", irs0.getIs_alive());   // 참석중
+                Integer _stat = 0;  // 감정 상태 - 0:미참여, 1:참여중, 2:GOOD, 3:BAD, 4:Camera Off
+                if(_auth==1){
+                    _stat = irs0.getIs_live();
+                }else{
+                    if(_iam == 1){
+                        _stat = irs0.getIs_live();
+                    }
+                }
+                // 참여중인 상태에서 호스트에게는 모든 참석자 상태 표시하고, 참석자는 본인 것만 GOOD,BAD 표시
+                // if(_stat==1 && (_auth==1 || _iam==1)){
+                    // _stat = 2;  // GOOD
+                    // _stat = 3;  // BAD
+                // }
+                // 호스트이거나 나일 때 참석중이 아닐 경우
+                if((_auth==1 || _iam == 1) && irs0.getIs_alive() == 0){
+                    _stat = 4;
+                }
+                _irs.put("is_status", _stat);  // 감정 상태 - 0:미참여, 1:참여중, 2:GOOD, 3:BAD, 4:Camera Off
+
                 String _pic = "";
                 if(StringUtils.isNotEmpty(irs0.getFile_name())){
                     _pic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
                 }
-                _irs.put("ui_pic", _pic);
+                _irs.put("ui_pic", _pic);       // 참석자 프로필 사진
                 _irss.add(_irs);
+
+                if(irs0.getIs_live()==1){
+                    _incnt++;
+                }
             }
             _rs.put("mt_invites", _irss);
+            _rs.put("is_host", _auth);      // 호스트 여부
+
+            _rs.put("mt_cnttotal", irs.size());     // 참석자 총 인원수
+            _rs.put("mt_cntinvite", _incnt);        // 참석한 인원수
             
             resultVO.setData(_rs);
 
@@ -466,6 +511,10 @@ public class MeetController extends BaseController {
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
+                        if(rrs.getIs_live()==1){
+                            resultVO.setResult_str("미팅 중에는 비공개 할 수 없습니다.");
+                            return resultVO;
+                        }
                         Integer rs = meetMapper.putMeetClose(meetingVO);
                         if(rs==1){
                             // 참가자 이메일 전송
@@ -508,6 +557,10 @@ public class MeetController extends BaseController {
             MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
             if(rrs!=null){
                 if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
+                    if(rrs.getIs_live()==1){
+                        resultVO.setResult_str("미팅 중에는 취소 할 수 없습니다.");
+                        return resultVO;
+                    }
                     Integer rs = meetMapper.putMeetCacncel(meetingVO);
                     if(rs==1){
                         // 참가자 이메일 전송
@@ -538,7 +591,7 @@ public class MeetController extends BaseController {
      * @throws Exception
      */
     @PostMapping("/room/erase")
-    public ResultVO deleteMeet(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
+    public ResultVO deleteMeet(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
@@ -549,6 +602,10 @@ public class MeetController extends BaseController {
             MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
             if(rrs!=null){
                 if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
+                    if(rrs.getIs_live()==1){
+                        resultVO.setResult_str("미팅 중에는 삭제 할 수 없습니다.");
+                        return resultVO;
+                    }
                     Integer rs = meetMapper.deleteMeet(meetingVO);
                     if(rs==1){
                         // 참가자 이메일 전송
@@ -683,6 +740,9 @@ public class MeetController extends BaseController {
                 }else if(rs.getMt_status() == 3){
                     resultVO.setResult_str("삭제된 미팅은 수정 할 수 없습니다.");
                     return resultVO;
+                }else if(rs.getIs_live()==1){
+                    resultVO.setResult_str("미팅 중에는 수정 할 수 없습니다.");
+                    return resultVO;
                 }else{
                     Map<String, Object> _rs = new HashMap<String, Object>();
                     _rs.put("mt_name", rs.getMt_name());
@@ -703,6 +763,7 @@ public class MeetController extends BaseController {
                         Map<String, Object> _frs = new HashMap<String, Object>();
                         _frs.put("idx", frs0.getIdx_attachment_file_info_join());
                         _frs.put("files", frs0.getFile_name());
+                        _frs.put("fileSize", frs0.getFile_size());
                         String _furl = "";
                         if(StringUtils.isNotEmpty(frs0.getFile_name())){
                             _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
@@ -776,6 +837,18 @@ public class MeetController extends BaseController {
                     if(!Character.isDigit(meetingVO.getMt_remind_type())){
                         meetingVO.setMt_remind_type(0);
                     }
+                }
+                if(StringUtils.isEmpty(meetingVO.getMt_end_dt()) && meetingVO.getMt_remind_type()>0){
+                    resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
+                    return resultVO;
+                }
+                if(StringUtils.isEmpty(meetingVO.getMt_start_dt())){
+                    resultVO.setResult_str("미팅 시작 시간을 골라주세요.");
+                    return resultVO;
+                }
+                if(StringUtils.isEmpty(meetingVO.getMt_end_dt())){
+                    resultVO.setResult_str("미팅 종료 시간을 골라주세요.");
+                    return resultVO;
                 }
                 if(meetingVO.getMt_remind_type().equals(0)){
                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
@@ -1052,8 +1125,26 @@ public class MeetController extends BaseController {
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
+                        if(StringUtils.isEmpty(meetingVO.getMt_start_dt())){
+                            resultVO.setResult_str("미팅 시작 시간을 골라주세요.");
+                            return resultVO;
+                        }
+                        if(StringUtils.isEmpty(meetingVO.getMt_end_dt())){
+                            resultVO.setResult_str("미팅 종료 시간을 골라주세요.");
+                            return resultVO;
+                        }
+                        if(rrs.getIs_live()==1){
+                            if(getDateDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt())!=0 || getDateDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt())!=0){
+                                resultVO.setResult_str("미팅 중에는 예약 시간을 수정 할 수 없습니다.");
+                                return resultVO;
+                            }
+                        }
                         if(meetingVO.getMt_remind_type()==null){
                             meetingVO.setMt_remind_type(0);
+                        }
+                        if(StringUtils.isEmpty(meetingVO.getMt_end_dt()) && meetingVO.getMt_remind_type()>0){
+                            resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
+                            return resultVO;
                         }
                         if(meetingVO.getMt_remind_type().equals(0)){
                             Integer _dayChk = 0;
@@ -1063,6 +1154,7 @@ public class MeetController extends BaseController {
                             if(_dayChk.equals(0)){
                                 rs = meetMapper.meet_modify(meetingVO);
                                 if(rs > 0){
+                                    // 미팅룸의 참석자 모두 미팅 시작 전까지만 수정&삭제 가능하게 변경 2022-11-17 16:30
                                     // 미팅룸 참여자 삭제 리스트
                                     if(meetingVO.getInvite_del() != null && meetingVO.getInvite_del() != ""){
                                         String[] inInvite = meetingVO.getInvite_del().split(",");
