@@ -161,6 +161,20 @@ public class BaseController {
     }
 
     /**
+     * 시간 비교
+     * @param _date1
+     * @param _date2
+     * @return 0:동일, 0>:이전, 0<:이후
+     * @throws ParseException
+     */
+    public Integer getTimeDiff(String _date1, String _date2) throws ParseException{
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date1 = _ex.parse(_date1);
+        Date date2 = _ex.parse(_date2);
+        return date1.compareTo(date2);
+    }
+
+    /**
      * get Map Object from JSON String by GSON
      * @param jsonStr
      * @return List<Map<String, String>>
@@ -178,19 +192,13 @@ public class BaseController {
      */
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
-        String a = req.getHeader("uid");
-        if(!a.equals("") || !a.isEmpty() || a != null){
-            rs = userMapper.getUserInfoById(a);
-        }
-        if(rs == null){
-            if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                if(o!=null){
-                    for (Cookie c : o) {
-                        if(c.getName().equals("user_id")){
-                            if(!c.getValue().isEmpty()){
-                                rs = userMapper.getUserInfoById(c.getValue());
-                            }
+        if(req.getCookies() != null){
+            Cookie o[] = req.getCookies();
+            if(o!=null){
+                for (Cookie c : o) {
+                    if(c.getName().equals("user_id")){
+                        if(!c.getValue().isEmpty()){
+                            rs = userMapper.getUserInfoById(c.getValue());
                         }
                     }
                 }
@@ -207,35 +215,13 @@ public class BaseController {
      */
     public String getUserID(HttpServletRequest req) throws Exception{
         String rs = "";
-        String a = req.getHeader("uid");
-        System.out.println(req.getHeader("uid"));
-        if(a == null){
-            if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                if(o!=null){
-                    for (Cookie c : o) {
-                        if(c.getName().equals("user_id")){
-                            if(!c.getValue().isEmpty()){
-                                rs = c.getValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }else{
-            if(!a.equals("") || !a.isEmpty() || a != null){
-                rs = req.getHeader("uid");
-            }
-            if(rs == ""){
-                if(req.getCookies() != null){
-                    Cookie o[] = req.getCookies();
-                    if(o!=null){
-                        for (Cookie c : o) {
-                            if(c.getName().equals("user_id")){
-                                if(!c.getValue().isEmpty()){
-                                    rs = c.getValue();
-                                }
-                            }
+        if(req.getCookies() != null){
+            Cookie o[] = req.getCookies();
+            if(o!=null){
+                for (Cookie c : o) {
+                    if(c.getName().equals("user_id")){
+                        if(!c.getValue().isEmpty()){
+                            rs = c.getValue();
                         }
                     }
                 }

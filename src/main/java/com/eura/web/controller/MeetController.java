@@ -65,9 +65,12 @@ public class MeetController extends BaseController {
         try {
             Map<String, Object> _rs = new HashMap<String, Object>();
             
-            // 개인화 - 개인정보
-            UserVO uInfo = userService.findUserById(getUserID(req));
-            if(uInfo!=null){
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }else{
+                // 개인화 - 개인정보
                 _rs.put("ui_name", uInfo.getUser_name());
                 ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
                 String _upic = "";
@@ -89,8 +92,6 @@ public class MeetController extends BaseController {
                     _mSrss.add(_mSrs);
                 }
                 _rs.put("mt_meetShort", _mSrss);
-            }else{
-                _rs.put("mt_meetShort", null);
             }
 
             resultVO.setData(_rs);
@@ -116,7 +117,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
             if(meetingVO.getCurrentPage() == null){
                 meetingVO.setCurrentPage(1);
@@ -173,9 +178,12 @@ public class MeetController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
 
-
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
             if(meetingVO.getCurrentPage() == null){
                 meetingVO.setCurrentPage(1);
@@ -242,7 +250,11 @@ public class MeetController extends BaseController {
 
         try {
             if(!userVO.getSearchTxt().isEmpty()){
-                UserVO uInfo = userService.findUserById(getUserID(req));
+                UserVO uInfo = getChkUserLogin(req);
+                if(uInfo==null){
+                    resultVO.setResult_str("로그인 후 이용해주세요.");
+                    return resultVO;
+                }
                 Map<String, Object> _rs = new HashMap<String, Object>();
                 
                 userVO.setIdx_user(uInfo.getIdx_user());
@@ -284,7 +296,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
@@ -361,7 +377,11 @@ public class MeetController extends BaseController {
 
         try {
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             Integer _auth = 0;
             if(uInfo.getIdx_user().equals(rs.getIdx_user())){
                 _auth = 1;
@@ -452,7 +472,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
 
             // 미팅 시간 중복 체크
@@ -500,7 +524,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
 
             // 미팅 시간 중복 체크
@@ -552,7 +580,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
             if(rrs!=null){
@@ -597,7 +629,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
             if(rrs!=null){
@@ -642,7 +678,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
             long time = System.currentTimeMillis(); 
             SimpleDateFormat tYear = new SimpleDateFormat("yyyy");
@@ -690,7 +730,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
 
             Map<String, Object> _rs = new HashMap<String, Object>();
@@ -730,7 +774,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
@@ -818,7 +866,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             if(meetingVO != null){
                 Integer _dayChk = 0;
 
@@ -1117,7 +1169,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             Integer rs = 0;
             if(meetingVO != null){
                 // 미팅룸 정보 수정
@@ -1539,13 +1595,15 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
-            UserVO urs =  getChkUserLogin(req);
+            UserVO urs = getChkUserLogin(req);
             if(urs==null){
                 resultVO.setResult_str("로그인 후에 이용해주세요.");
             }else{
                 meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
+                    // 미팅 10분전에는 시작 못하게 막기 --------------//
+                    // ---------------------------------------//
                     Integer _auth = 0; // 게스트 권한 부여
 
                     // 호스트 권한 부여
@@ -1632,7 +1690,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try{
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
             MeetingVO _rs = meetMapper.getRoomInfo(meetingVO);
             if(_rs.getIdx_user().equals(uInfo.getIdx_user())){
@@ -1667,7 +1729,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
         try {
-            UserVO uInfo = userService.findUserById(getUserID(req));
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             meetingVO.setIdx_user(uInfo.getIdx_user());
             MeetingVO meetingInfo = meetMapper.getRoomInfo(meetingVO);
             if(meetingInfo==null){
@@ -1913,6 +1979,11 @@ public class MeetController extends BaseController {
         resultVO.setResult_str("Data error");
 
         try {
+            UserVO uInfo = getChkUserLogin(req);
+            if(uInfo==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
             Map<String, Object> _rs = new HashMap<String, Object>();
 
             // 인디게이터 데이터

@@ -28,7 +28,7 @@ public class UserVO extends BaseVO {
     private String last_pw_upd_dt;//	datetime						최종 패스워드 업데이트 일시
 
     private boolean autoLogin;
-    public boolean isAutoLogin(){
+    public boolean getAutoLogin(){
         return autoLogin;
     }
     public void setAutoLogin(boolean autoLogin){
