@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 @RestController
 @RequestMapping("/meet")
 public class MeetController extends BaseController {
-    private final UserService userService;
     private final MeetMapper meetMapper;
     private final FileServiceMapper fileServiceMapper;
     private final TokenJWT tokenJWT;
@@ -412,8 +411,6 @@ public class MeetController extends BaseController {
                 }
                 _irs.put("is_iam", _iam); // 0:남일때, 1:나일때
 
-                // _irs.put("is_live", irs0.getIs_live());     // 참여중
-                // _irs.put("is_alive", irs0.getIs_alive());   // 참석중
                 Integer _stat = 0;  // 감정 상태 - 0:미참여, 1:참여중, 2:GOOD, 3:BAD, 4:Camera Off
                 if(_auth==1){
                     _stat = irs0.getIs_live();
@@ -1622,8 +1619,8 @@ public class MeetController extends BaseController {
                             resultVO.setResult_str("미팅 시간 10분 전부터 시작할 수 있습니다.");
                         }else{
                             resultVO.setResult_str("미팅 시간 10분 전부터 참여할 수 있습니다.");
-                            return resultVO;
                         }
+                        return resultVO;
                     }
                     // ---------------------------------------//
 
@@ -1672,6 +1669,7 @@ public class MeetController extends BaseController {
                         
                         // 참가자
                         }else{
+                            // 10분 전 입장이 가능하므로 방송 시작 여부 체크 필요 없음
                             // if(rrs.getIs_live().equals(1)){
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
 
@@ -1784,9 +1782,6 @@ public class MeetController extends BaseController {
 
             // 시간
             _rs.put("mtMeetiTime", "09:00 ~ 10:00");
-
-            // 감정 데이터 리스팅
-            // AnalysisVO analyinfo = analysisMapper.getAnalysisData(meetingVO);
 
             // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
             List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
