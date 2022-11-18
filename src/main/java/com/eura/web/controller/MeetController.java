@@ -426,7 +426,7 @@ public class MeetController extends BaseController {
                     // _stat = 3;  // BAD
                 // }
                 // 호스트이거나 나일 때 참석중이 아닐 경우
-                if((_auth==1 || _iam == 1) && irs0.getIs_alive() == 0){
+                if((_auth==1 || _iam == 1) && irs0.getIs_alive() == 0 && rs.getIs_live()==1){
                     _stat = 4;
                 }
                 _irs.put("is_status", _stat);  // 감정 상태 - 0:미참여, 1:참여중, 2:GOOD, 3:BAD, 4:Camera Off
@@ -885,10 +885,10 @@ public class MeetController extends BaseController {
                 */
                 if(meetingVO.getMt_remind_type()==null){
                     meetingVO.setMt_remind_type(0);
-                }else{
-                    if(!Character.isDigit(meetingVO.getMt_remind_type())){
-                        meetingVO.setMt_remind_type(0);
-                    }
+                // }else{
+                //     if(!Character.isDigit(meetingVO.getMt_remind_type())){
+                //         meetingVO.setMt_remind_type(0);
+                //     }
                 }
                 if(StringUtils.isEmpty(meetingVO.getMt_end_dt()) && meetingVO.getMt_remind_type()>0){
                     resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
