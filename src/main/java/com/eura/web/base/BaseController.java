@@ -161,6 +161,25 @@ public class BaseController {
     }
 
     /**
+     * 시간 비교
+     * @param _date
+     * @return 체크할 시간이 _date 보다 크면 1, 작으면 0
+     * @throws ParseException
+     */
+    public Integer getTimeDiff(String _date, Integer _chkSec) throws ParseException{
+        long nowTime = System.currentTimeMillis();
+        long checkTime = nowTime;    // _chkSec 초단위 만큼 차감
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date _tmp = _ex.parse(_date);
+        long _chkTime = _tmp.getTime() - (_chkSec * 1000);
+        if(checkTime <= _chkTime){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
+    /**
      * get Map Object from JSON String by GSON
      * @param jsonStr
      * @return List<Map<String, String>>
@@ -178,19 +197,13 @@ public class BaseController {
      */
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
-        String a = req.getHeader("uid");
-        if(!a.equals("") || !a.isEmpty() || a != null){
-            rs = userMapper.getUserInfoById(a);
-        }
-        if(rs == null){
-            if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                if(o!=null){
-                    for (Cookie c : o) {
-                        if(c.getName().equals("user_id")){
-                            if(!c.getValue().isEmpty()){
-                                rs = userMapper.getUserInfoById(c.getValue());
-                            }
+        if(req.getCookies() != null){
+            Cookie o[] = req.getCookies();
+            if(o!=null){
+                for (Cookie c : o) {
+                    if(c.getName().equals("user_id")){
+                        if(!c.getValue().isEmpty()){
+                            rs = userMapper.getUserInfoById(c.getValue());
                         }
                     }
                 }
@@ -207,35 +220,13 @@ public class BaseController {
      */
     public String getUserID(HttpServletRequest req) throws Exception{
         String rs = "";
-        String a = req.getHeader("uid");
-        System.out.println(req.getHeader("uid"));
-        if(a == null){
-            if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                if(o!=null){
-                    for (Cookie c : o) {
-                        if(c.getName().equals("user_id")){
-                            if(!c.getValue().isEmpty()){
-                                rs = c.getValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }else{
-            if(!a.equals("") || !a.isEmpty() || a != null){
-                rs = req.getHeader("uid");
-            }
-            if(rs == ""){
-                if(req.getCookies() != null){
-                    Cookie o[] = req.getCookies();
-                    if(o!=null){
-                        for (Cookie c : o) {
-                            if(c.getName().equals("user_id")){
-                                if(!c.getValue().isEmpty()){
-                                    rs = c.getValue();
-                                }
-                            }
+        if(req.getCookies() != null){
+            Cookie o[] = req.getCookies();
+            if(o!=null){
+                for (Cookie c : o) {
+                    if(c.getName().equals("user_id")){
+                        if(!c.getValue().isEmpty()){
+                            rs = c.getValue();
                         }
                     }
                 }

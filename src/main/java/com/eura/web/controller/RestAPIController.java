@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -219,24 +220,45 @@ public class RestAPIController extends BaseController {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getUser_pwd())) {
                             resultVO.setResult_code(CONSTANT.success + "01");
                             resultVO.setResult_str("로그인 되었습니다.");
-                            // String _cStr = "user_id=" + findUser.getUser_id() + "; domain=.eura.site; Path=/;";
-                            // response.addHeader("Set-Cookie", _cStr);
+                            ResponseCookie cookie = null;
+                            if(userVo.getAutoLogin()==false){
+                                cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                    .domain("eura.site")
+                                    .secure(true)
+                                    .path("/")
+                                    .build();
+                            }else{
+                                cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                    .domain("eura.site")
+                                    .secure(true)
+                                    .path("/")
+                                    .maxAge(60 * 60 * 24 * 30)  // 30일
+                                    .build();
+                            }
+                            response.addHeader("Set-Cookie", cookie.toString());
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
-                    } else if (findUser.getTemp_pw_y() == 1) {
+                    } else {
                         if (passwordEncoder.matches(userVo.getUser_pwd(), findUser.getTemp_pw())) {
                             resultVO.setResult_code(CONSTANT.success + "02");
                             resultVO.setResult_str("임시 비밀번호로 로그인 되었습니다.");
-                            // ResponseCookie cookie = ResponseCookie.from("user_id", findUser.getUser_id())
-                                    // .domain("*")
-                                    // .sameSite("")
-                                    // .secure(false)
-                                    // .httpOnly(true)
-                                    // .path("/")
-                                    // .build();
-                            // response.addHeader("Set-Cookie", cookie.toString());
-
+                            ResponseCookie cookie = null;
+                            if(userVo.getAutoLogin()==false){
+                                cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                    .domain("eura.site")
+                                    .secure(true)
+                                    .path("/")
+                                    .build();
+                            }else{
+                                cookie = ResponseCookie.from("user_id", findUser.getUser_id())
+                                    .domain("eura.site")
+                                    .secure(true)
+                                    .path("/")
+                                    .maxAge(60 * 60 * 24 * 30)  // 30일
+                                    .build();
+                            }
+                            response.addHeader("Set-Cookie", cookie.toString());
                             findUser.setRemote_ip(getClientIP(req));
                             userMapper.putUserLoginHistory(findUser);
                         }
@@ -308,7 +330,12 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
 
         if (file != null) {
-            UserVO findUserVO = userService.findUserById(getUserID(req));
+            UserVO findUserVO = getChkUserLogin(req);
+            if(findUserVO==null){
+                resultVO.setResult_str("로그인 후 이용해주세요.");
+                return resultVO;
+            }
+            // UserVO findUserVO = userService.findUserById(getUserID(req));
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
             MeetingVO _frs = meetingService.saveFile(file, _path);
@@ -349,6 +376,12 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_str("프로필 수정을 실패했습니다.");
         resultVO.setResult_code(CONSTANT.fail);
 
+        UserVO rs = getChkUserLogin(req);
+        if(rs==null){
+            resultVO.setResult_str("로그인 후 이용해주세요.");
+            return resultVO;
+        }
+
         userVO.setUser_id(getUserID(req));
         if (StringUtils.isNotEmpty(userVO.getUser_pwd())) {
             if (StringUtils.isEmpty(userVO.getUser_pwd_origin())) {
@@ -362,7 +395,6 @@ public class RestAPIController extends BaseController {
                 return resultVO;
             }
 
-            UserVO rs = userService.findUserById(getUserID(req));
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String _pwd = "";
             if(rs.getTemp_pw_y()==1){
@@ -508,7 +540,11 @@ public class RestAPIController extends BaseController {
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("NO INFO");
 
-        UserVO rs = userService.findUserById(getUserID(req));
+        UserVO rs = getChkUserLogin(req);
+        if(rs==null){
+            resultVO.setResult_str("로그인 후 이용해주세요.");
+            return resultVO;
+        }
         if (rs != null) {
             Map<String, Object> _rs = new HashMap<String, Object>();
             _rs.put("idx_user", rs.getIdx_user());
