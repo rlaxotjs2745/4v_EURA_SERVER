@@ -38,4 +38,6 @@ public class AnalysisVO extends BaseVO{
     double eyeWiden;
     double cheekRaise;
     double lipStretch;
+
+    int idx_meeting_user_join;
 }
