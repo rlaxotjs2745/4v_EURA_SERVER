@@ -1598,18 +1598,28 @@ public class MeetController extends BaseController {
             UserVO urs = getChkUserLogin(req);
             if(urs==null){
                 resultVO.setResult_str("로그인 후에 이용해주세요.");
+                return resultVO;
             }else{
                 meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
-                    // 미팅 10분전에는 시작 못하게 막기 --------------//
-                    // ---------------------------------------//
                     Integer _auth = 0; // 게스트 권한 부여
 
                     // 호스트 권한 부여
                     if(rrs.getIdx_user().equals(urs.getIdx_user())){
                         _auth = 1;
                     }
+
+                    // 미팅 10분전에는 시작 못하게 막기 --------------//
+                    if(getTimeDiff(rrs.getMt_start_dt(), 600)==0){
+                        if(_auth==1){
+                            resultVO.setResult_str("미팅 시간 10분 전부터 시작할 수 있습니다.");
+                        }else{
+                            resultVO.setResult_str("미팅 시간 10분 전부터 참여할 수 있습니다.");
+                            return resultVO;
+                        }
+                    }
+                    // ---------------------------------------//
 
                     // 미팅에 참여중인지 확인
                     MeetingVO _chkMeet = meetMapper.chkMeetLiveJoin(meetingVO);
@@ -1861,6 +1871,7 @@ public class MeetController extends BaseController {
                         _ul.put("uname",_ulist.getUser_name()); // 참석자명
                         _ul.put("uemail",_ulist.getUser_email());   // 이메일
                         _ul.put("value",66);    // 집중도
+                        _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
                         String _upic = "";
                         if(StringUtils.isNotEmpty(_ulist.getFile_name())){
                             _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();

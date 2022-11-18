@@ -162,16 +162,21 @@ public class BaseController {
 
     /**
      * 시간 비교
-     * @param _date1
-     * @param _date2
-     * @return 0:동일, 0>:이전, 0<:이후
+     * @param _date
+     * @return 체크할 시간이 _date 보다 크면 1, 작으면 0
      * @throws ParseException
      */
-    public Integer getTimeDiff(String _date1, String _date2) throws ParseException{
+    public Integer getTimeDiff(String _date, Integer _chkSec) throws ParseException{
+        long nowTime = System.currentTimeMillis();
+        long checkTime = nowTime;    // _chkSec 초단위 만큼 차감
         SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date1 = _ex.parse(_date1);
-        Date date2 = _ex.parse(_date2);
-        return date1.compareTo(date2);
+        Date _tmp = _ex.parse(_date);
+        long _chkTime = _tmp.getTime() - (_chkSec * 1000);
+        if(checkTime <= _chkTime){
+            return 1;
+        }else{
+            return 0;
+        }
     }
 
     /**
