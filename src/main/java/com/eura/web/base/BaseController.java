@@ -168,11 +168,12 @@ public class BaseController {
      */
     public Integer getTimeDiff(String _date, Integer _chkSec) throws ParseException{
         long nowTime = System.currentTimeMillis();
-        long checkTime = nowTime;    // _chkSec 초단위 만큼 차감
         SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date _tmp = _ex.parse(_date);
-        long _chkTime = _tmp.getTime() - (_chkSec * 1000);
-        if(checkTime <= _chkTime){
+        long _chkTime = _tmp.getTime() - (_chkSec * 1000);// _chkSec 초단위 만큼 차감
+        System.out.println("nowTime: " + nowTime);
+        System.out.println("_chkTime: " + _chkTime);
+        if(nowTime >= _chkTime){
             return 1;
         }else{
             return 0;

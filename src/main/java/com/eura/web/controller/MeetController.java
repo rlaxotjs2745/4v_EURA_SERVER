@@ -1670,14 +1670,14 @@ public class MeetController extends BaseController {
                         
                         // 참가자
                         }else{
-                            if(rrs.getIs_live().equals(1)){
+                            // if(rrs.getIs_live().equals(1)){
                                 meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
 
                                 resultVO.setResult_code(CONSTANT.success);
                                 resultVO.setResult_str("미팅룸에 참여합니다.");
-                            }else{
-                                resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
-                            }
+                            // }else{
+                                // resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
+                            // }
                         }
                     }
                 }else{
