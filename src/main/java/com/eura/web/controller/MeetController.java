@@ -1603,6 +1603,10 @@ public class MeetController extends BaseController {
                 meetingVO.setIdx_user(urs.getIdx_user());   // 미팅룸 호스트
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
+                    if(rrs.getMt_status() != 1){
+                        resultVO.setResult_str("미팅룸이 공개 상태에서만 시작할 수 있습니다.");
+                        return resultVO;
+                    }
                     Integer _auth = 0; // 게스트 권한 부여
 
                     // 호스트 권한 부여
