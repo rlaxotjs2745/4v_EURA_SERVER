@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -150,39 +151,40 @@ public class MeetingService extends BaseController {
         // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
         String _ebody = _data.replace("${DOMAIN}", w3domain);
+        String _sebody = "";
 
         // 회원가입 인증 메일
         if(_mFTyp==5){
-            _ebody = _ebody.replace("${URL}", w3domain + "/login?confirm=true&email=" + meetingVO.getUser_email() + "&authKey=" + meetingVO.getAuthKey())
+            _sebody = _ebody.replace("${URL}", w3domain + "/login?confirm=true&email=" + meetingVO.getUser_email() + "&authKey=" + meetingVO.getAuthKey())
                             .replace("${USEREMAIL}", meetingVO.getUser_email())
                             .replace("${USERNAME}", meetingVO.getUser_name());
             try {
-                mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _ebody);
+                mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _sebody);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         // 임시 비밀번호
         }else if(_mFTyp==6){
-            _ebody = _ebody.replace("${PASSWD}", meetingVO.getTemp_pw())
+            _sebody = _ebody.replace("${PASSWD}", meetingVO.getTemp_pw())
                             .replace("${USEREMAIL}", meetingVO.getUser_email())
                             .replace("${USERNAME}", meetingVO.getUser_name());
-            mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _ebody);
+            mailSender.sender(meetingVO.getUser_email(), meetingVO.getTitle(), _sebody);
 
         // 참가자 이메일 전송
         }else{
             List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
             for(MeetingVO _ss : irs){
                 String _unm = _ss.getUser_name();
-                if(_ss.getUser_name().equals("") || _ss.getUser_name().isEmpty()){
+                if(StringUtils.isEmpty(_unm)){
                     _unm = _ss.getUser_email();
                 }
-                _ebody = _ebody.replace("${USERNAME}", _unm)
+                _sebody = _ebody.replace("${USERNAME}", _unm)
                                 .replace("${USEREMAIL}", _ss.getUser_email())
                                 .replace("${MEETNAME}", rrs.getMt_name())
                                 .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
                 
-                mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _ebody);
+                mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _sebody);
             }
         }
     }
