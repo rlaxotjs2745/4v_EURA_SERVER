@@ -10,6 +10,9 @@ import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.eura.web.model.AnalysisMapper;
+import com.eura.web.model.DTO.*;
+import com.eura.web.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -18,10 +21,6 @@ import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
-import com.eura.web.model.DTO.MeetingVO;
-import com.eura.web.model.DTO.ProfileInfoVO;
-import com.eura.web.model.DTO.ResultVO;
-import com.eura.web.model.DTO.UserVO;
 import com.eura.web.service.MeetingService;
 import com.eura.web.service.UserService;
 import com.eura.web.util.CONSTANT;
@@ -42,6 +41,9 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
+    private  final AnalysisMapper analysisMapper;
+
+    private final AnalysisService analysisService;
 
     @Value("${file.upload-dir}")
     private String filepath;
@@ -1863,17 +1865,32 @@ public class MeetController extends BaseController {
             }
             _rs.put("mtAttachedFiles", _fls);
 
+            List<AnalysisVO> analysisVOList = new ArrayList<>();
+            PersonalLevelVO personalLevelVO;
+            ConcentrationVO concentrationVO;
+
             // 미팅 분석 결과(강의 참여자 명단)
             if(_auth==1){
                 List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
                 if(_ulists!=null){
                     Integer _joincnt = 0;
                     ArrayList<Object> _uls = new ArrayList<Object>();
+                    List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
                     for(MeetingVO _ulist : _ulists){
                         Map<String, Object> _ul = new HashMap<String, Object>();
                         _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
                         _ul.put("uname",_ulist.getUser_name()); // 참석자명
                         _ul.put("uemail",_ulist.getUser_email());   // 이메일
+
+                        analysisVOList = analysisMapper.getUserAnalysisData(_ulist.getIdx_meeting_user_join());
+                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList);
+                        personalLevelVOList.add(personalLevelVO);
+                        concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+
+                        _ul.put("goodValue",concentrationVO.getGood());    // 집중도
+                        _ul.put("badValue",concentrationVO.getBad());    // 집중도
+                        _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
+
                         _ul.put("value",66);    // 집중도
                         _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
                         String _upic = "";
@@ -1891,6 +1908,21 @@ public class MeetController extends BaseController {
                     }
                     _rs.put("mtInviteList", _uls);
 
+                    Map userRateMap = analysisService.getAllUserRate(personalLevelVOList);
+
+                    List goodList = (List) userRateMap.get("goodList");
+                    List badList = (List) userRateMap.get("badList");
+
+                    concentrationVO = analysisService.getMeetingRate(goodList, badList);
+
+                    Map<String, Object> _tglist = new HashMap<String, Object>();
+                    _tglist.put("good",concentrationVO.getGood());
+                    _tglist.put("bad",concentrationVO.getBad());
+                    _tglist.put("off",concentrationVO.getCameraOff());
+
+                    // 전체 분석 상단 그래프 데이터
+                    _rs.put("mtAnalyTop", _tglist);
+
                     Map<String, Object> _uinfo = new HashMap<String, Object>();
                     _uinfo.put("user_total",_ulists.size());
                     _uinfo.put("user_invite",_joincnt);
@@ -1906,15 +1938,6 @@ public class MeetController extends BaseController {
                 _rs.put("mtInviteList", null);
                 _rs.put("mtInviteInfo", null);
             }
-
-            // ArrayList<Object> _tglists = new ArrayList<Object>();
-            Map<String, Object> _tglist = new HashMap<String, Object>();
-            _tglist.put("good",65);
-            _tglist.put("bad",25);
-            _tglist.put("off",10);
-
-            // 전체 분석 상단 그래프 데이터
-            _rs.put("mtAnalyTop", _tglist);
 
             // 전체 분석 하단 인디게이터 데이터
             if(_auth==1){

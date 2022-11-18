@@ -85,4 +85,11 @@
             WHERE IDX_MEETING=#{idx_meeting}
             ORDER BY TIMESTAMP ASC
     </select>
+
+    <select id="getUserAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
+        SELECT *
+        FROM TB_ANALYSIS
+        WHERE IDX_MEETING_USER_JOIN=#{idx_meeting_user_join}
+        ORDER BY TIMESTAMP ASC
+    </select>
 </mapper>
