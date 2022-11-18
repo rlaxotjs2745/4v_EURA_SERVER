@@ -25,6 +25,8 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -167,6 +169,35 @@ public class LiveController extends BaseController {
                         }
                     }
                 }
+                resultVO.setResult_code(CONSTANT.success);
+                resultVO.setResult_str("미팅이 종료되었습니다.");
+            }else{
+                resultVO.setResult_str("미팅이 종료할 수 없습니다.");
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return resultVO;
+    }
+
+    /**
+     * 단순 미팅 종료
+     * @param req
+     * @param meetingVO
+     * @return ResultVO
+     * @throws Exception
+     */
+    @PutMapping(value="/mtendgo", consumes = "application/json", produces = "application/json")
+    public ResultVO postMeetEndGo(HttpServletRequest req, @RequestBody MeetingVO meetingVO) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_code(CONSTANT.fail);
+        resultVO.setResult_str("Data error");
+
+        try{
+            meetingVO.setIs_finish(1);
+            Integer rs = meetMapper.endMeetLive(meetingVO);
+            if(rs == 1){
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{

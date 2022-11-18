@@ -340,9 +340,11 @@
     <update id="endMeetLive">
         UPDATE TB_MEETING
         SET
-            IS_LIVE = 0,
-            IS_FINISH = 1,
-            IS_FINISH_DT = NOW()
+            IS_LIVE = 0
+            , IS_FINISH = 1
+            <if test="is_finish != null">
+                , IS_FINISH_DT = NOW()
+            </if>
         WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid})
     </update>
 

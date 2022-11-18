@@ -134,7 +134,7 @@ public class MeetController extends BaseController {
             Long mInfoCnt = meetMapper.getMyMeetListCount(1);   // 참여중인 미팅룸 총 수
 
             if(meetingVO.getPageSort()==null){
-                meetingVO.setPageSort(2);
+                meetingVO.setPageSort(1);
             }
             List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
             ArrayList<Object> _mrss = new ArrayList<Object>();
@@ -195,7 +195,7 @@ public class MeetController extends BaseController {
 
             // 개인화 - 지난 미팅
             if(meetingVO.getPageSort()==null){
-                meetingVO.setPageSort(2);
+                meetingVO.setPageSort(1);
             }
             List<MeetingVO> mEnd = meetMapper.getMyMeetEndList(meetingVO);    // 지난 미팅
             ArrayList<Object> _merss = new ArrayList<Object>();
