@@ -39,44 +39,52 @@ public class AnalysisServiceImpl implements AnalysisService {
     public ConcentrationVO getPersonalRate(PersonalLevelVO personalLevelVO){
 
         ConcentrationVO realResult = new ConcentrationVO();
+        realResult.setGood(0);
+        realResult.setBad(0);
+        realResult.setCameraOff(0);
 
         int goodNum = 0;
         int badNum = 0;
         int count = personalLevelVO.getMaxLevel();
+        if(personalLevelVO.getConcentrationList()!=null){
+            for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
+                goodNum += con.getGood();
+                badNum += con.getBad();
+            }
 
-        for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
-            goodNum += con.getGood();
-            badNum += con.getBad();
+            double goodAvg = goodNum/ count;
+            double badAvg = badNum/count;
+
+            double cameraOff = 100 -(goodAvg+badAvg);
+
+            realResult.setGood(goodAvg);
+            realResult.setBad(badAvg);
+            realResult.setCameraOff(cameraOff);
         }
-
-        double goodAvg = goodNum/ count;
-        double badAvg = badNum/count;
-
-        double cameraOff = 100 -(goodAvg+badAvg);
-
-        realResult.setGood(goodAvg);
-        realResult.setBad(badAvg);
-        realResult.setCameraOff(cameraOff);
 
         return realResult;
 
     }
 
     @Override
-    public Map getAllUserRate(List<PersonalLevelVO> personalLevelVOList) {
-
-        List<Double> goodList = new ArrayList<>(personalLevelVOList.get(0).getMaxLevel());
-        List<Double> badList = new ArrayList<>(personalLevelVOList.get(0).getMaxLevel());
-
+    public Map<String, Object> getAllUserRate(List<PersonalLevelVO> personalLevelVOList) {
+        List<Double> goodList = null;
+        List<Double> badList = null;
+    
         for(PersonalLevelVO person : personalLevelVOList){
+            goodList = new ArrayList<>(person.getMaxLevel());
+            badList = new ArrayList<>(person.getMaxLevel());
+
             List<ConcentrationVO> contList = person.getConcentrationList();
-            for(int idx=0; idx< person.getMaxLevel(); idx++){
-                goodList.set(contList.get(idx).getLevel_num(), goodList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getGood() : goodList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getGood());
-                badList.set(contList.get(idx).getLevel_num(), badList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getBad() : badList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getBad());
+            for(int idx=0; idx < person.getMaxLevel(); idx++){
+                if(idx <= contList.size()){
+                    goodList.set(contList.get(idx).getLevel_num(), goodList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getGood() : goodList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getGood());
+                    badList.set(contList.get(idx).getLevel_num(), badList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getBad() : badList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getBad());
+                }
             }
         }
 
-        Map result = new HashMap();
+        Map<String, Object> result = new HashMap<String, Object>();
 
         result.put("goodList", goodList);
         result.put("badList", badList);
@@ -85,7 +93,7 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public ConcentrationVO getMeetingRate(List goodList, List badList) {
+    public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList) {
         ConcentrationVO concentrationVO = new ConcentrationVO();
 
 
@@ -112,8 +120,8 @@ public class AnalysisServiceImpl implements AnalysisService {
 
         List<ConcentrationVO> result = new ArrayList<>();
 
-        if(analysisVOList!=null){
-            Integer first = analysisVOList.get(0).getTime_stamp();
+        if(analysisVOList!=null && analysisVOList.size()>0){
+            Integer first = analysisVOList.get(0).getTimestamp();
             Integer count = first + level;
 
             int level_num = 1;
@@ -124,7 +132,7 @@ public class AnalysisServiceImpl implements AnalysisService {
 
             for(AnalysisVO analysisVO: analysisVOList){
 
-                if(analysisVO.getTime_stamp() >= count){
+                if(analysisVO.getTimestamp() >= count){
                     ConcentrationVO concentrationVO = new ConcentrationVO();
 
                     concentrationVO.setIdx_meeting_user_join(analysisVO.getIdx_meeting_user_join());

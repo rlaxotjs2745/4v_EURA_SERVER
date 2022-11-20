@@ -12,9 +12,9 @@ public interface AnalysisService {
 
     public ConcentrationVO getPersonalRate(PersonalLevelVO personalLevelVO);
 
-    public Map getAllUserRate(List<PersonalLevelVO> personalLevelVOList);
+    public Map<String, Object> getAllUserRate(List<PersonalLevelVO> personalLevelVOList);
 
-    public ConcentrationVO getMeetingRate(List goodList, List badList);
+    public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList);
 
     public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList);
 }

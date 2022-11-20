@@ -121,7 +121,7 @@ public class MeetingController {
                 meetingVO.setIs_alive(meetingVO.getIsAnalysis());
             }
             if(meetingVO.getIshost() == 1){
-                meetingVO.setAlldata(meetingVO.getIsAnalysis()==1?"Y":"N");
+                meetingVO.setAlldata(meetingVO.getAlldata());
                 meetingVO.setAllmute(meetingVO.getAllmute());
             }else{
                 meetingVO.setAlldata("N");  // 호스트가 조정한 얼굴인식
