@@ -1827,10 +1827,16 @@ public class MeetController extends BaseController {
             }else{
                 _rdt = meetingInfo.getIs_live_dt();
             }
+            if(_rdt==null){
+                _rdt = ff.format(new Date());
+            }
 
             if(meetingInfo.getIs_finish() == 1){
                 _edt = meetingInfo.getIs_finish_dt();
             }else{
+                _edt = ff.format(new Date());
+            }
+            if(_edt==null){
                 _edt = ff.format(new Date());
             }
 
