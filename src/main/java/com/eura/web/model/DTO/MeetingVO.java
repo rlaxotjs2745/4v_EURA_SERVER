@@ -43,6 +43,8 @@ public class MeetingVO extends BaseVO {
     private Integer appuppath;  // APP에서 결과를 업로드할 경로
     private String zuid;        // ZOOM User ID
     private Integer is_alive;   // ZOOM 감정 분석 상태 - 0:미진행, 1:진행
+    private String alldata;
+    private String allmute;
     private String result;      // 강의 종료 데이터
     private String filelist;
     private Integer duration;   // 영상 길이

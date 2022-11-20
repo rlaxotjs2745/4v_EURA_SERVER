@@ -276,8 +276,23 @@
         UPDATE TB_MEETING_USER_JOIN
             SET
                 IS_ALIVE=#{is_alive}
+            <if test="alldata != null">
+                , ALLDATA = #{alldata}
+            </if>
+            <if test="allmute != null">
+                , ALLMUTE = #{allmute}
+            </if>
             WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND ZUID=#{zuid}
     </update>
+
+    <!-- 호스트가 설정한 줌의 환경 설정 가져오기 -->
+    <select id="getMeetAlive" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.ALLDATA, A.ALLMUTE 
+            FROM TB_MEETING_USER_JOIN A
+            JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING AND B.TOKEN=#{token} AND B.SESSIONID=#{mcid} AND B.ZUID=#{zuid}
+            JOIN TB_MEETING C ON C.IDX_MEETING=A.IDX_MEETING
+            WHERE A.IDX_USER = C.IDX_USER
+    </select>
 
     <!-- 미팅 들어가기 -->
     <update id="putMeetLiveJoin">

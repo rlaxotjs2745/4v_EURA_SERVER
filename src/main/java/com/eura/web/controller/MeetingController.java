@@ -120,8 +120,20 @@ public class MeetingController {
             }else{
                 meetingVO.setIs_alive(meetingVO.getIsAnalysis());
             }
+            if(meetingVO.getIshost() == 1){
+                meetingVO.setAlldata(meetingVO.getIsAnalysis()==1?"Y":"N");
+                meetingVO.setAllmute(meetingVO.getAllmute());
+            }else{
+                meetingVO.setAlldata("N");  // 호스트가 조정한 얼굴인식
+                meetingVO.setAllmute("N");  // 호스트가 조정한 음소거
+            }
             Integer rs = meetMapper.putMeetAlive(meetingVO);
             if(rs == 1){
+                Map<String, Object> _put = new HashMap<String, Object>();
+                MeetingVO _rs = meetMapper.getMeetAlive(meetingVO);
+                _put.put("alldata",_rs.getAlldata());
+                _put.put("allmute",_rs.getAllmute());
+                resultVO.setData(_put);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("정보 수신을 완료하였습니다.");
             }

@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration status="WARN">
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
-        </Console>
-
-        <RollingFile name="RollingFile" filename="logfile.log"
-                    filepattern="${logPath}/%d{YYYYMMddHHmmss}-eura.log">
-            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
-            <Policies>
-                <SizeBasedTriggeringPolicy size="100 MB" />
-            </Policies>
-            <DefaultRolloverStrategy max="20" />
-        </RollingFile>
-    </Appenders>
- 
-    <Loggers>
-        <Root level="warn">
-            <AppenderRef ref="Console" />
-            <AppenderRef ref="RollingFile" />
-        </Root>
-    </Loggers>
+		<RollingFile name="RollingFileAppender" fileName="/home/ec2-user/EURA/logs/EuraHistory_API.log"
+			filePattern="/home/ec2-user/backup/logs/eura/$${date:yyyy-MM}/%d{yyyy-MM-dd}_%i.log.gz">
+			<PatternLayout>
+				<Pattern>%d [%t] %p %c - %m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="10 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingFile>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %highlight{%level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue} - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="warn">
+			<AppenderRef ref="RollingFileAppender" />
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
 </configuration>

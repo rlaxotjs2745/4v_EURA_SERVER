@@ -22,7 +22,6 @@ import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
 import com.eura.web.service.MeetingService;
-import com.eura.web.service.UserService;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.TokenJWT;
 
@@ -40,7 +39,7 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
-    private  final AnalysisMapper analysisMapper;
+    private final AnalysisMapper analysisMapper;
 
     private final AnalysisService analysisService;
 
@@ -1876,27 +1875,29 @@ public class MeetController extends BaseController {
                         _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
                         _ul.put("uname",_ulist.getUser_name()); // 참석자명
                         _ul.put("uemail",_ulist.getUser_email());   // 이메일
+                        Integer _join = 0;
 
                         analysisVOList = analysisMapper.getUserAnalysisData(_ulist.getIdx_meeting_user_join());
-                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList);
-                        personalLevelVOList.add(personalLevelVO);
-                        concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+                        if(analysisVOList!=null){
+                            personalLevelVO = analysisService.getPersonalLevel(analysisVOList);
+                            personalLevelVOList.add(personalLevelVO);
+                            concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
-                        _ul.put("goodValue",concentrationVO.getGood());    // 집중도
-                        _ul.put("badValue",concentrationVO.getBad());    // 집중도
-                        _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
+                            _ul.put("goodValue",concentrationVO.getGood());    // 집중도
+                            _ul.put("badValue",concentrationVO.getBad());    // 집중도
+                            _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
 
-                        _ul.put("value",66);    // 집중도
-                        _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
-                        String _upic = "";
-                        if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                            _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
-                        }
-                        _ul.put("upic",_upic);    // 프로필 사진
-                        Integer _join = 0;
-                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
-                            _join = 1;
-                            _joincnt++;
+                            _ul.put("value",66);    // 집중도
+                            _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
+                            String _upic = "";
+                            if(StringUtils.isNotEmpty(_ulist.getFile_name())){
+                                _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                            }
+                            _ul.put("upic",_upic);    // 프로필 사진
+                            if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                                _join = 1;
+                                _joincnt++;
+                            }
                         }
                         _ul.put("join",_join);    // 미팅 참석 여부
                         _uls.add(_ul);

@@ -72,6 +72,9 @@ public interface MeetMapper {
     // ZOOM 미팅 Keep Alive : 녹화/감정 분석 진행여부
     public Integer putMeetAlive(MeetingVO meetingVO) throws Exception;
 
+    // 호스트가 설정한 줌의 환경 설정 가져오기
+    public MeetingVO getMeetAlive(MeetingVO meetingVO) throws Exception;
+
     // 미팅 들어가기
     public Integer putMeetLiveJoin(MeetingVO meetingVO) throws Exception;
 

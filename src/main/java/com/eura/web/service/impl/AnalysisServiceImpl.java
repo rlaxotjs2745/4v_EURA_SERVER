@@ -106,70 +106,72 @@ public class AnalysisServiceImpl implements AnalysisService {
 
 
     public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList){
+        PersonalLevelVO personalLevelVO = new PersonalLevelVO();
 
         int level = 600; //10분
 
         List<ConcentrationVO> result = new ArrayList<>();
 
-        Integer first = analysisVOList.get(0).getTime_stamp();
-        Integer count = first + level;
+        if(analysisVOList!=null){
+            Integer first = analysisVOList.get(0).getTime_stamp();
+            Integer count = first + level;
 
-        int level_num = 1;
-        int eng1 = 0;
-        int eng0 = 0;
-        int att1 = 0;
-        int att0 = 0;
+            int level_num = 1;
+            int eng1 = 0;
+            int eng0 = 0;
+            int att1 = 0;
+            int att0 = 0;
 
-        for(AnalysisVO analysisVO: analysisVOList){
+            for(AnalysisVO analysisVO: analysisVOList){
 
-            if(analysisVO.getTime_stamp() >= count){
-                ConcentrationVO concentrationVO = new ConcentrationVO();
+                if(analysisVO.getTime_stamp() >= count){
+                    ConcentrationVO concentrationVO = new ConcentrationVO();
 
-                concentrationVO.setIdx_meeting_user_join(analysisVO.getIdx_meeting_user_join());
-                concentrationVO.setLevel_num(level_num);
-                concentrationVO.setGood((eng1 + att1) / (eng0+eng1+att0+att1) * 100);
-                concentrationVO.setBad((eng0 + att0) / (eng0+eng1+att0+att1) * 100);
+                    concentrationVO.setIdx_meeting_user_join(analysisVO.getIdx_meeting_user_join());
+                    concentrationVO.setLevel_num(level_num);
+                    concentrationVO.setGood((eng1 + att1) / (eng0+eng1+att0+att1) * 100);
+                    concentrationVO.setBad((eng0 + att0) / (eng0+eng1+att0+att1) * 100);
 
-                result.add(concentrationVO);
+                    result.add(concentrationVO);
 
-                eng1 = 0;
-                eng0 = 0;
-                att1 = 0;
-                att0 = 0;
+                    eng1 = 0;
+                    eng0 = 0;
+                    att1 = 0;
+                    att0 = 0;
 
-                count+= level;
-                ++level_num;
+                    count+= level;
+                    ++level_num;
+                }
+
+                if(analysisVO.getEngagement() >=0.25){
+                    eng1++;
+                } else if (analysisVO.getEngagement() < 0.25){
+                    eng0++;
+                }
+
+                if(analysisVO.getAttention() >= 0.75){
+                    att1++;
+                } else if (analysisVO.getAttention() < 0.75) {
+                    att0++;
+                }
+
             }
+            
+            ConcentrationVO concentrationVO = new ConcentrationVO();
 
-            if(analysisVO.getEngagement() >=0.25){
-                eng1++;
-            } else if (analysisVO.getEngagement() < 0.25){
-                eng0++;
-            }
-
-            if(analysisVO.getAttention() >= 0.75){
-                att1++;
-            } else if (analysisVO.getAttention() < 0.75) {
-                att0++;
-            }
-
+            concentrationVO.setIdx_meeting_user_join(analysisVOList.get(analysisVOList.size()-1).getIdx_meeting_user_join());
+            concentrationVO.setLevel_num(level_num);
+            concentrationVO.setGood((eng1 + att1) / (eng0+eng1+att0+att1) * 100);
+            concentrationVO.setBad((eng0 + att0) / (eng0+eng1+att0+att1) * 100);
+            
+            result.add(concentrationVO);
+            
+            count+= level;
+            
+            
+            personalLevelVO.setMaxLevel(count);
+            personalLevelVO.setConcentrationList(result);
         }
-
-        ConcentrationVO concentrationVO = new ConcentrationVO();
-
-        concentrationVO.setIdx_meeting_user_join(analysisVOList.get(analysisVOList.size()-1).getIdx_meeting_user_join());
-        concentrationVO.setLevel_num(level_num);
-        concentrationVO.setGood((eng1 + att1) / (eng0+eng1+att0+att1) * 100);
-        concentrationVO.setBad((eng0 + att0) / (eng0+eng1+att0+att1) * 100);
-
-        result.add(concentrationVO);
-
-        count+= level;
-
-        PersonalLevelVO personalLevelVO = new PersonalLevelVO();
-
-        personalLevelVO.setMaxLevel(count);
-        personalLevelVO.setConcentrationList(result);
 
         return personalLevelVO;
     }
