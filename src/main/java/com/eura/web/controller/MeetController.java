@@ -1187,6 +1187,10 @@ public class MeetController extends BaseController {
                 meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
+                    String _edittxt = "수정";
+                    if(rrs.getMt_status() == 2){
+                        _edittxt = "재개설";
+                    }
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
                         if(StringUtils.isEmpty(meetingVO.getMt_start_dt())){
                             resultVO.setResult_str("미팅 시작 시간을 골라주세요.");
@@ -1198,7 +1202,7 @@ public class MeetController extends BaseController {
                         }
                         if(rrs.getIs_live()==1){
                             if(getDateDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt())!=0 || getDateDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt())!=0){
-                                resultVO.setResult_str("미팅 중에는 예약 시간을 수정 할 수 없습니다.");
+                                resultVO.setResult_str("미팅 중에는 예약 시간을 변경 할 수 없습니다.");
                                 return resultVO;
                             }
                         }
@@ -1210,7 +1214,7 @@ public class MeetController extends BaseController {
                             return resultVO;
                         }
                         if(rrs.getIs_finish()==1){
-                            resultVO.setResult_str("종료된 미팅은 수정할 수 없습니다.");
+                            resultVO.setResult_str("종료된 미팅은 "+ _edittxt +"할 수 없습니다.");
                             return resultVO;
                         }
                         if(getDateTimeDiff(meetingVO.getMt_start_dt(),meetingVO.getMt_end_dt())>=0){
@@ -1266,12 +1270,12 @@ public class MeetController extends BaseController {
                                     meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
                                     resultVO.setResult_code(CONSTANT.success);
-                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                    resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                 }else{
-                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                    resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                 }
                             }else{
-                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                             }
                             resultVO.setData(null);
                             return resultVO;
@@ -1297,7 +1301,7 @@ public class MeetController extends BaseController {
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
-                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
                                         }
                                     }
@@ -1330,7 +1334,7 @@ public class MeetController extends BaseController {
                                                 }
                                             }
                                             if(!_dayChk.equals(0)){
-                                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                                 _chkDup = 1;
                                             }
                                         }
@@ -1344,7 +1348,7 @@ public class MeetController extends BaseController {
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
-                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
                                         }
                                     }
@@ -1357,7 +1361,7 @@ public class MeetController extends BaseController {
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
-                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 수정을 중단합니다.");
+                                            resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
                                         }
                                     }
@@ -1424,9 +1428,9 @@ public class MeetController extends BaseController {
                                                         _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
                                                         resultVO.setResult_code(CONSTANT.success);
-                                                        resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                        resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                     }else{
-                                                        resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                        resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                                     }
                                                 }else{
                                                     resultVO = meetingService.createMeetRoom(req, param);
@@ -1437,7 +1441,7 @@ public class MeetController extends BaseController {
                                                         meetingService.meetFileCopy(_idx, _frss);
                                                     }
                                                     resultVO.setResult_code(CONSTANT.success);
-                                                    resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                                    resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                 }
                                             }
                                         }
@@ -1472,10 +1476,10 @@ public class MeetController extends BaseController {
                                                                     _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
                 
                                                                     resultVO.setResult_code(CONSTANT.success);
-                                                                    resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                                    resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                                     _fcnt++;
                                                                 }else{
-                                                                    resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                                    resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                                                 }
                                                             }else{
                                                                 resultVO = meetingService.createMeetRoom(req, param);
@@ -1487,7 +1491,7 @@ public class MeetController extends BaseController {
                                                                     meetingService.meetFileCopy(_idx, _frss);
                                                                 }
                                                                 resultVO.setResult_code(CONSTANT.success);
-                                                                resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                                                resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                             }
                                                         }
                                                     }
@@ -1519,9 +1523,9 @@ public class MeetController extends BaseController {
                                                         _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
                                                         resultVO.setResult_code(CONSTANT.success);
-                                                        resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                        resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                     }else{
-                                                        resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                        resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                                     }
                                                 }else{
                                                     resultVO = meetingService.createMeetRoom(req, param);
@@ -1532,7 +1536,7 @@ public class MeetController extends BaseController {
                                                         meetingService.meetFileCopy(_idx, _frss);
                                                     }
                                                     resultVO.setResult_code(CONSTANT.success);
-                                                    resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                                    resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                 }
                                             }
                                         }
@@ -1560,9 +1564,9 @@ public class MeetController extends BaseController {
                                                         _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
                                                         resultVO.setResult_code(CONSTANT.success);
-                                                        resultVO.setResult_str("미팅룸을 수정하였습니다.");
+                                                        resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                     }else{
-                                                        resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                                        resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                                     }
                                                 }else{
                                                     resultVO = meetingService.createMeetRoom(req, param);
@@ -1573,12 +1577,12 @@ public class MeetController extends BaseController {
                                                         meetingService.meetFileCopy(_idx, _frss);
                                                     }
                                                     resultVO.setResult_code(CONSTANT.success);
-                                                    resultVO.setResult_str("미팅룸을 수정 & 생성하였습니다.");
+                                                    resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                 }
                                             }
                                         }
                                     }else{
-                                        resultVO.setResult_str("미팅룸 수정이 실패 되었습니다.");
+                                        resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
                                     }
                                     resultVO.setData(null);
                                 }
