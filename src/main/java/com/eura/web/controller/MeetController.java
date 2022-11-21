@@ -424,7 +424,7 @@ public class MeetController extends BaseController {
                     // _stat = 3;  // BAD
                 // }
                 // 호스트이거나 나일 때 참석중이 아닐 경우
-                if((_auth==1 || _iam == 1) && irs0.getIs_alive() == 0 && rs.getIs_live()==1){
+                if((_auth==1 || _iam == 1) && irs0.getIs_alive() == 0 && irs0.getIs_live()==1){
                     _stat = 4;
                 }
                 _irs.put("is_status", _stat);  // 감정 상태 - 0:미참여, 1:참여중, 2:GOOD, 3:BAD, 4:Camera Off
@@ -1807,10 +1807,11 @@ public class MeetController extends BaseController {
             _rs.put("hostname", meetingInfo.getUser_name());
 
             // 날짜
-            _rs.put("mtMeetiDate", "2022-11-11");
+            _rs.put("mtMeetiDate", meetingInfo.getMt_start_dt().split("\\s")[0]);
 
             // 시간
-            _rs.put("mtMeetiTime", "09:00 ~ 10:00");
+            String _chkHour = meetingInfo.getMt_start_dt().split("\\s")[1];
+            _rs.put("mtMeetiTime", _chkHour.substring(0,5) + " ~ " + _chkHour.substring(0,5));
 
             // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
             List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
@@ -1896,8 +1897,8 @@ public class MeetController extends BaseController {
             _rs.put("mtAttachedFiles", _fls);
 
             List<AnalysisVO> analysisVOList = new ArrayList<>();
-            PersonalLevelVO personalLevelVO;
-            ConcentrationVO concentrationVO;
+            PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+            ConcentrationVO concentrationVO = new ConcentrationVO();
 
             // 미팅 분석 결과(강의 참여자 명단)
             if(_auth==1){
@@ -1919,6 +1920,7 @@ public class MeetController extends BaseController {
                             personalLevelVOList.add(personalLevelVO);
                             concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
+                            // 개인 오른쪽 집중도
                             _ul.put("goodValue",concentrationVO.getGood());    // 집중도
                             _ul.put("badValue",concentrationVO.getBad());    // 집중도
                             _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
@@ -1940,68 +1942,64 @@ public class MeetController extends BaseController {
                     }
                     _rs.put("mtInviteList", _uls);
 
-                    Map<String, Object> userRateMap = analysisService.getAllUserRate(personalLevelVOList);
-
-                    List<Double> goodList = (List<Double>) userRateMap.get("goodList");
-                    List<Double> badList = (List<Double>) userRateMap.get("badList");
-
-                    concentrationVO = analysisService.getMeetingRate(goodList, badList);
-
+                    // 전체 참여자 집중도 수치 평균값
+                    ArrayList<Object> _dlists = new ArrayList<Object>();
                     Map<String, Object> _tglist = new HashMap<String, Object>();
-                    _tglist.put("good",concentrationVO.getGood());
-                    _tglist.put("bad",concentrationVO.getBad());
-                    _tglist.put("off",concentrationVO.getCameraOff());
+                    if(personalLevelVOList!=null){
+                        GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
 
-                    // 전체 분석 상단 그래프 데이터
+                        List<Double> goodList = userRateMap.getGoodList();
+                        List<Double> badList = userRateMap.getBadList();
+
+                        concentrationVO = analysisService.getMeetingRate(goodList, badList);
+
+                        // 전체 집중도율
+                        _tglist.put("good",concentrationVO.getGood());
+                        _tglist.put("bad",concentrationVO.getBad());
+                        _tglist.put("off",concentrationVO.getCameraOff());
+                        
+                        // 전체 분석 상단 그래프 데이터
+
+                        for(int i = 0;i<goodList.size();i++){
+                            Map<String, Object> _dlist = new HashMap<String, Object>();
+                            _dlist.put("name",i); // duration을 시간으로 환산
+                            _dlist.put("Good",goodList.get(i));  // GOOD 100
+                            _dlist.put("Bad",badList.get(i));  // BAD -100
+                            _dlist.put("amt",0);
+                            _dlists.add(_dlist);
+                        }
+                    }
                     _rs.put("mtAnalyTop", _tglist);
+                    _rs.put("mtAnalyBtm", _dlists);
 
+                    // 참여 인원수
                     Map<String, Object> _uinfo = new HashMap<String, Object>();
                     _uinfo.put("user_total",_ulists.size());
                     _uinfo.put("user_invite",_joincnt);
                     _rs.put("mtInviteInfo", _uinfo);
+
+
                 }else{
                     _rs.put("mtInviteList", null);
+
                     Map<String, Object> _uinfo = new HashMap<String, Object>();
                     _uinfo.put("user_total",0);
                     _uinfo.put("user_invite",0);
                     _rs.put("mtInviteInfo", null);
+                    _rs.put("mtAnalyBtm", null);
                 }
             }else{
                 _rs.put("mtInviteList", null);
                 _rs.put("mtInviteInfo", null);
+                _rs.put("mtAnalyMid", null);
             }
 
-            // 전체 분석 하단 인디게이터 데이터
-            if(_auth==1){
-                ArrayList<Object> _dlists = new ArrayList<Object>();
-                int mina = 0;
-                int maxa = 100;
-                int minb = -100;
-                int maxb = 0;
-                for(int i=0;i<30;i++){
-                    int a = (int)(Math.random()*(maxa-mina+1)+mina);
-                    int b = (int)(Math.random()*(maxb-minb+1)+minb);
-                    Map<String, Object> _dlist = new HashMap<String, Object>();
-                    Integer _cc = (5*i);
-                    _dlist.put("name","Good");
-                    // _dlist.put("duration",(5*i));   // 동영상 재생 위치
-                    _dlist.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
-                    _dlist.put("value",a);  // GOOD 100
-                    _dlists.add(_dlist);
-                    Map<String, Object> _dlist1 = new HashMap<String, Object>();
-                    _dlist1.put("item","Bad");
-                    // _dlist1.put("duration",(5*i));   // 동영상 재생 위치
-                    _dlist1.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
-                    _dlist1.put("value",b);  // BAD -100
-                    _dlists.add(_dlist1);
-                }
-                _rs.put("mtAnalyBtm", _dlists);
-            }else{
-                _rs.put("mtAnalyBtm", null);
-
+            // 전체 분석 하단 인디게이터 데이터 - setMiddata
+            if(_auth==0){
+                // setBtmdata
                 if(_livein == 1){
                     // 참석자 용
-                    // 인디게이터 데이터
+                    // 개인 인디게이터 데이터
                     int min = -100;
                     int max = 100;
                     ArrayList<Object> _dlists = new ArrayList<Object>();
@@ -2009,9 +2007,9 @@ public class MeetController extends BaseController {
                         Integer _cc = (5*i);
                         int a = (int)(Math.random()*(max-min+1)+min);
                         Map<String, Object> _dlist = new HashMap<String, Object>();
-                        _dlist.put("duration",_cc);   // 동영상 재생 위치
-                        _dlist.put("timer",String.valueOf(_cc)); // duration을 시간으로 환산
-                        _dlist.put("value",a);  // GOOD~BAD 100 ~ -100
+                        _dlist.put("name",String.valueOf(_cc));   // 동영상 재생 위치
+                        _dlist.put("good",a);
+                        _dlist.put("bad",a);  // GOOD~BAD 100 ~ -100
                         _dlists.add(_dlist);
                     }
                     _rs.put("mtData0", _dlists);
