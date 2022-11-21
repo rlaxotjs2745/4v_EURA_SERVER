@@ -694,13 +694,14 @@ public class MeetController extends BaseController {
                 meetingVO.setCalMonth(_tMonth);
             }
             Map<String, Object> _rs = new HashMap<String, Object>();
-            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+            List<MeetingVO> mInfo = meetMapper.getMyMeetCalendarList(meetingVO);    // 참여중인 미팅룸
             ArrayList<Object> _mrss = new ArrayList<Object>();
             for(MeetingVO rs0 : mInfo){
                 Map<String, Object> _mrs = new HashMap<String, Object>();
                 _mrs.put("mt_idx", rs0.getIdx_meeting());
                 _mrs.put("mt_name", rs0.getMt_name());
                 _mrs.put("mt_date", rs0.getMt_start_dt());
+                _mrs.put("is_finish", rs0.getIs_finish());  // 지난 미팅일 경우 분석 페이지로 이동하게 함 - 0:안지남, 1:지남
                 _mrss.add(_mrs);
             }
             _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
