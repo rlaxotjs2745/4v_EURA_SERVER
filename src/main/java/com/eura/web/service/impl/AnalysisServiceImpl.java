@@ -150,10 +150,10 @@ public class AnalysisServiceImpl implements AnalysisService {
 
         List<Double> goodList = null;
         List<Double> badList = null;
-        Integer maxLevel = 0;
+        // Integer maxLevel = 0; -- 이건 내부에서 쓰기 때문에 우선 선언이 필요 없지
 
         if(personalLevelVOList != null && personalLevelVOList.size() > 0){
-            maxLevel = personalLevelVOList.get(0).getMaxLevel();
+            Integer maxLevel = personalLevelVOList.get(0).getMaxLevel();
             goodList = new ArrayList<>(maxLevel);
             badList = new ArrayList<>(maxLevel);
             // ArrayList의 인덱스 값 = 레벨 순서
