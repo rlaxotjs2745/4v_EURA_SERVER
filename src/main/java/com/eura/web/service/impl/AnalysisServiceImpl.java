@@ -146,30 +146,38 @@ public class AnalysisServiceImpl implements AnalysisService {
     // 매개변수: AnalysisService getPersonalLevel을 통해 나온 모든 참여자의 개인 데이터 리스트
     @Override
     public Map<String, Object> getAllUserRate(List<PersonalLevelVO> personalLevelVOList) {
-        Integer maxLevel = personalLevelVOList.get(0).getMaxLevel();
-        List<Double> goodList = new ArrayList<>(maxLevel);
-        List<Double> badList = new ArrayList<>(maxLevel);
-        // ArrayList의 인덱스 값 = 레벨 순서
-    
-        for(PersonalLevelVO person : personalLevelVOList){ // 참여자 한명씩 탐색함
-            List<ConcentrationVO> contList = person.getConcentrationList();
-            for(int idx=0; idx <= maxLevel; idx++){ // 참여자 한명의 모든 레벨 데이터 불러오기
-                goodList.set(contList.get(idx).getLevel_num(), goodList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getGood() : goodList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getGood());
-                badList.set(contList.get(idx).getLevel_num(), badList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getBad() : badList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getBad());
-                // 모든 참여자의 레벨 당 good, bad 값을 더함
-            }
-        }
-
         Map<String, Object> result = new HashMap<String, Object>();
 
-        for (int i = 0; i <= maxLevel; i++){
-            goodList.set(i, goodList.get(i) / personalLevelVOList.size());
-            badList.set(i, badList.get(i) / personalLevelVOList.size());
+        List<Double> goodList = null;
+        List<Double> badList = null;
+        Integer maxLevel = 0;
+
+        if(personalLevelVOList != null && personalLevelVOList.size() > 0){
+            maxLevel = personalLevelVOList.get(0).getMaxLevel();
+            goodList = new ArrayList<>(maxLevel);
+            badList = new ArrayList<>(maxLevel);
+            // ArrayList의 인덱스 값 = 레벨 순서
+            for(PersonalLevelVO person : personalLevelVOList){ // 참여자 한명씩 탐색함
+                List<ConcentrationVO> contList = person.getConcentrationList();
+                for(int idx=0; idx <= maxLevel; idx++){ // 참여자 한명의 모든 레벨 데이터 불러오기
+                    goodList.set(contList.get(idx).getLevel_num(), goodList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getGood() : goodList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getGood());
+                    badList.set(contList.get(idx).getLevel_num(), badList.get(contList.get(idx).getLevel_num()) == null ? contList.get(idx).getBad() : badList.get(contList.get(idx).getLevel_num()) + contList.get(idx).getBad());
+                    // 모든 참여자의 레벨 당 good, bad 값을 더함
+                }
+            }
+
+
+            for (int i = 0; i <= maxLevel; i++){
+                goodList.set(i, goodList.get(i) / personalLevelVOList.size());
+                badList.set(i, badList.get(i) / personalLevelVOList.size());
+            }
+            // 모든 참여자의 레벨당 데이터 합산 값 / 모든 참여자 수 == 모든 참여자의 레벨당 집중도 평균
+            // 이 경우 데이터 예시
+            // [88.0, 12.33, 32.36] 식으로 데이터가 쌓이게 된다.
+            // 이 경우 '0번 레벨의 전체 참여자의 집중도 평균은 88.0%, 1번 레벨은 12.33%, ...' 라고 해석할 수 있다.
+
         }
-        // 모든 참여자의 레벨당 데이터 합산 값 / 모든 참여자 수 == 모든 참여자의 레벨당 집중도 평균
-        // 이 경우 데이터 예시
-        // [88.0, 12.33, 32.36] 식으로 데이터가 쌓이게 된다.
-        // 이 경우 '0번 레벨의 전체 참여자의 집중도 평균은 88.0%, 1번 레벨은 12.33%, ...' 라고 해석할 수 있다.
+
 
 
         result.put("goodList", goodList);
@@ -190,15 +198,19 @@ public class AnalysisServiceImpl implements AnalysisService {
         Double resultGood = 0.0;
         Double resultBad = 0.0;
 
-        for(int i=0; i<goodList.size(); i++){
-            resultGood += (Double) goodList.get(i);
-            resultBad += (Double) badList.get(i);
-            // 모든 레벨 당 데이터를 더함
+        if(goodList != null && goodList.size() > 0 && badList != null && badList.size() > 0){
+            for(int i=0; i<goodList.size(); i++){
+                resultGood += (Double) goodList.get(i);
+                resultBad += (Double) badList.get(i);
+                // 모든 레벨 당 데이터를 더함
+            }
+            resultGood = resultGood/goodList.size();
+            resultBad = resultBad/badList.size();
         }
 
-        concentrationVO.setGood(resultGood/goodList.size()); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
-        concentrationVO.setBad(resultBad/badList.size());
-        concentrationVO.setCameraOff(100-(concentrationVO.getGood() + concentrationVO.getBad()));
+        concentrationVO.setGood(resultGood); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
+        concentrationVO.setBad(resultBad);
+        concentrationVO.setCameraOff(100-(resultGood + resultBad));
         // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
 
         return concentrationVO;
