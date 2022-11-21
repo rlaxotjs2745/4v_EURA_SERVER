@@ -742,7 +742,7 @@ public class MeetController extends BaseController {
 
             Map<String, Object> _rs = new HashMap<String, Object>();
             ArrayList<Object> _mrss = new ArrayList<Object>();
-            List<MeetingVO> mInfo = meetMapper.getMyMeetList(meetingVO);    // 참여중인 미팅룸
+            List<MeetingVO> mInfo = meetMapper.getMyMeetCalendarList(meetingVO);    // 참여중인 미팅룸
             for(MeetingVO rs0 : mInfo){
                 Map<String, Object> _mrs = new HashMap<String, Object>();
                 _mrs.put("mt_idx", rs0.getIdx_meeting());
