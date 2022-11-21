@@ -1794,7 +1794,7 @@ public class MeetController extends BaseController {
             // 참석여부
             Integer _livein = 0;
             MeetingVO _uin = meetMapper.chkMeetLiveJoin(meetingVO);
-            if(_uin!=null){
+            if(_uin!=null && StringUtils.isNotEmpty(_uin.getToken())){
                 _livein = 1;
             }
             _rs.put("join", _livein);   // 미팅 참석 여부
@@ -1982,43 +1982,48 @@ public class MeetController extends BaseController {
                     _dlist.put("name","Good");
                     // _dlist.put("duration",(5*i));   // 동영상 재생 위치
                     _dlist.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
-                    _dlist.put("value",a);  // GOOD 10
+                    _dlist.put("value",a);  // GOOD 100
                     _dlists.add(_dlist);
                     Map<String, Object> _dlist1 = new HashMap<String, Object>();
                     _dlist1.put("item","Bad");
                     // _dlist1.put("duration",(5*i));   // 동영상 재생 위치
                     _dlist1.put("month",String.valueOf(_cc)); // duration을 시간으로 환산
-                    _dlist1.put("value",b);  // BAD -10
+                    _dlist1.put("value",b);  // BAD -100
                     _dlists.add(_dlist1);
                 }
                 _rs.put("mtAnalyBtm", _dlists);
             }else{
                 _rs.put("mtAnalyBtm", null);
 
-                // 참석자 용
-                // 인디게이터 데이터
-                int min = -100;
-                int max = 100;
-                ArrayList<Object> _dlists = new ArrayList<Object>();
-                for(int i=0;i<4;i++){
-                    Integer _cc = (5*i);
-                    int a = (int)(Math.random()*(max-min+1)+min);
-                    Map<String, Object> _dlist = new HashMap<String, Object>();
-                    _dlist.put("duration",_cc);   // 동영상 재생 위치
-                    _dlist.put("timer",String.valueOf(_cc)); // duration을 시간으로 환산
-                    _dlist.put("value",a);  // GOOD~BAD 10 ~ -10
-                    _dlists.add(_dlist);
-                }
-                _rs.put("mtData0", _dlists);
+                if(_livein == 1){
+                    // 참석자 용
+                    // 인디게이터 데이터
+                    int min = -100;
+                    int max = 100;
+                    ArrayList<Object> _dlists = new ArrayList<Object>();
+                    for(int i=0;i<4;i++){
+                        Integer _cc = (5*i);
+                        int a = (int)(Math.random()*(max-min+1)+min);
+                        Map<String, Object> _dlist = new HashMap<String, Object>();
+                        _dlist.put("duration",_cc);   // 동영상 재생 위치
+                        _dlist.put("timer",String.valueOf(_cc)); // duration을 시간으로 환산
+                        _dlist.put("value",a);  // GOOD~BAD 100 ~ -100
+                        _dlists.add(_dlist);
+                    }
+                    _rs.put("mtData0", _dlists);
 
-                // 분석 요약 데이터
-                Map<String, Object> _d2list = new HashMap<String, Object>();
-                _d2list.put("good",62); // GOOD
-                _d2list.put("bad",13);  // BAD
-                _d2list.put("off",25);  // OFF
-                _d2list.put("tcnt",73); // 현재 점수
-                _d2list.put("acnt",52); // 누적 평균
-                _rs.put("mtData1", _d2list);
+                    // 분석 요약 데이터
+                    Map<String, Object> _d2list = new HashMap<String, Object>();
+                    _d2list.put("good",62); // GOOD
+                    _d2list.put("bad",13);  // BAD
+                    _d2list.put("off",25);  // OFF
+                    _d2list.put("tcnt",73); // 현재 점수
+                    _d2list.put("acnt",52); // 누적 평균
+                    _rs.put("mtData1", _d2list);
+                }else{
+                    _rs.put("mtData0", null);
+                    _rs.put("mtData1", null);
+                }
             }
 
             resultVO.setResult_code(CONSTANT.success);
