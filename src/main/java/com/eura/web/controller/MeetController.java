@@ -593,8 +593,10 @@ public class MeetController extends BaseController {
                     }
                     Integer rs = meetMapper.putMeetCacncel(meetingVO);
                     if(rs==1){
-                        // 참가자 이메일 전송
-                        meetingService.sendMail(meetingVO, rrs, 3);
+                        if(rrs.getMt_status()==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMail(meetingVO, rrs, 3);
+                        }
 
                         resultVO.setResult_code(CONSTANT.success);
                         resultVO.setResult_str("미팅룸을 취소하였습니다.");
@@ -642,8 +644,10 @@ public class MeetController extends BaseController {
                     }
                     Integer rs = meetMapper.deleteMeet(meetingVO);
                     if(rs==1){
-                        // 참가자 이메일 전송
-                        meetingService.sendMail(meetingVO, rrs, 3);
+                        if(rrs.getMt_status()==1){
+                            // 참가자 이메일 전송
+                            meetingService.sendMail(meetingVO, rrs, 3);
+                        }
 
                         resultVO.setResult_code(CONSTANT.success);
                         resultVO.setResult_str("미팅룸을 삭제하였습니다.");
@@ -899,6 +903,10 @@ public class MeetController extends BaseController {
                 }
                 if(StringUtils.isEmpty(meetingVO.getMt_end_dt())){
                     resultVO.setResult_str("미팅 종료 시간을 골라주세요.");
+                    return resultVO;
+                }
+                if(getDateTimeDiff(meetingVO.getMt_start_dt(),meetingVO.getMt_end_dt())>=0){
+                    resultVO.setResult_str("미팅 종료 시간은 시작 시간보다 빠르거나 같을 수 없습니다.");
                     return resultVO;
                 }
                 if(meetingVO.getMt_remind_type().equals(0)){
@@ -1199,6 +1207,14 @@ public class MeetController extends BaseController {
                         }
                         if(StringUtils.isEmpty(meetingVO.getMt_end_dt()) && meetingVO.getMt_remind_type()>0){
                             resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
+                            return resultVO;
+                        }
+                        if(rrs.getIs_finish()==1){
+                            resultVO.setResult_str("종료된 미팅은 수정할 수 없습니다.");
+                            return resultVO;
+                        }
+                        if(getDateTimeDiff(meetingVO.getMt_start_dt(),meetingVO.getMt_end_dt())>=0){
+                            resultVO.setResult_str("미팅 종료 시간은 시작 시간보다 빠르거나 같을 수 없습니다.");
                             return resultVO;
                         }
                         if(meetingVO.getMt_remind_type().equals(0)){

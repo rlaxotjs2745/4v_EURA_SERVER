@@ -183,8 +183,21 @@ public class MeetingService extends BaseController {
                                 .replace("${USEREMAIL}", _ss.getUser_email())
                                 .replace("${MEETNAME}", rrs.getMt_name())
                                 .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
+                String _subject = "";
+                if(_mFTyp==1){
+                    _subject = " 미팅 시작 안내입니다.";
+                }
+                if(_mFTyp==2){
+                    _subject = " 미팅 시작 30분전 안내입니다.";
+                }
+                if(_mFTyp==3){
+                    _subject = " 미팅이 취소되었습니다.";
+                }
+                if(_mFTyp==4){
+                    _subject = " 미팅에 초대 되었습니다.";
+                }
                 
-                mailSender.sender(_ss.getUser_email(), "[EURA] " + rrs.getMt_name(), _sebody);
+                mailSender.sender(_ss.getUser_email(), "[EURA] \"" + rrs.getMt_name() + "\"" + _subject, _sebody);
             }
         }
     }

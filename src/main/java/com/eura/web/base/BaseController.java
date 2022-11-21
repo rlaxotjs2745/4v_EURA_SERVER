@@ -181,6 +181,20 @@ public class BaseController {
     }
 
     /**
+     * 일시 비교
+     * @param _date
+     * @param _date2
+     * @return Integer 0:동일, 0>:이전, 0<:이후
+     * @throws ParseException
+     */
+    public Integer getDateTimeDiff(String _date1, String _date2) throws ParseException{
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date1 = _ex.parse(_date1);
+        Date date2 = _ex.parse(_date2);
+        return date1.compareTo(date2);
+    }
+
+    /**
      * get Map Object from JSON String by GSON
      * @param jsonStr
      * @return List<Map<String, String>>

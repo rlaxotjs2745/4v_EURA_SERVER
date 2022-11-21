@@ -51,7 +51,7 @@
             FROM TB_MEETING
             WHERE DELETE_STAT=0 
                 AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND MT_END_DT <![CDATA[>=]]> NOW()
+                AND ((MT_END_DT <![CDATA[>=]]> NOW() AND MT_STATUS IN (0,1,2)) OR (MT_END_DT <![CDATA[<]]> NOW() AND MT_STATUS IN (0,2)))
                 AND IS_FINISH=0
                 AND CASE WHEN IDX_USER!=#{idx_user} THEN MT_STATUS=1 ELSE 1=1 END
     </select>
@@ -63,7 +63,7 @@
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND A.MT_END_DT <![CDATA[>=]]> NOW() 
+                AND ((A.MT_END_DT <![CDATA[>=]]> NOW() AND A.MT_STATUS IN (0,1,2)) OR (A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS IN (0,2)))
                 AND A.IS_FINISH=0
                 AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS=1 ELSE 1=1 END
                 <if test="calYear != null">
@@ -104,7 +104,7 @@
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND (A.MT_END_DT <![CDATA[<]]> NOW() OR A.IS_FINISH=1)
+                AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1) OR A.IS_FINISH=1)
                 AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS=1 ELSE 1=1 END
             ORDER BY 
             <choose>
