@@ -31,3 +31,6 @@ hs_err_pid*
 web.iml
 /src/main/resources/application-dev.properties
 *.pem
+application.yml
+application-dev.yml
+application-prod.yml
