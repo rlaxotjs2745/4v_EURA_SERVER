@@ -490,7 +490,7 @@ public class MeetController extends BaseController {
                         Integer rs = meetMapper.putMeetOpen(meetingVO);
                         if(rs==1){
                             // 참가자 이메일 전송
-//                            meetingService.sendMail(meetingVO, rrs, 4);
+                            meetingService.sendMail(meetingVO, rrs, 4);
 
                             resultVO.setResult_code(CONSTANT.success);
                             resultVO.setResult_str("미팅룸을 공개하였습니다.");
