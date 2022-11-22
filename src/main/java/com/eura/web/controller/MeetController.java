@@ -126,8 +126,10 @@ public class MeetController extends BaseController {
             if(meetingVO.getCurrentPage() == null){
                 meetingVO.setCurrentPage(1);
             }
-            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
-            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
+//            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+//            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
+            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock * meetingVO.getCurrentPage());
+            meetingVO.setFirstIndex(0);
             Map<String, Object> _rs = new HashMap<String, Object>();
 
             Long mInfoCnt = meetMapper.getMyMeetListCount(1);   // 참여중인 미팅룸 총 수
@@ -488,7 +490,7 @@ public class MeetController extends BaseController {
                         Integer rs = meetMapper.putMeetOpen(meetingVO);
                         if(rs==1){
                             // 참가자 이메일 전송
-                            meetingService.sendMail(meetingVO, rrs, 4);
+//                            meetingService.sendMail(meetingVO, rrs, 4);
 
                             resultVO.setResult_code(CONSTANT.success);
                             resultVO.setResult_str("미팅룸을 공개하였습니다.");
