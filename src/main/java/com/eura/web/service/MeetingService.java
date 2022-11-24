@@ -134,6 +134,9 @@ public class MeetingService extends BaseController {
         if(_stat==6){
             mail = "mail_password.html";
         }
+        if(_stat==7){
+            mail = "mail_alarm_change.html";
+        }
         String _fpath = filepath + "/html/" + mail;
         FileInputStream fis = new FileInputStream(_fpath);
         return IOUtils.toString(fis, "UTF-8");
@@ -194,7 +197,10 @@ public class MeetingService extends BaseController {
                     _subject = " 미팅이 취소되었습니다.";
                 }
                 if(_mFTyp==4){
-                    _subject = " 미팅에 초대 되었습니다.";
+                    _subject = " 미팅에 초대되었습니다.";
+                }
+                if(_mFTyp==7){
+                    _subject = " 미팅 일정이 변경되었습니다.";
                 }
                 
                 mailSender.sender(_ss.getUser_email(), "[EURA] \"" + rrs.getMt_name() + "\"" + _subject, _sebody);

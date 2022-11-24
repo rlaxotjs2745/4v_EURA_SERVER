@@ -41,4 +41,6 @@ public class AnalysisVO extends BaseVO{
     double lipStretch;
 
     int idx_meeting_user_join;
+    Integer timeend;
+    Integer timefirst;
 }

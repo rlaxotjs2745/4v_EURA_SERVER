@@ -14,5 +14,7 @@ public interface AnalysisMapper {
 
     public AnalysisVO getAnalysisData(MeetingVO meetingVO) throws Exception;
 
-    public List<AnalysisVO> getUserAnalysisData(int idx_meeting_user_join);
+    public List<AnalysisVO> getUserAnalysisData(MeetingVO meetingVO);
+
+    public AnalysisVO getAnalysisFirstData(MeetingVO meetingVO) throws Exception;
 }

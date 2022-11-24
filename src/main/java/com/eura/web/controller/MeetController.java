@@ -24,6 +24,7 @@ import com.eura.web.model.UserMapper;
 import com.eura.web.service.MeetingService;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.TokenJWT;
+import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,11 +126,9 @@ public class MeetController extends BaseController {
             meetingVO.setIdx_user(uInfo.getIdx_user());
             if(meetingVO.getCurrentPage() == null){
                 meetingVO.setCurrentPage(1);
+                meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+                meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             }
-//            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
-//            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
-            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock * meetingVO.getCurrentPage());
-            meetingVO.setFirstIndex(0);
             Map<String, Object> _rs = new HashMap<String, Object>();
 
             Long mInfoCnt = meetMapper.getMyMeetListCount(1);   // 참여중인 미팅룸 총 수
@@ -306,12 +305,19 @@ public class MeetController extends BaseController {
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
-                List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
+                // 공개 상태 이외에서는 호스트만 볼 수 있게
                 if(rs.getMt_status()!=1 && !rs.getIdx_user().equals(uInfo.getIdx_user())){
                     resultVO.setResult_str("미팅룸에 참여할 권한이 없습니다.");
                     return resultVO;
                 }
 
+                // 미팅이 종료된 상태는 분석 페이지로 이동하게
+                if(rs.getIs_finish()==1){
+                    resultVO.setResult_code(CONSTANT.fail+"01");
+                    resultVO.setResult_str("미팅이 종료되어 분석 페이지로 이동합니다.");
+                    return resultVO;
+                }
+                
                 String _auth = "0"; // 게스트 권한 부여
 
                 // 호스트 권한 부여
@@ -337,6 +343,7 @@ public class MeetController extends BaseController {
                 _rs.put("mt_finish_dt", rs.getIs_finish_dt());
                 _rs.put("mt_regdt", rs.getReg_dt());
 
+                List<MeetingVO> frs = meetMapper.getMeetFiles(meetingVO);
                 ArrayList<Object> _frss = new ArrayList<Object>();
                 for(MeetingVO frs0 : frs){
                     Map<String, Object> _frs = new HashMap<String, Object>();
@@ -391,11 +398,10 @@ public class MeetController extends BaseController {
             Map<String, Object> _rs = new HashMap<String, Object>();
             
             meetingVO.setIdx_user(uInfo.getIdx_user());
-            if(meetingVO.getCurrentPage() == null){
-                meetingVO.setCurrentPage(1) ;
+            if(meetingVO.getCurrentPage() != null){
+                meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+                meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             }
-            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
-            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
             ArrayList<Object> _irss = new ArrayList<Object>();
             Integer _incnt = 0;
@@ -487,6 +493,11 @@ public class MeetController extends BaseController {
                 MeetingVO rrs = meetMapper.getRoomInfo(meetingVO);
                 if(rrs!=null){
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
+                        // 일정 지난 비공개 미팅일 경우 팝업 메시지 창 띄우고 강제로 수정 페이지로 이동하게 만들기
+                        if(getDateTimeDiff(rrs.getMt_end_dt(), new Date())<0){
+                            resultVO.setResult_code(CONSTANT.fail+"01");
+                            resultVO.setResult_str("일정이 지난 미팅은 공개할 수 없어서 수정페이지로 이동합니다.");
+                        }
                         Integer rs = meetMapper.putMeetOpen(meetingVO);
                         if(rs==1){
                             // 참가자 이메일 전송
@@ -752,6 +763,7 @@ public class MeetController extends BaseController {
                 _mrs.put("hostname", rs0.getUser_name());
                 _mrs.put("timer", rs0.getMt_start_dt().substring(11,16) + " - " + rs0.getMt_end_dt().substring(11,16));
                 _mrs.put("mt_info", rs0.getMt_info());
+                _mrs.put("is_finish", rs0.getIs_finish());  // 종료 여부에 따라서 분석 페이지로 이동하게 하기
                 _mrss.add(_mrs);
             }
             _rs.put("mt_meetMyList", _mrss);    // 참여중인 미팅룸
@@ -1192,6 +1204,9 @@ public class MeetController extends BaseController {
                     String _edittxt = "수정";
                     if(rrs.getMt_status() == 2){
                         _edittxt = "재개설";
+
+                        // 취소 상태에서 수정하면 재개설이므로 상태는 비공개로 전환됨.
+                        meetingVO.setMt_status(0);
                     }
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
                         if(StringUtils.isEmpty(meetingVO.getMt_start_dt())){
@@ -1203,7 +1218,7 @@ public class MeetController extends BaseController {
                             return resultVO;
                         }
                         if(rrs.getIs_live()==1){
-                            if(getDateDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt())!=0 || getDateDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt())!=0){
+                            if(getDateTimeDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt())!=0){
                                 resultVO.setResult_str("미팅 중에는 예약 시간을 변경 할 수 없습니다.");
                                 return resultVO;
                             }
@@ -1223,9 +1238,10 @@ public class MeetController extends BaseController {
                             resultVO.setResult_str("미팅 종료 시간은 시작 시간보다 빠르거나 같을 수 없습니다.");
                             return resultVO;
                         }
+
                         if(meetingVO.getMt_remind_type().equals(0)){
                             Integer _dayChk = 0;
-                            if(getDateDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0){
+                            if(getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0){
                                 _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
                             }
                             if(_dayChk.equals(0)){
@@ -1803,6 +1819,10 @@ public class MeetController extends BaseController {
             if(_uin!=null && StringUtils.isNotEmpty(_uin.getToken())){
                 _livein = 1;
             }
+            if(_uin==null){
+                resultVO.setResult_str("미팅룸 참석자가 아닙니다.");
+                return resultVO;
+            }
             _rs.put("join", _livein);   // 미팅 참석 여부
 
             // 강의명
@@ -1814,6 +1834,12 @@ public class MeetController extends BaseController {
             // 시간
             String _chkHour = meetingInfo.getMt_start_dt().split("\\s")[1];
             _rs.put("mtMeetiTime", _chkHour.substring(0,5) + " ~ " + _chkHour.substring(0,5));
+
+            if(meetingVO.getFile_no()==null){
+                meetingVO.setFile_no(1);
+            }
+
+            Integer _dur = 0;
 
             // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
             List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
@@ -1832,6 +1858,10 @@ public class MeetController extends BaseController {
                     }
                     _ul.put("fileUrl", _furl);    // 영상
                     _mls.add(_ul);
+
+                    if(meetingVO.getFile_no()==_mlist.getFile_no()){
+                        _dur = _mlist.getDuration();
+                    }
                 }
                 _rs.put("mtMovieFiles", _mls);
             }else{
@@ -1864,19 +1894,11 @@ public class MeetController extends BaseController {
                 _edt = ff.format(new Date());
             }
 
-            // long diff = format.parse(_edt).getTime() - format.parse(_rdt).getTime();
-            // String hours = (diff / 1000) / 60 / 60 % 24 < 10 ? "0" + (diff / 1000) / 60 / 60 % 24 : "" + (diff / 1000) / 60 / 60 % 24;
-            // String minutes = (diff / 1000) / 60 % 60 < 10 ? "0" + (diff / 1000) / 60 % 60 : "" + (diff / 1000) / 60 % 60;
-            // String seconds = (diff / 1000) % 60 < 10 ? "0" + (diff / 1000) % 60 : "" + (diff / 1000) % 60;
-
             // 소요시간
             long diff = ff.parse(_edt).getTime() - ff.parse(_rdt).getTime();
             if(diff>0){
                 long sec = diff / 1000;
-                int hour = (int)sec/(60*60);
-                int minute = (int)sec/60;
-                int second = (int)sec%60;
-                _rs.put("mtMeetTimer", ("0"+hour).substring(0,2) + ":" + ("0"+minute).substring(0,2) + ":" + ("0"+second).substring(0,2));
+                _rs.put("mtMeetTimer", getSec2Time((int)sec));
             }else{
                 _rs.put("mtMeetTimer", "00:00:00");
             }
@@ -1901,6 +1923,7 @@ public class MeetController extends BaseController {
             List<AnalysisVO> analysisVOList = new ArrayList<>();
             PersonalLevelVO personalLevelVO = new PersonalLevelVO();
             ConcentrationVO concentrationVO = new ConcentrationVO();
+            AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
 
             // 미팅 분석 결과(강의 참여자 명단)
             if(_auth==1){
@@ -1916,9 +1939,11 @@ public class MeetController extends BaseController {
                         _ul.put("uemail",_ulist.getUser_email());   // 이메일
                         Integer _join = 0;
 
-                        analysisVOList = analysisMapper.getUserAnalysisData(_ulist.getIdx_meeting_user_join());
+                        MeetingVO _ulinfo = new MeetingVO();
+                        _ulinfo.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
+                        analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
                         if(analysisVOList!=null){
-                            personalLevelVO = analysisService.getPersonalLevel(analysisVOList);
+                            personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
                             personalLevelVOList.add(personalLevelVO);
                             concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
@@ -1927,7 +1952,11 @@ public class MeetController extends BaseController {
                             _ul.put("badValue",concentrationVO.getBad());    // 집중도
                             _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
 
-                            _ul.put("value",66);    // 집중도
+                            if(concentrationVO.getGood() > 0 && concentrationVO.getBad() > 0){
+                                _ul.put("value", ((concentrationVO.getGood() / (concentrationVO.getGood()+concentrationVO.getBad()) * 100)));    // 집중도
+                            }else{
+                                _ul.put("value", 0.0);    // 집중도
+                            }
                             _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
                             String _upic = "";
                             if(StringUtils.isNotEmpty(_ulist.getFile_name())){
@@ -1948,12 +1977,17 @@ public class MeetController extends BaseController {
                     ArrayList<Object> _dlists = new ArrayList<Object>();
                     Map<String, Object> _tglist = new HashMap<String, Object>();
                     if(personalLevelVOList!=null){
+                        // System.out.println("personalLevelVOList:" + new Gson().toJson(personalLevelVOList));
+
                         GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
 
                         List<Double> goodList = userRateMap.getGoodList();
                         List<Double> badList = userRateMap.getBadList();
+                        List<String> lvlList = userRateMap.getLvlList();
 
                         concentrationVO = analysisService.getMeetingRate(goodList, badList);
+
+                        // System.out.println("concentrationVO:" + new Gson().toJson(concentrationVO));
 
                         // 전체 집중도율
                         _tglist.put("good",concentrationVO.getGood());
@@ -1961,10 +1995,9 @@ public class MeetController extends BaseController {
                         _tglist.put("off",concentrationVO.getCameraOff());
                         
                         // 전체 분석 상단 그래프 데이터
-
                         for(int i = 0;i<goodList.size();i++){
                             Map<String, Object> _dlist = new HashMap<String, Object>();
-                            _dlist.put("name",i); // duration을 시간으로 환산
+                            _dlist.put("name",lvlList.get(i)); // duration을 시간으로 환산
                             _dlist.put("Good",goodList.get(i));  // GOOD 100
                             _dlist.put("Bad",badList.get(i));  // BAD -100
                             _dlist.put("amt",0);
@@ -1972,7 +2005,7 @@ public class MeetController extends BaseController {
                         }
                     }
                     _rs.put("mtAnalyTop", _tglist);
-                    _rs.put("mtAnalyBtm", _dlists);
+                    _rs.put("mtAnalyMid", _dlists);
 
                     // 참여 인원수
                     Map<String, Object> _uinfo = new HashMap<String, Object>();
@@ -1988,7 +2021,7 @@ public class MeetController extends BaseController {
                     _uinfo.put("user_total",0);
                     _uinfo.put("user_invite",0);
                     _rs.put("mtInviteInfo", null);
-                    _rs.put("mtAnalyBtm", null);
+                    _rs.put("mtAnalyMid", null);
                 }
             }else{
                 _rs.put("mtInviteList", null);
@@ -1998,31 +2031,37 @@ public class MeetController extends BaseController {
 
             // 전체 분석 하단 인디게이터 데이터 - setMiddata
             if(_auth==0){
-                // setBtmdata
+                // 참석자 용
+                // 개인 인디게이터 데이터
                 if(_livein == 1){
-                    // 참석자 용
-                    // 개인 인디게이터 데이터
-                    int min = -100;
-                    int max = 100;
                     ArrayList<Object> _dlists = new ArrayList<Object>();
-                    for(int i=0;i<4;i++){
-                        Integer _cc = (5*i);
-                        int a = (int)(Math.random()*(max-min+1)+min);
-                        Map<String, Object> _dlist = new HashMap<String, Object>();
-                        _dlist.put("name",String.valueOf(_cc));   // 동영상 재생 위치
-                        _dlist.put("good",a);
-                        _dlist.put("bad",a);  // GOOD~BAD 100 ~ -100
-                        _dlists.add(_dlist);
-                    }
-                    _rs.put("mtData0", _dlists);
-
-                    // 분석 요약 데이터
                     Map<String, Object> _d2list = new HashMap<String, Object>();
-                    _d2list.put("good",62); // GOOD
-                    _d2list.put("bad",13);  // BAD
-                    _d2list.put("off",25);  // OFF
-                    _d2list.put("tcnt",73); // 현재 점수
-                    _d2list.put("acnt",52); // 누적 평균
+
+                    MeetingVO _ulinfo = new MeetingVO();
+                    _ulinfo.setIdx_meeting(meetingVO.getIdx_meeting());
+                    _ulinfo.setIdx_user(meetingVO.getIdx_user());
+                    analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
+                    if(analysisVOList!=null){
+                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
+                        for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
+                            Map<String, Object> _dlist = new HashMap<String, Object>();
+                            _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
+                            _dlist.put("good",paramVo.getGood());
+                            _dlist.put("bad",paramVo.getBad());  // GOOD~BAD 100 ~ -100
+                            _dlists.add(_dlist);
+                        }
+                        _rs.put("mtData0", _dlists);
+
+                        concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+
+                        // 분석 요약 데이터
+                        _d2list.put("good",concentrationVO.getGood()); // GOOD
+                        _d2list.put("bad",concentrationVO.getBad());  // BAD
+                        _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                        _d2list.put("tcnt",0); // 현재 점수
+                        _d2list.put("acnt",0); // 누적 평균
+                    }
+
                     _rs.put("mtData1", _d2list);
                 }else{
                     _rs.put("mtData0", null);
@@ -2059,30 +2098,55 @@ public class MeetController extends BaseController {
                 resultVO.setResult_str("로그인 후 이용해주세요.");
                 return resultVO;
             }
+
+            if(meetingVO.getFile_no()==null){
+                meetingVO.setFile_no(1);
+            }
+            Integer _dur = 0;
+
+            // 영상 파일 : IDX_MOVIE_FILE, FILE_NO, FILE_PATH, FILE_NAME, DURATION, RECORD_DT
+            List<MeetingVO> _mlists = fileServiceMapper.getMeetMovieFile(meetingVO);
+            if(_mlists!=null){
+                for(MeetingVO _mlist : _mlists){
+                    if(meetingVO.getFile_no()==_mlist.getFile_no()){
+                        _dur = _mlist.getDuration();
+                    }
+                }
+            }
+
             Map<String, Object> _rs = new HashMap<String, Object>();
 
-            // 인디게이터 데이터
-            int min = -100;
-            int max = 100;
             ArrayList<Object> _dlists = new ArrayList<Object>();
-            for(int i=0;i<30;i++){
-                int a = (int)(Math.random()*(max-min+1)+min);
-                Map<String, Object> _dlist = new HashMap<String, Object>();
-                _dlist.put("duration",(5*(i-1)));   // 동영상 재생 위치
-                _dlist.put("timer","00:00:05"); // duration을 시간으로 환산
-                _dlist.put("value",a);  // GOOD~BAD 10 ~ -10
-                _dlists.add(_dlist);
-            }
-            _rs.put("mtData0", _dlists);
-
-            // 분석 요약 데이터
             Map<String, Object> _d2list = new HashMap<String, Object>();
-            _d2list.put("good",62); // GOOD
-            _d2list.put("bad",13);  // BAD
-            _d2list.put("off",25);  // OFF
-            _d2list.put("tcnt",73); // 현재 점수
-            _d2list.put("acnt",52); // 누적 평균
-            _rs.put("mtData1", _d2list);
+            AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
+            MeetingVO _ulinfo = new MeetingVO();
+            _ulinfo.setIdx_meeting(meetingVO.getIdx_meeting());
+            _ulinfo.setIdx_user(meetingVO.getIdx_user());
+            List<AnalysisVO> analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
+            if(analysisVOList!=null){
+                PersonalLevelVO personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
+                for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
+                    Map<String, Object> _dlist = new HashMap<String, Object>();
+                    _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
+                    _dlist.put("good",paramVo.getGood());
+                    _dlist.put("bad",paramVo.getBad());  // GOOD~BAD 100 ~ -100
+                    _dlists.add(_dlist);
+                }
+                _rs.put("mtData0", _dlists);
+
+                ConcentrationVO concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+
+                // 분석 요약 데이터
+                _d2list.put("good",concentrationVO.getGood()); // GOOD
+                _d2list.put("bad",concentrationVO.getBad());  // BAD
+                _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                _d2list.put("tcnt",0); // 현재 점수
+                _d2list.put("acnt",0); // 누적 평균
+                _rs.put("mtData1", _d2list);
+            }else{
+                _rs.put("mtData0", null);
+                _rs.put("mtData1", null);
+            }
 
             resultVO.setResult_code(CONSTANT.success);
             resultVO.setResult_str("미팅 참석자 분석 데이터 호출 완료");

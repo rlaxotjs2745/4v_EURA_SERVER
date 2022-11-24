@@ -27,7 +27,7 @@
 
     <!-- 미팅 달력 -->
     <select id="getMyMeetCalendarList" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT A.*, B.USER_NAME, IF(A.MT_END_DT <![CDATA[>=]]> NOW(), 1, A.IS_FINISH) AS IS_FINISH
+        SELECT A.*, B.USER_NAME, IF(A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1, 1, A.IS_FINISH) AS IS_FINISH
             FROM TB_MEETING A
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
             WHERE A.DELETE_STAT=0 
@@ -221,6 +221,9 @@
                 MT_START_DT=#{mt_start_dt},
                 MT_END_DT=#{mt_end_dt},
                 MT_INFO=#{mt_info}
+            <if test="mt_status != null">
+                , MT_STATUS=#{mt_status}
+            </if>
             <if test="mt_remind_type != null">
                 , MT_REMIND_TYPE=#{mt_remind_type}
             </if>

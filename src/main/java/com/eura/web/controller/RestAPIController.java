@@ -35,6 +35,7 @@ public class RestAPIController extends BaseController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final MeetMapper meetMapper;
+    private final S3Service s3Service;
 
     @Resource(name = "profileFileService")
     public ProfileFileService profileFileService;
@@ -389,9 +390,14 @@ public class RestAPIController extends BaseController {
                 return resultVO;
             }
             Matcher matcherPw = Pattern.compile(CONSTANT.REGEXPW).matcher(userVO.getUser_pwd());
-            if (userVO.getUser_pwd().length() < 10 || !matcherPw.find()) {
+            if (userVO.getUser_pwd().length() < 10) {
                 resultVO.setResult_code(CONSTANT.fail);
-                resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 입력해주세요.");
+                resultVO.setResult_str("10자 이상의 비밀번호만 사용할 수 있습니다.");
+                return resultVO;
+            }
+            if (!matcherPw.find()) {
+                resultVO.setResult_code(CONSTANT.fail);
+                resultVO.setResult_str("영어, 숫자, 특수문자로 조합된 비밀번호만 사용가능합니다.");
                 return resultVO;
             }
 
@@ -406,7 +412,7 @@ public class RestAPIController extends BaseController {
                 String change_pwd = passwordEncoder.encode(userVO.getUser_pwd());
                 userVO.setUser_pwd(change_pwd);
                 userMapper.updateUserInfo(userVO);
-                resultVO.setResult_str("프로필이 수정했습니다.");
+                resultVO.setResult_str("프로필을 수정했습니다.");
                 resultVO.setResult_code(CONSTANT.success);
             } else {
                 resultVO.setResult_str("프로필을 수정할 수 없습니다.");

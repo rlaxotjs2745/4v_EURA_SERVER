@@ -17,5 +17,5 @@ public interface AnalysisService {
 
     public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList);
 
-    public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList);
+    public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer duration) throws Exception;
 }

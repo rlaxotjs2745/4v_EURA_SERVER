@@ -83,13 +83,24 @@
         SELECT *
             FROM TB_ANALYSIS
             WHERE IDX_MEETING=#{idx_meeting}
-            ORDER BY TIMESTAMP ASC
+            ORDER BY TIMESTAMP ASC, IDX_ANALYSIS ASC
     </select>
 
     <select id="getUserAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
-        SELECT *
+        SELECT IDX_ANALYSIS, IDX_MEETING_USER_JOIN, TIMESTAMP, ENGAGEMENT, ATTENTION, VALENCE
         FROM TB_ANALYSIS
-        WHERE IDX_MEETING_USER_JOIN=#{idx_meeting_user_join}
+        WHERE 1=1
+        <if test="idx_meeting_user_join != null">
+            AND IDX_MEETING_USER_JOIN=#{idx_meeting_user_join}
+        </if>
+        <if test="idx_meeting != null">
+            AND IDX_MEETING_USER_JOIN=(SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user})
+        </if>
         ORDER BY TIMESTAMP ASC
+    </select>
+
+    <!-- 최초 기록 시간 가져오기 -->
+    <select id="getAnalysisFirstData" resultType="com.eura.web.model.DTO.AnalysisVO">
+        SELECT MIN(timestamp) AS TIMEFIRST, MAX(timestamp) AS TIMEEND FROM TB_ANALYSIS WHERE IDX_MEETING_USER_JOIN IN (SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting})
     </select>
 </mapper>

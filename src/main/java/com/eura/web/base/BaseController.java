@@ -194,6 +194,12 @@ public class BaseController {
         return date1.compareTo(date2);
     }
 
+    public Integer getDateTimeDiff(String _date1, Date _date2) throws ParseException{
+        SimpleDateFormat _ex = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date1 = _ex.parse(_date1);
+        return date1.compareTo(_date2);
+    }
+
     /**
      * get Map Object from JSON String by GSON
      * @param jsonStr
@@ -248,5 +254,36 @@ public class BaseController {
             }
         }
         return rs;
+    }
+
+    /**
+     * Second to Time String
+     * @param sec
+     * @return
+     * @throws Exception
+     */
+    public String getSec2Time(Integer sec) throws Exception {
+        int hour = (int)sec/(60*60);
+        int minute = (int)sec/60;
+        int second = (int)sec%60;
+        String _hour = "";
+        String _minute = "";
+        String _second = "";
+        if(String.valueOf(hour).length()==1){
+            _hour = "0"+hour;
+        }else{
+            _hour = String.valueOf(hour);
+        }
+        if(String.valueOf(minute).length()==1){
+            _minute = "0"+minute;
+        }else{
+            _minute = String.valueOf(minute);
+        }
+        if(String.valueOf(second).length()==1){
+            _second = "0"+second;
+        }else{
+            _second = String.valueOf(second);
+        }
+        return _hour + ":" + _minute + ":" + _second;
     }
 }
