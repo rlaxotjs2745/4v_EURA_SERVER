@@ -219,7 +219,7 @@ public class BaseController {
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
         String a = req.getHeader("uid");
-        if(!a.equals("") || !a.isEmpty() || a != null){
+        if(a != null || !a.equals("") || !a.isEmpty()){
             rs = userMapper.getUserInfoById(a);
         }
         if(rs == null){
@@ -263,7 +263,7 @@ public class BaseController {
                 }
             }
         }else{
-            if(!a.equals("") || !a.isEmpty() || a != null){
+            if(a != null || !a.equals("") || !a.isEmpty()){
                 rs = req.getHeader("uid");
             }
             if(rs == ""){
