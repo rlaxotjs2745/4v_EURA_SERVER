@@ -1348,9 +1348,9 @@ public class MeetController extends BaseController {
                                                     for(String _w : _week){ // 입력 값 체크
                                                         if(Integer.valueOf(_w).equals(_dw)){
                                                             String _sdate = getCalDate(_sd, 0, 0, j+((i-1)*7));
-                                                            String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
-                                                            param.setMt_start_dt(_sdate);
-                                                            param.setMt_end_dt(_edate);
+                                                            // String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
+                                                            // param.setMt_start_dt(_sdate);
+                                                            // param.setMt_end_dt(_edate);
                                                             if(getDateDiff(_sdate, _enddt)<0){
                                                                 _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                             }
@@ -1937,29 +1937,29 @@ public class MeetController extends BaseController {
             ConcentrationVO concentrationVO = new ConcentrationVO();
             AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
 
-            // 미팅 분석 결과(강의 참여자 명단)
-            if(_auth==1){
-                List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
-                if(_ulists!=null){
-                    Integer _joincnt = 0;
-                    ArrayList<Object> _uls = new ArrayList<Object>();
-                    List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
-                    for(MeetingVO _ulist : _ulists){
-                        Map<String, Object> _ul = new HashMap<String, Object>();
-                        _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
-                        _ul.put("uname",_ulist.getUser_name()); // 참석자명
-                        _ul.put("uemail",_ulist.getUser_email());   // 이메일
-                        Integer _join = 0;
+            // 미팅 분석 결과(강의 참여자 명단) - 미팅 참석자도 참석자 전체 목록 리스팅
+            List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
+            if(_ulists!=null){
+                Integer _joincnt = 0;
+                ArrayList<Object> _uls = new ArrayList<Object>();
+                List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
+                for(MeetingVO _ulist : _ulists){
+                    Map<String, Object> _ul = new HashMap<String, Object>();
+                    _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
+                    _ul.put("uname",_ulist.getUser_name()); // 참석자명
+                    _ul.put("uemail",_ulist.getUser_email());   // 이메일
+                    Integer _join = 0;
 
-                        MeetingVO _ulinfo = new MeetingVO();
-                        _ulinfo.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
-                        analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
-                        if(analysisVOList!=null){
-                            personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
-                            personalLevelVOList.add(personalLevelVO);
-                            concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+                    MeetingVO _ulinfo = new MeetingVO();
+                    _ulinfo.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
+                    analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
+                    if(analysisVOList!=null){
+                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
+                        personalLevelVOList.add(personalLevelVO);
+                        concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
-                            // 개인 오른쪽 집중도
+                        // 개인 오른쪽 집중도
+                        if(_auth==1 || _uin.getIdx_user() == concentrationVO.getIdx_meeting_user_join()){
                             _ul.put("goodValue",concentrationVO.getGood());    // 집중도
                             _ul.put("badValue",concentrationVO.getBad());    // 집중도
                             _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
@@ -1969,74 +1969,83 @@ public class MeetController extends BaseController {
                             }else{
                                 _ul.put("value", 0.0);    // 집중도
                             }
-                            _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
-                            String _upic = "";
-                            if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                                _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
-                            }
-                            _ul.put("upic",_upic);    // 프로필 사진
-                            if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
-                                _join = 1;
-                                _joincnt++;
-                            }
+                        }else{
+                            _ul.put("goodValue",null);    // 집중도
+                            _ul.put("badValue",null);    // 집중도
+                            _ul.put("cameraOffValue",null);    // 집중도
+                            _ul.put("value", null);    // 집중도
                         }
-                        _ul.put("join",_join);    // 미팅 참석 여부
-                        _uls.add(_ul);
-                    }
-                    _rs.put("mtInviteList", _uls);
-
-                    // 전체 참여자 집중도 수치 평균값
-                    ArrayList<Object> _dlists = new ArrayList<Object>();
-                    Map<String, Object> _tglist = new HashMap<String, Object>();
-                    if(personalLevelVOList!=null){
-                        // System.out.println("personalLevelVOList:" + new Gson().toJson(personalLevelVOList));
-
-                        GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
-
-                        List<Double> goodList = userRateMap.getGoodList();
-                        List<Double> badList = userRateMap.getBadList();
-                        List<String> lvlList = userRateMap.getLvlList();
-
-                        concentrationVO = analysisService.getMeetingRate(goodList, badList);
-
-                        // System.out.println("concentrationVO:" + new Gson().toJson(concentrationVO));
-
-                        // 전체 집중도율
-                        _tglist.put("good",concentrationVO.getGood());
-                        _tglist.put("bad",concentrationVO.getBad());
-                        _tglist.put("off",concentrationVO.getCameraOff());
-                        
-                        // 전체 분석 상단 그래프 데이터
-                        for(int i = 0;i<goodList.size();i++){
-                            Map<String, Object> _dlist = new HashMap<String, Object>();
-                            _dlist.put("name",lvlList.get(i)); // duration을 시간으로 환산
-                            _dlist.put("Good",Math.round(goodList.get(i)));  // GOOD 100
-                            _dlist.put("Bad",(Math.round(badList.get(i))*-1));  // BAD -100
-                            _dlist.put("amt",0);
-                            _dlists.add(_dlist);
+                        if(_uin.getIdx_user() == concentrationVO.getIdx_meeting_user_join()){
+                            _ul.put("is_iam", 1);    // 0:남일때, 1:나일때
+                        }else{
+                            _ul.put("is_iam", 0);    // 0:남일때, 1:나일때
+                        }
+                        _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
+                        String _upic = "";
+                        if(StringUtils.isNotEmpty(_ulist.getFile_name())){
+                            _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                        }
+                        _ul.put("upic",_upic);    // 프로필 사진
+                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                            _join = 1;
+                            _joincnt++;
                         }
                     }
-                    _rs.put("mtAnalyTop", _tglist);
+                    _ul.put("join",_join);    // 미팅 참석 여부
+                    _uls.add(_ul);
+                }
+                _rs.put("mtInviteList", _uls);
+
+                // 전체 참여자 집중도 수치 평균값
+                ArrayList<Object> _dlists = new ArrayList<Object>();
+                Map<String, Object> _tglist = new HashMap<String, Object>();
+                if(personalLevelVOList!=null){
+                    // System.out.println("personalLevelVOList:" + new Gson().toJson(personalLevelVOList));
+
+                    GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
+
+                    List<Double> goodList = userRateMap.getGoodList();
+                    List<Double> badList = userRateMap.getBadList();
+                    List<String> lvlList = userRateMap.getLvlList();
+
+                    concentrationVO = analysisService.getMeetingRate(goodList, badList);
+
+                    // System.out.println("concentrationVO:" + new Gson().toJson(concentrationVO));
+
+                    // 전체 집중도율
+                    _tglist.put("good",concentrationVO.getGood());
+                    _tglist.put("bad",concentrationVO.getBad());
+                    _tglist.put("off",concentrationVO.getCameraOff());
+                    
+                    // 전체 분석 상단 그래프 데이터
+                    for(int i = 0;i<goodList.size();i++){
+                        Map<String, Object> _dlist = new HashMap<String, Object>();
+                        _dlist.put("name",lvlList.get(i)); // duration을 시간으로 환산
+                        _dlist.put("Good",Math.round(goodList.get(i)));  // GOOD 100
+                        _dlist.put("Bad",(Math.round(badList.get(i))*-1));  // BAD -100
+                        _dlist.put("amt",0);
+                        _dlists.add(_dlist);
+                    }
+                }
+                _rs.put("mtAnalyTop", _tglist);
+
+                if(_auth==1){
                     _rs.put("mtAnalyMid", _dlists);
-
-                    // 참여 인원수
-                    Map<String, Object> _uinfo = new HashMap<String, Object>();
-                    _uinfo.put("user_total",_ulists.size());
-                    _uinfo.put("user_invite",_joincnt);
-                    _rs.put("mtInviteInfo", _uinfo);
-
-
                 }else{
-                    _rs.put("mtInviteList", null);
-
-                    Map<String, Object> _uinfo = new HashMap<String, Object>();
-                    _uinfo.put("user_total",0);
-                    _uinfo.put("user_invite",0);
-                    _rs.put("mtInviteInfo", null);
                     _rs.put("mtAnalyMid", null);
                 }
+
+                // 참여 인원수
+                Map<String, Object> _uinfo = new HashMap<String, Object>();
+                _uinfo.put("user_total",_ulists.size());
+                _uinfo.put("user_invite",_joincnt);
+                _rs.put("mtInviteInfo", _uinfo);
             }else{
                 _rs.put("mtInviteList", null);
+
+                Map<String, Object> _uinfo = new HashMap<String, Object>();
+                _uinfo.put("user_total",0);
+                _uinfo.put("user_invite",0);
                 _rs.put("mtInviteInfo", null);
                 _rs.put("mtAnalyMid", null);
             }

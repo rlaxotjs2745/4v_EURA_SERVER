@@ -328,7 +328,7 @@
 
     <!-- 미팅에 참여중인지 확인 -->
     <select id="chkMeetLiveJoin" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT TOKEN, SESSIONID, IS_LIVE
+        SELECT TOKEN, SESSIONID, IS_LIVE, IDX_MEETING_USER_JOIN
             FROM TB_MEETING_USER_JOIN
             WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND JOIN_DT IS NOT NULL
     </select>
