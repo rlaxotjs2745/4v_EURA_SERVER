@@ -1188,6 +1188,7 @@ public class MeetController extends BaseController {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
+        resultVO.setData(null);
 
         try {
             UserVO uInfo = getChkUserLogin(req);
@@ -1230,6 +1231,7 @@ public class MeetController extends BaseController {
                             resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
                             return resultVO;
                         }
+
                         if(rrs.getIs_finish()==1){
                             resultVO.setResult_str("종료된 미팅은 "+ _edittxt +"할 수 없습니다.");
                             return resultVO;
@@ -1289,14 +1291,15 @@ public class MeetController extends BaseController {
 
                                     resultVO.setResult_code(CONSTANT.success);
                                     resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
+                                    return resultVO;
                                 }else{
                                     resultVO.setResult_str("미팅룸 "+ _edittxt +"이 실패 되었습니다.");
+                                    return resultVO;
                                 }
                             }else{
                                 resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
+                                return resultVO;
                             }
-                            resultVO.setData(null);
-                            return resultVO;
                         }else{
                             Integer _chkDup = 0;
                             Integer _dayChk = 0;
@@ -1316,11 +1319,13 @@ public class MeetController extends BaseController {
                                     if(_cnt > 90){
                                         resultVO.setResult_str("일 단위 되풀이 주기는 90일까지 입니다.");
                                         _chkDup = 1;
+                                        return resultVO;
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
                                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
+                                            return resultVO;
                                         }
                                     }
 
@@ -1329,10 +1334,12 @@ public class MeetController extends BaseController {
                                     if(_cnt > 12){
                                         resultVO.setResult_str("주 단위 되풀이 주기는 12주까지 입니다.");
                                         _chkDup = 1;
+                                        return resultVO;
                                     }else{
                                         if(meetingVO.getMt_remind_week().isEmpty() || meetingVO.getMt_remind_week()==null){
                                             resultVO.setResult_str("주 단위 되풀이 주기는 요일을 선택해주세요.");
                                             _chkDup = 1;
+                                            return resultVO;
                                         }else{
                                             _week = meetingVO.getMt_remind_week().split(",");   // 요일 선택
                                             for(Integer i=1;i<=_cnt;i++){   // 주 반복
@@ -1354,6 +1361,7 @@ public class MeetController extends BaseController {
                                             if(!_dayChk.equals(0)){
                                                 resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                                 _chkDup = 1;
+                                                return resultVO;
                                             }
                                         }
                                     }
@@ -1363,11 +1371,13 @@ public class MeetController extends BaseController {
                                     if(_cnt > 12){
                                         resultVO.setResult_str("월 단위 되풀이 주기는 12개월까지 입니다.");
                                         _chkDup = 1;
+                                        return resultVO;
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
                                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
+                                            return resultVO;
                                         }
                                     }
 
@@ -1376,11 +1386,13 @@ public class MeetController extends BaseController {
                                     if(_cnt > 5){
                                         resultVO.setResult_str("년 단위 되풀이 주기는 5년까지 입니다.");
                                         _chkDup = 1;
+                                        return resultVO;
                                     }else{
                                         _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                         if(!_dayChk.equals(0)){
                                             resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                             _chkDup = 1;
+                                            return resultVO;
                                         }
                                     }
                                 }
@@ -1998,8 +2010,8 @@ public class MeetController extends BaseController {
                         for(int i = 0;i<goodList.size();i++){
                             Map<String, Object> _dlist = new HashMap<String, Object>();
                             _dlist.put("name",lvlList.get(i)); // duration을 시간으로 환산
-                            _dlist.put("Good",goodList.get(i));  // GOOD 100
-                            _dlist.put("Bad",badList.get(i));  // BAD -100
+                            _dlist.put("Good",Math.round(goodList.get(i)));  // GOOD 100
+                            _dlist.put("Bad",(Math.round(badList.get(i))*-1));  // BAD -100
                             _dlist.put("amt",0);
                             _dlists.add(_dlist);
                         }
@@ -2047,7 +2059,7 @@ public class MeetController extends BaseController {
                             Map<String, Object> _dlist = new HashMap<String, Object>();
                             _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
                             _dlist.put("good",paramVo.getGood());
-                            _dlist.put("bad",paramVo.getBad());  // GOOD~BAD 100 ~ -100
+                            _dlist.put("bad",paramVo.getBad()*-1);  // GOOD~BAD 100 ~ -100
                             _dlists.add(_dlist);
                         }
                         _rs.put("mtData0", _dlists);
@@ -2055,9 +2067,9 @@ public class MeetController extends BaseController {
                         concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
                         // 분석 요약 데이터
-                        _d2list.put("good",concentrationVO.getGood()); // GOOD
-                        _d2list.put("bad",concentrationVO.getBad());  // BAD
-                        _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                        _d2list.put("good",Math.round(concentrationVO.getGood())); // GOOD
+                        _d2list.put("bad",Math.round(concentrationVO.getBad()));  // BAD
+                        _d2list.put("off",Math.round(concentrationVO.getCameraOff()));  // OFF
                         _d2list.put("tcnt",0); // 현재 점수
                         _d2list.put("acnt",0); // 누적 평균
                     }
@@ -2120,8 +2132,8 @@ public class MeetController extends BaseController {
             Map<String, Object> _d2list = new HashMap<String, Object>();
             AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
             MeetingVO _ulinfo = new MeetingVO();
-            _ulinfo.setIdx_meeting(meetingVO.getIdx_meeting());
-            _ulinfo.setIdx_user(meetingVO.getIdx_user());
+            // _ulinfo.setI?dx_meeting(meetingVO.getIdx_meeting());
+            _ulinfo.setIdx_meeting_user_join(meetingVO.getIdx_user());
             List<AnalysisVO> analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
             if(analysisVOList!=null){
                 PersonalLevelVO personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
@@ -2138,7 +2150,7 @@ public class MeetController extends BaseController {
 
                 // 분석 요약 데이터
                 _d2list.put("good",concentrationVO.getGood()); // GOOD
-                _d2list.put("bad",concentrationVO.getBad());  // BAD
+                _d2list.put("bad",concentrationVO.getBad()*-1);  // BAD
                 _d2list.put("off",concentrationVO.getCameraOff());  // OFF
                 _d2list.put("tcnt",0); // 현재 점수
                 _d2list.put("acnt",0); // 누적 평균

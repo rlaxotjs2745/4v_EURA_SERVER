@@ -31,15 +31,19 @@ BEGIN
 END;$$
 DELIMITER ;
 
-CREATE DEFINER=`eura_user`@`localhost` PROCEDURE `eura_db`.`prc_meet_chkRoomDupDate`(
+CREATE DEFINER=`eura_user`@`%` PROCEDURE `eura_db`.`prc_meet_chkRoomDupDate`(
 	IN `_idx_user` INT,
 	IN `_mt_start_dt` VARCHAR(20),
-	IN `_mt_end_dt` VARCHAR(20)
+	IN `_mt_end_dt` VARCHAR(20),
+	IN `_idx_meeting` INT
 )
 BEGIN
 	SET @CNT = 0;
-	SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
+	SELECT MT_START_DT, MT_END_DT INTO @MTSTARTDT, @MTENDDT FROM TB_MEETING WHERE IDX_MEETING=_idx_meeting;
+	IF @MTSTARTDT != _mt_start_dt AND @MTENDDT != _mt_end_dt THEN
+		SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
 			AND ((MT_START_DT<=_mt_start_dt AND MT_END_DT>=_mt_start_dt) OR (MT_START_DT<=_mt_end_dt AND MT_END_DT>=_mt_end_dt));
+	END IF;
 	SELECT @CNT AS chkcnt;
 END;$$
 DELIMITER ;
