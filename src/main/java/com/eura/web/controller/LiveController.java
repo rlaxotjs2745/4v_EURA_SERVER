@@ -10,6 +10,7 @@ import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
 import com.eura.web.service.S3Service;
+import com.eura.web.service.S3VodService;
 import com.eura.web.util.CONSTANT;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import java.io.File;
 // import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -37,6 +39,10 @@ public class LiveController extends BaseController {
     private final FileServiceMapper fileServiceMapper;
     private final MeetMapper meetMapper;
     private final S3Service s3Service;
+    private final S3VodService s3VodService;
+
+    @Value("${srvinfo}")
+    public String srvinfo;
 
     @Value("${file.upload-dir}")
     public String filepath;
@@ -135,13 +141,19 @@ public class LiveController extends BaseController {
                     // if(req.getFiles("file").get(0).getSize() != 0){
                     //     fileList = req.getFiles("file");
                     // }
-                    // String path = "/meetmovie/" + meetingVO.getMcid() + "/";
-                    // String fullpath = this.filepath + path;
-                    // File fileDir = new File(fullpath);
-                    // if (!fileDir.exists()) {
-                    //     fileDir.mkdirs();
-                    // }
-                    String path = "/" + meetingVO.getMcid() + "/";
+                    String path = "";
+                    String fullpath = "";
+                    if(srvinfo=="dev"){
+                        path = "/meetmovie/" + meetingVO.getMcid() + "/";
+                        fullpath = this.filepath + path;
+                        File fileDir = new File(fullpath);
+                        if (!fileDir.exists()) {
+                            fileDir.mkdirs();
+                        }
+                    }else{
+                        path = "/" + meetingVO.getMcid() + "/";
+                    }
+
                     Type ulist = new TypeToken<ArrayList<MeetEndVO>>(){}.getType();
                     List<MeetEndVO> _fs0 = new Gson().fromJson(meetingVO.getFilelist(), ulist); 
                     for(MultipartFile mf : fileList) {
@@ -158,8 +170,11 @@ public class LiveController extends BaseController {
                                     _recordDt = _fs1.getRecord_dt();
                                 }
                             }
-                            s3Service.upload(mf, "upload" + path + originFileName);
-                            // mf.transferTo(new File(fullpath, originFileName));
+                            if(srvinfo=="dev"){
+                                mf.transferTo(new File(fullpath, originFileName));
+                            }else{
+                                s3VodService.upload(mf, "input" + path + originFileName);
+                            }
                             MeetingVO paramVo = new MeetingVO();
                             paramVo.setToken(meetingVO.getToken());
                             paramVo.setMcid(meetingVO.getMcid());

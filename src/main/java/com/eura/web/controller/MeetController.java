@@ -44,6 +44,9 @@ public class MeetController extends BaseController {
 
     private final AnalysisService analysisService;
 
+    @Value("${srvinfo}")
+    public String srvinfo;
+
     @Value("${file.upload-dir}")
     private String filepath;
 
@@ -82,7 +85,11 @@ public class MeetController extends BaseController {
                 ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
                 String _upic = "";
                 if(uPic != null && StringUtils.isNotEmpty(uPic.getFile_name())){
-                    _upic = filedomain + uPic.getFile_path() + uPic.getFile_name();
+                    if(srvinfo=="prod"){
+                        _upic = filedomain + uPic.getFile_path() + uPic.getFile_name();
+                    }else{
+                        _upic = filedomain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
+                    }
                 }
                 _rs.put("ui_pic", _upic);
                 
@@ -272,7 +279,11 @@ public class MeetController extends BaseController {
                     _irs.put("email", irs0.getUser_id());
                     String _upic = "";
                     if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                        _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                        if(srvinfo=="prod"){
+                            _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                        }else{
+                            _upic = filedomain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                        }
                     }
                     _irs.put("ui_pic", _upic);
                     _irss.add(_irs);
@@ -360,7 +371,11 @@ public class MeetController extends BaseController {
                     _frs.put("files", frs0.getFile_name());
                     String _furl = "";
                     if(StringUtils.isNotEmpty(frs0.getFile_name())){
-                        _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
+                        if(srvinfo=="prod"){
+                            _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
+                        }else{
+                            _furl = filedomain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                        }
                     }
                     _frs.put("download", _furl);
                     _frss.add(_frs);
@@ -448,7 +463,11 @@ public class MeetController extends BaseController {
 
                 String _pic = "";
                 if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                    _pic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                    if(srvinfo=="prod"){
+                        _pic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                    }else{
+                        _pic = filedomain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                    }
                 }
                 _irs.put("ui_pic", _pic);       // 참석자 프로필 사진
                 _irss.add(_irs);
@@ -840,7 +859,11 @@ public class MeetController extends BaseController {
                         _frs.put("fileSize", frs0.getFile_size());
                         String _furl = "";
                         if(StringUtils.isNotEmpty(frs0.getFile_name())){
-                            _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
+                            if(srvinfo=="prod"){
+                                _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
+                            }else{
+                                _furl = filedomain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                            }
                         }
                         _frs.put("download", _furl);
                         _frss.add(_frs);
@@ -857,7 +880,11 @@ public class MeetController extends BaseController {
                         _irs.put("email", irs0.getUser_email());
                         String _upic = "";
                         if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                            _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                            if(srvinfo=="prod"){
+                                _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
+                            }else{
+                                _upic = filedomain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                            }
                         }
                         _irs.put("ui_pic", _upic);
                         _irss.add(_irs);
@@ -1871,8 +1898,12 @@ public class MeetController extends BaseController {
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
                     String _furl = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        String _mpath = _mlist.getFile_name().replace(".mp4","");
-                        _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
+                        if(srvinfo=="prod"){
+                            String _mpath = _mlist.getFile_name().replace(".mp4","");
+                            _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
+                        }else{
+                            _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
+                        }
                     }
                     _ul.put("fileUrl", _furl);    // 영상
                     _mls.add(_ul);
@@ -1930,7 +1961,11 @@ public class MeetController extends BaseController {
                 _fl.put("idx",_flist.getIdx_attachment_file_info_join());    // 첨부파일 INDEX
                 String _furl = "";
                 if(StringUtils.isNotEmpty(_flist.getFile_name())){
-                    _furl = filedomain + _flist.getFile_path() + _flist.getFile_name();
+                    if(srvinfo=="prod"){
+                        _furl = filedomain + _flist.getFile_path() + _flist.getFile_name();
+                    }else{
+                        _furl = filedomain + "/download?fnm=" + _flist.getFile_path() + _flist.getFile_name();
+                    }
                 }
                 _fl.put("fileUrl",_furl);    // 첨부파일 URL
                 _fl.put("filename",_flist.getFile_name());       // 파일명
@@ -1989,7 +2024,11 @@ public class MeetController extends BaseController {
                         _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
                         String _upic = "";
                         if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                            _upic = filedomain + _ulist.getFile_path() + _ulist.getFile_name();
+                            if(srvinfo=="prod"){
+                                _upic = filedomain + _ulist.getFile_path() + _ulist.getFile_name();
+                            }else{
+                                _upic = filedomain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                            }
                         }
                         _ul.put("upic",_upic);    // 프로필 사진
                         if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){

@@ -46,6 +46,9 @@ public class RestAPIController extends BaseController {
 
     private final MeetingService meetingService;
 
+    @Value("${srvinfo}")
+    public String srvinfo;
+
     @Value("${file.upload-dir}")
     private String filepath;
 
@@ -343,7 +346,9 @@ public class RestAPIController extends BaseController {
             // UserVO findUserVO = userService.findUserById(getUserID(req));
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
-            s3Service.delete("upload"+findUserVO.getFile_path() + findUserVO.getFile_name());
+            if(srvinfo=="prod"){
+                s3Service.delete("upload"+findUserVO.getFile_path() + findUserVO.getFile_name());
+            }
             MeetingVO _frs = meetingService.saveFile(file, _path);
             ProfileInfoVO profileInfo = new ProfileInfoVO();
             profileInfo.setIdx_user(findUserVO.getIdx_user());
@@ -566,7 +571,11 @@ public class RestAPIController extends BaseController {
             
             String _upic = "";
             if (StringUtils.isNotEmpty(rs.getFile_name())) {
-                _upic = filedomain + rs.getFile_path() + rs.getFile_name();
+                if(srvinfo=="prod"){
+                    _upic = filedomain + rs.getFile_path() + rs.getFile_name();
+                }else{
+                    _upic = filedomain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+                }
             }
             _rs.put("user_pic", _upic);
             resultVO.setData(_rs);
