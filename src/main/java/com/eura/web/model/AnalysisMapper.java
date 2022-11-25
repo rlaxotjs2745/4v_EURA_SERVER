@@ -12,6 +12,8 @@ public interface AnalysisMapper {
     //미팅 중 감정 데이터 저장
     public Long insertAnalysisData(AnalysisVO analysisVO);
 
+    public void insertAnalysisDataUserRate(AnalysisVO analysisVO);
+
     public AnalysisVO getAnalysisData(MeetingVO meetingVO) throws Exception;
 
     public List<AnalysisVO> getUserAnalysisData(MeetingVO meetingVO);

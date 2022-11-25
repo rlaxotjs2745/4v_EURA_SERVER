@@ -2,6 +2,7 @@ package com.eura.web.controller;
 
 import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.base.BaseController;
+import com.eura.web.model.AnalysisMapper;
 import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 public class LiveController extends BaseController {
     private final AnalysisService analysisService;
     private final FileServiceMapper fileServiceMapper;
+    private final AnalysisMapper analysisMapper;
     private final MeetMapper meetMapper;
     private final S3Service s3Service;
     private final S3VodService s3VodService;
@@ -79,6 +81,7 @@ public class LiveController extends BaseController {
                 analysisVO.setToken(liveEmotionVO.getToken());
                 analysisVO.setTime_stamp(liveEmotionVO.getTimestamp());
                 analysisService.insertAnalysisData(analysisVO);
+                analysisMapper.insertAnalysisDataUserRate(analysisVO);
                 
                 List<MultipartFile> fileList = req.getFiles("file");
                 // if(req.getFiles("file").get(0).getSize() != 0){
@@ -87,18 +90,23 @@ public class LiveController extends BaseController {
 
                 if(fileList.size()>0){
                     String path = "/emotiondata/" + liveEmotionVO.getMcid() + "/" + _urs.getIdx_user() + "/";
-                    // String fullpath = this.filepath + path;
-                    // File fileDir = new File(fullpath);
-                    // if (!fileDir.exists()) {
-                    //     fileDir.mkdirs();
-                    // }
+                    String fullpath = this.filepath + path;
+                    if(srvinfo.equals("dev")){
+                        File fileDir = new File(fullpath);
+                        if (!fileDir.exists()) {
+                            fileDir.mkdirs();
+                        }
+                    }
         
                     for(MultipartFile mf : fileList) {
                         if(mf.getOriginalFilename()!=null){
                             String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                             try { // 파일생성
-                                // mf.transferTo(new File(fullpath, originFileName));
-                                s3Service.upload(mf, "upload" + path + originFileName);
+                                if(srvinfo.equals("dev")){
+                                    mf.transferTo(new File(fullpath, originFileName));
+                                }else{
+                                    s3Service.upload(mf, "upload" + path + originFileName);
+                                }
                                 MeetingVO paramVo = new MeetingVO();
                                 paramVo.setIdx_analysis(analysisVO.getIdx_analysis());
                                 paramVo.setFile_path(path);
@@ -143,7 +151,7 @@ public class LiveController extends BaseController {
                     // }
                     String path = "";
                     String fullpath = "";
-                    if(srvinfo=="dev"){
+                    if(srvinfo.equals("dev")){
                         path = "/meetmovie/" + meetingVO.getMcid() + "/";
                         fullpath = this.filepath + path;
                         File fileDir = new File(fullpath);
@@ -170,7 +178,7 @@ public class LiveController extends BaseController {
                                     _recordDt = _fs1.getRecord_dt();
                                 }
                             }
-                            if(srvinfo=="dev"){
+                            if(srvinfo.equals("dev")){
                                 mf.transferTo(new File(fullpath, originFileName));
                             }else{
                                 s3VodService.upload(mf, "input" + path + originFileName);

@@ -79,6 +79,12 @@
         )
     </insert>
 
+    <select id="insertAnalysisDataUserRate">
+        <![CDATA[
+            {call prc_meet_analysis_user(#{token}, #{mcid})}
+        ]]>
+        </select>
+
     <select id="getAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
         SELECT *
             FROM TB_ANALYSIS

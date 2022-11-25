@@ -343,7 +343,6 @@ public class RestAPIController extends BaseController {
                 resultVO.setResult_str("로그인 후 이용해주세요.");
                 return resultVO;
             }
-            // UserVO findUserVO = userService.findUserById(getUserID(req));
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
             if(srvinfo=="prod"){
@@ -571,10 +570,10 @@ public class RestAPIController extends BaseController {
             
             String _upic = "";
             if (StringUtils.isNotEmpty(rs.getFile_name())) {
-                if(srvinfo=="prod"){
-                    _upic = filedomain + rs.getFile_path() + rs.getFile_name();
-                }else{
+                if(srvinfo.equals("dev")){
                     _upic = filedomain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+                }else{
+                    _upic = filedomain + rs.getFile_path() + rs.getFile_name();
                 }
             }
             _rs.put("user_pic", _upic);

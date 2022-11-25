@@ -226,7 +226,7 @@ public class MeetingService extends BaseController {
         String originFileName = _file.getOriginalFilename();
         if(originFileName != ""){
             try { // 파일생성
-                if(domain!="https://api.eura.site"){
+                if(srvinfo.equals("dev")){
                     String fullpath = this.filepath + _path;
                     File fileDir = new File(fullpath);
                     if (!fileDir.exists()) {
@@ -263,7 +263,7 @@ public class MeetingService extends BaseController {
             }
             String path = "/meetroom/" + _idx + "/";
             String fullpath = this.filepath + path;
-            if(srvinfo=="dev"){
+            if(srvinfo.equals("dev")){
                 File fileDir = new File(fullpath);
                 if (!fileDir.exists()) {
                     fileDir.mkdirs();
@@ -273,7 +273,7 @@ public class MeetingService extends BaseController {
             for(MultipartFile mf : fileList) {
                 String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                 try { // 파일생성
-                    if(srvinfo=="dev"){
+                    if(srvinfo.equals("dev")){
                         mf.transferTo(new File(fullpath, originFileName));
                     }else{
                         s3Service.upload(mf, "upload" + path + originFileName);
@@ -303,18 +303,16 @@ public class MeetingService extends BaseController {
         try {
             String path = "/meetroom/" + _idx + "/";
             String fullpath = this.filepath + path;
-            if(srvinfo=="dev"){
+            if(srvinfo.equals("dev")){
                 File fileDir = new File(fullpath);
                 if (!fileDir.exists()) {
                     fileDir.mkdirs();
                 }
             }
-            // for(int ii=0;ii<_frss.size();ii++){
-                // Object _frsa = _frss.get(ii);
             for(MeetingVO _frsa : _frss){
                 String _sfnm = _frsa.getFile_name();
                 Long _sfze = Long.valueOf(_frsa.getFile_size().toString());
-                if(srvinfo=="dev"){
+                if(srvinfo.equals("dev")){
                     File file = new File(this.filepath + _frsa.getFile_path() + _sfnm);
                     File newFile = new File(fullpath + _sfnm);
                     FileUtils.copyFile(file, newFile);

@@ -49,4 +49,7 @@ public class MeetingVO extends BaseVO {
     private String filelist;
     private Integer duration;   // 영상 길이
     private String record_dt;   // 영상 녹화 시간
+
+    private Integer good;
+    private Integer bad;
 }
