@@ -1871,7 +1871,8 @@ public class MeetController extends BaseController {
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
                     String _furl = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        _furl = filedomain + _mlist.getFile_path() + _mlist.getFile_name();
+                        String _mpath = _mlist.getFile_name().replace(".mp4","");
+                        _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
                     }
                     _ul.put("fileUrl", _furl);    // 영상
                     _mls.add(_ul);
@@ -1885,7 +1886,7 @@ public class MeetController extends BaseController {
                 _rs.put("mtMovieFiles", null);
             }
             
-            SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss", Locale.KOREA);
+            // SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss", Locale.KOREA);
             SimpleDateFormat ff = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
             String _rdt = "";
             String _edt = "";
@@ -2014,8 +2015,6 @@ public class MeetController extends BaseController {
                     List<String> lvlList = userRateMap.getLvlList();
 
                     concentrationVO = analysisService.getMeetingRate(goodList, badList);
-
-                    // System.out.println("concentrationVO:" + new Gson().toJson(concentrationVO));
 
                     // 전체 집중도율
                     _tglist.put("good",concentrationVO.getGood());

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import java.io.File;
+// import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -135,12 +135,13 @@ public class LiveController extends BaseController {
                     // if(req.getFiles("file").get(0).getSize() != 0){
                     //     fileList = req.getFiles("file");
                     // }
-                    String path = "/meetmovie/" + meetingVO.getMcid() + "/";
+                    // String path = "/meetmovie/" + meetingVO.getMcid() + "/";
                     // String fullpath = this.filepath + path;
                     // File fileDir = new File(fullpath);
                     // if (!fileDir.exists()) {
                     //     fileDir.mkdirs();
                     // }
+                    String path = "/" + meetingVO.getMcid() + "/";
                     Type ulist = new TypeToken<ArrayList<MeetEndVO>>(){}.getType();
                     List<MeetEndVO> _fs0 = new Gson().fromJson(meetingVO.getFilelist(), ulist); 
                     for(MultipartFile mf : fileList) {
