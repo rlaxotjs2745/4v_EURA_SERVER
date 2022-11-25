@@ -79,11 +79,11 @@
         )
     </insert>
 
-    <select id="insertAnalysisDataUserRate">
-        <![CDATA[
-            {call prc_meet_analysis_user(#{token}, #{mcid})}
-        ]]>
-        </select>
+    <select id="insertAnalysisDataUserRate" statementType="CALLABLE">
+    <![CDATA[
+        {call prc_meet_analysis_user(#{token}, #{mcid})}
+    ]]>
+    </select>
 
     <select id="getAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
         SELECT *
