@@ -9,6 +9,7 @@ import com.eura.web.model.DTO.MeetEndVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
+import com.eura.web.service.S3Service;
 import com.eura.web.util.CONSTANT;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -35,9 +36,11 @@ public class LiveController extends BaseController {
     private final AnalysisService analysisService;
     private final FileServiceMapper fileServiceMapper;
     private final MeetMapper meetMapper;
+    private final S3Service s3Service;
 
     @Value("${file.upload-dir}")
     public String filepath;
+    
 
     /**
      * 참석자 감정 분석 자료
@@ -78,17 +81,18 @@ public class LiveController extends BaseController {
 
                 if(fileList.size()>0){
                     String path = "/emotiondata/" + liveEmotionVO.getMcid() + "/" + _urs.getIdx_user() + "/";
-                    String fullpath = this.filepath + path;
-                    File fileDir = new File(fullpath);
-                    if (!fileDir.exists()) {
-                        fileDir.mkdirs();
-                    }
+                    // String fullpath = this.filepath + path;
+                    // File fileDir = new File(fullpath);
+                    // if (!fileDir.exists()) {
+                    //     fileDir.mkdirs();
+                    // }
         
                     for(MultipartFile mf : fileList) {
                         if(mf.getOriginalFilename()!=null){
                             String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                             try { // 파일생성
-                                mf.transferTo(new File(fullpath, originFileName));
+                                // mf.transferTo(new File(fullpath, originFileName));
+                                s3Service.upload(mf, "upload" + path + originFileName);
                                 MeetingVO paramVo = new MeetingVO();
                                 paramVo.setIdx_analysis(analysisVO.getIdx_analysis());
                                 paramVo.setFile_path(path);
@@ -132,11 +136,11 @@ public class LiveController extends BaseController {
                     //     fileList = req.getFiles("file");
                     // }
                     String path = "/meetmovie/" + meetingVO.getMcid() + "/";
-                    String fullpath = this.filepath + path;
-                    File fileDir = new File(fullpath);
-                    if (!fileDir.exists()) {
-                        fileDir.mkdirs();
-                    }
+                    // String fullpath = this.filepath + path;
+                    // File fileDir = new File(fullpath);
+                    // if (!fileDir.exists()) {
+                    //     fileDir.mkdirs();
+                    // }
                     Type ulist = new TypeToken<ArrayList<MeetEndVO>>(){}.getType();
                     List<MeetEndVO> _fs0 = new Gson().fromJson(meetingVO.getFilelist(), ulist); 
                     for(MultipartFile mf : fileList) {
@@ -153,7 +157,8 @@ public class LiveController extends BaseController {
                                     _recordDt = _fs1.getRecord_dt();
                                 }
                             }
-                            mf.transferTo(new File(fullpath, originFileName));
+                            s3Service.upload(mf, "upload" + path + originFileName);
+                            // mf.transferTo(new File(fullpath, originFileName));
                             MeetingVO paramVo = new MeetingVO();
                             paramVo.setToken(meetingVO.getToken());
                             paramVo.setMcid(meetingVO.getMcid());
