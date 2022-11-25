@@ -24,7 +24,7 @@ import com.eura.web.model.UserMapper;
 import com.eura.web.service.MeetingService;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.TokenJWT;
-import com.google.gson.Gson;
+// import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +49,12 @@ public class MeetController extends BaseController {
 
     @Value("${domain}")
     private String domain;
+
+    @Value("${filedomain}")
+    private String filedomain;
+
+    @Value("${voddomain}")
+    private String voddomain;
 
     /**
      * 미팅 메인
@@ -76,7 +82,7 @@ public class MeetController extends BaseController {
                 ProfileInfoVO uPic = fileServiceMapper.selectUserProfileFile(uInfo.getIdx_user());
                 String _upic = "";
                 if(uPic != null && StringUtils.isNotEmpty(uPic.getFile_name())){
-                    _upic = domain + "/pic?fnm=" + uPic.getFile_path() + uPic.getFile_name();
+                    _upic = filedomain + uPic.getFile_path() + uPic.getFile_name();
                 }
                 _rs.put("ui_pic", _upic);
                 
@@ -124,8 +130,7 @@ public class MeetController extends BaseController {
                 return resultVO;
             }
             meetingVO.setIdx_user(uInfo.getIdx_user());
-            if(meetingVO.getCurrentPage() == null){
-                meetingVO.setCurrentPage(1);
+            if(meetingVO.getCurrentPage() != null){
                 meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
                 meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             }
@@ -186,11 +191,10 @@ public class MeetController extends BaseController {
                 return resultVO;
             }
             meetingVO.setIdx_user(uInfo.getIdx_user());
-            if(meetingVO.getCurrentPage() == null){
-                meetingVO.setCurrentPage(1);
+            if(meetingVO.getCurrentPage() != null){
+                meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
+                meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             }
-            meetingVO.setRecordCountPerPage(CONSTANT.default_pageblock);
-            meetingVO.setFirstIndex((meetingVO.getCurrentPage()-1) * CONSTANT.default_pageblock);
             Map<String, Object> _rs = new HashMap<String, Object>();
 
             // 개인화 - 지난 미팅
@@ -268,7 +272,7 @@ public class MeetController extends BaseController {
                     _irs.put("email", irs0.getUser_id());
                     String _upic = "";
                     if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                        _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                        _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
                     }
                     _irs.put("ui_pic", _upic);
                     _irss.add(_irs);
@@ -317,6 +321,11 @@ public class MeetController extends BaseController {
                     resultVO.setResult_str("미팅이 종료되어 분석 페이지로 이동합니다.");
                     return resultVO;
                 }
+
+                if(rs.getIs_live()==0 && getDateTimeDiff(rs.getMt_end_dt(),new Date())<0){
+                    resultVO.setResult_str("종료된 미팅입니다.");
+                    return resultVO;
+                }
                 
                 String _auth = "0"; // 게스트 권한 부여
 
@@ -351,7 +360,7 @@ public class MeetController extends BaseController {
                     _frs.put("files", frs0.getFile_name());
                     String _furl = "";
                     if(StringUtils.isNotEmpty(frs0.getFile_name())){
-                        _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                        _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
                     }
                     _frs.put("download", _furl);
                     _frss.add(_frs);
@@ -439,7 +448,7 @@ public class MeetController extends BaseController {
 
                 String _pic = "";
                 if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                    _pic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                    _pic = filedomain + irs0.getFile_path() + irs0.getFile_name();
                 }
                 _irs.put("ui_pic", _pic);       // 참석자 프로필 사진
                 _irss.add(_irs);
@@ -831,7 +840,7 @@ public class MeetController extends BaseController {
                         _frs.put("fileSize", frs0.getFile_size());
                         String _furl = "";
                         if(StringUtils.isNotEmpty(frs0.getFile_name())){
-                            _furl = domain + "/download?fnm=" + frs0.getFile_path() + frs0.getFile_name();
+                            _furl = filedomain + frs0.getFile_path() + frs0.getFile_name();
                         }
                         _frs.put("download", _furl);
                         _frss.add(_frs);
@@ -848,7 +857,7 @@ public class MeetController extends BaseController {
                         _irs.put("email", irs0.getUser_email());
                         String _upic = "";
                         if(StringUtils.isNotEmpty(irs0.getFile_name())){
-                            _upic = domain + "/pic?fnm=" + irs0.getFile_path() + irs0.getFile_name();
+                            _upic = filedomain + irs0.getFile_path() + irs0.getFile_name();
                         }
                         _irs.put("ui_pic", _upic);
                         _irss.add(_irs);
@@ -902,10 +911,6 @@ public class MeetController extends BaseController {
                 */
                 if(meetingVO.getMt_remind_type()==null){
                     meetingVO.setMt_remind_type(0);
-                // }else{
-                //     if(!Character.isDigit(meetingVO.getMt_remind_type())){
-                //         meetingVO.setMt_remind_type(0);
-                //     }
                 }
                 if(StringUtils.isEmpty(meetingVO.getMt_end_dt()) && meetingVO.getMt_remind_type()>0){
                     resultVO.setResult_str("미팅 종료 날짜를 골라주세요.");
@@ -1866,7 +1871,7 @@ public class MeetController extends BaseController {
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
                     String _furl = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        _furl = domain + "/pic?fnm="+ _mlist.getFile_path() + _mlist.getFile_name();
+                        _furl = filedomain + _mlist.getFile_path() + _mlist.getFile_name();
                     }
                     _ul.put("fileUrl", _furl);    // 영상
                     _mls.add(_ul);
@@ -1924,7 +1929,7 @@ public class MeetController extends BaseController {
                 _fl.put("idx",_flist.getIdx_attachment_file_info_join());    // 첨부파일 INDEX
                 String _furl = "";
                 if(StringUtils.isNotEmpty(_flist.getFile_name())){
-                    _furl = domain + "/pic?fnm=" + _flist.getFile_path() + _flist.getFile_name();
+                    _furl = filedomain + _flist.getFile_path() + _flist.getFile_name();
                 }
                 _fl.put("fileUrl",_furl);    // 첨부파일 URL
                 _fl.put("filename",_flist.getFile_name());       // 파일명
@@ -1983,7 +1988,7 @@ public class MeetController extends BaseController {
                         _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
                         String _upic = "";
                         if(StringUtils.isNotEmpty(_ulist.getFile_name())){
-                            _upic = domain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                            _upic = filedomain + _ulist.getFile_path() + _ulist.getFile_name();
                         }
                         _ul.put("upic",_upic);    // 프로필 사진
                         if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){

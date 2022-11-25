@@ -35,13 +35,14 @@ public class RestAPIController extends BaseController {
     private final UserService userService;
     private final UserMapper userMapper;
     private final MeetMapper meetMapper;
-    private final S3Service s3Service;
 
     @Resource(name = "profileFileService")
     public ProfileFileService profileFileService;
 
     @Resource(name = "mailService")
     public MailService mailService;
+
+    private final S3Service s3Service;
 
     private final MeetingService meetingService;
 
@@ -53,6 +54,9 @@ public class RestAPIController extends BaseController {
 
     @Value("${w3domain}")
     private String w3domain;
+
+    @Value("${filedomain}")
+    private String filedomain;
     
     /**
      * 로그인 확인
@@ -339,6 +343,7 @@ public class RestAPIController extends BaseController {
             // UserVO findUserVO = userService.findUserById(getUserID(req));
 
             String _path = "/profile/" + findUserVO.getIdx_user() + "/";
+            s3Service.delete("upload"+findUserVO.getFile_path() + findUserVO.getFile_name());
             MeetingVO _frs = meetingService.saveFile(file, _path);
             ProfileInfoVO profileInfo = new ProfileInfoVO();
             profileInfo.setIdx_user(findUserVO.getIdx_user());
@@ -561,7 +566,7 @@ public class RestAPIController extends BaseController {
             
             String _upic = "";
             if (StringUtils.isNotEmpty(rs.getFile_name())) {
-                _upic = domain + "/pic?fnm=" + rs.getFile_path() + rs.getFile_name();
+                _upic = filedomain + rs.getFile_path() + rs.getFile_name();
             }
             _rs.put("user_pic", _upic);
             resultVO.setData(_rs);

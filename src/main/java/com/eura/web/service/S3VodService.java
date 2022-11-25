@@ -10,7 +10,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-// import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 
 @Service
-public class S3Service {
+public class S3VodService {
     private AmazonS3 s3Client;
 
     @Value("${cloud.aws.credentials.accessKey}")
@@ -30,7 +29,7 @@ public class S3Service {
     @Value("${cloud.aws.credentials.secretKey}")
     private String secretKey;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.vod.bucket}")
     private String bucket;
 
     @Value("${cloud.aws.region.static}")
@@ -51,13 +50,10 @@ public class S3Service {
     }
 
     // PutObjectRequest는 Aws s3 버킷에 업로드할 객체 메타 데이터와 파일 데이터로 이루어져 있다.
-    private String uploadToS3(PutObjectRequest putObjectRequest, String key) {
+    private void uploadToS3(PutObjectRequest putObjectRequest, String key) {
         String _url = "";
         try {
             this.s3Client.putObject(putObjectRequest);
-            // System.out.println(String.format("[%s] upload complete", putObjectRequest.getKey()));
-            // System.out.println(s3Client.getUrl(bucket, key).toString());
-            _url = s3Client.getUrl(bucket, key).toString();
         } catch (AmazonServiceException e) {
             e.printStackTrace();
         } catch (SdkClientException e) {
@@ -65,19 +61,16 @@ public class S3Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return _url;
     }
 
     // 복사 메서드
-    public void copy(String orgkey, String copyKey) throws Exception {
+    public void copy(String orgkey, String copyKey) {
         try {
             // copy 객체 생성
             CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, orgkey, bucket, copyKey);
 
             // copy
             this.s3Client.copyObject(copyObjectRequest);
-
-            // System.out.printf(String.format("Finish copying [%s] to [%s]"), orgkey, copyKey);
         } catch (AmazonServiceException e) {
             e.printStackTrace();
         } catch (SdkClientException e) {
@@ -86,15 +79,13 @@ public class S3Service {
     }
 
     // 삭제 메서드
-    public void delete(String key) throws Exception {
+    public void delete(String key) {
         try {
             // Delete 객체 생성
             DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, key);
 
             // Delete
             this.s3Client.deleteObject(deleteObjectRequest);
-
-            // System.out.printf(key);
         } catch (AmazonServiceException e) {
             e.printStackTrace();
         } catch (SdkClientException e) {

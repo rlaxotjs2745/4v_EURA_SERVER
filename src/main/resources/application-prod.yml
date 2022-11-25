@@ -35,4 +35,5 @@ mail:
 
 domain: https://api.eura.site
 w3domain: https://eura.site
-filedomain: https://file.eura.site
+filedomain: https://file.eura.site/upload
+voddomain: https://vod.eura.site

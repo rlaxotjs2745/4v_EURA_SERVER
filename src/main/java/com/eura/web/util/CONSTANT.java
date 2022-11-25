@@ -18,4 +18,6 @@ public class CONSTANT {
     public static Integer mdatasec = 10;
     public static String rurl = "/mt/";
     public static String REGEXPW = "(?=.*\\d{1,50})(?=.*[~`!@#$%\\^&*()-+=]{1,50})(?=.*[a-zA-Z]{2,50}).{10,20}$";
+
+    public static String _movieUrl = "/Default/HLS/";
 }

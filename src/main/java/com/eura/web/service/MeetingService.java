@@ -40,6 +40,9 @@ public class MeetingService extends BaseController {
     private UserService userService;
 
     @Autowired
+    private S3Service s3Service;
+
+    @Autowired
     private FileServiceMapper fileServiceMapper;
 
     @Value("${file.upload-dir}")
@@ -219,14 +222,15 @@ public class MeetingService extends BaseController {
         MeetingVO paramVo = new MeetingVO();
         String originFileName = _file.getOriginalFilename();
         if(originFileName != ""){
-            String fullpath = this.filepath + _path;
-            File fileDir = new File(fullpath);
-            if (!fileDir.exists()) {
-                fileDir.mkdirs();
-            }
+            // String fullpath = this.filepath + _path;
+            // File fileDir = new File(fullpath);
+            // if (!fileDir.exists()) {
+            //     fileDir.mkdirs();
+            // }
 
             try { // 파일생성
-                _file.transferTo(new File(fullpath, originFileName));
+                s3Service.upload(_file, "upload" + _path + originFileName);
+                // _file.transferTo(new File(fullpath, originFileName));
                 paramVo.setFile_path(_path);
                 paramVo.setFile_name(originFileName);
                 paramVo.setFile_size(_file.getSize());
@@ -253,16 +257,17 @@ public class MeetingService extends BaseController {
                 fileList = req.getFiles("file");
             }
             String path = "/meetroom/" + _idx + "/";
-            String fullpath = this.filepath + path;
-            File fileDir = new File(fullpath);
-            if (!fileDir.exists()) {
-                fileDir.mkdirs();
-            }
+            // String fullpath = this.filepath + path;
+            // File fileDir = new File(fullpath);
+            // if (!fileDir.exists()) {
+            //     fileDir.mkdirs();
+            // }
 
             for(MultipartFile mf : fileList) {
                 String originFileName = mf.getOriginalFilename();   // 원본 파일 명
                 try { // 파일생성
-                    mf.transferTo(new File(fullpath, originFileName));
+                    s3Service.upload(mf, "upload" + path + originFileName);
+                    // mf.transferTo(new File(fullpath, originFileName));
                     MeetingVO paramVo = new MeetingVO();
                     paramVo.setIdx_meeting(_idx);
                     paramVo.setFile_path(path);
@@ -287,19 +292,20 @@ public class MeetingService extends BaseController {
     public void meetFileCopy(Integer _idx, List<MeetingVO> _frss) throws Exception {
         try {
             String path = "/meetroom/" + _idx + "/";
-            String fullpath = this.filepath + path;
-            File fileDir = new File(fullpath);
-            if (!fileDir.exists()) {
-                fileDir.mkdirs();
-            }
+            // String fullpath = this.filepath + path;
+            // File fileDir = new File(fullpath);
+            // if (!fileDir.exists()) {
+            //     fileDir.mkdirs();
+            // }
             // for(int ii=0;ii<_frss.size();ii++){
                 // Object _frsa = _frss.get(ii);
             for(MeetingVO _frsa : _frss){
                 String _sfnm = _frsa.getFile_name();
                 Long _sfze = Long.valueOf(_frsa.getFile_size().toString());
-                File file = new File(this.filepath + _frsa.getFile_path() + _sfnm);
-                File newFile = new File(fullpath + _sfnm);
-                FileUtils.copyFile(file, newFile);
+                s3Service.copy("upload"+_frsa.getFile_path() + _sfnm, "upload" + path + _sfnm);
+                // File file = new File(this.filepath + _frsa.getFile_path() + _sfnm);
+                // File newFile = new File(fullpath + _sfnm);
+                // FileUtils.copyFile(file, newFile);
 
                 MeetingVO paramVo = new MeetingVO();
                 paramVo.setIdx_meeting(_idx);

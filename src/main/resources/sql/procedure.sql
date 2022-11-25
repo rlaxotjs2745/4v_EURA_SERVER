@@ -39,10 +39,15 @@ CREATE DEFINER=`eura_user`@`%` PROCEDURE `eura_db`.`prc_meet_chkRoomDupDate`(
 )
 BEGIN
 	SET @CNT = 0;
-	SELECT MT_START_DT, MT_END_DT INTO @MTSTARTDT, @MTENDDT FROM TB_MEETING WHERE IDX_MEETING=_idx_meeting;
-	IF @MTSTARTDT != _mt_start_dt AND @MTENDDT != _mt_end_dt THEN
+	IF _idx_meeting IS NOT NULL THEN
+		SELECT MT_START_DT, MT_END_DT INTO @MTSTARTDT, @MTENDDT FROM TB_MEETING WHERE IDX_MEETING=_idx_meeting;
+		IF @MTSTARTDT != _mt_start_dt AND @MTENDDT != _mt_end_dt THEN
+			SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
+				AND ((MT_START_DT<=_mt_start_dt AND MT_END_DT>=_mt_start_dt) OR (MT_START_DT<=_mt_end_dt AND MT_END_DT>=_mt_end_dt));
+		END IF;
+	ELSE
 		SELECT COUNT(1) INTO @CNT FROM TB_MEETING WHERE IDX_USER=_idx_user AND DELETE_STAT=0
-			AND ((MT_START_DT<=_mt_start_dt AND MT_END_DT>=_mt_start_dt) OR (MT_START_DT<=_mt_end_dt AND MT_END_DT>=_mt_end_dt));
+				AND ((MT_START_DT<=_mt_start_dt AND MT_END_DT>=_mt_start_dt) OR (MT_START_DT<=_mt_end_dt AND MT_END_DT>=_mt_end_dt));
 	END IF;
 	SELECT @CNT AS chkcnt;
 END;$$
