@@ -143,7 +143,7 @@ public class MeetController extends BaseController {
             }
             Map<String, Object> _rs = new HashMap<String, Object>();
 
-            Long mInfoCnt = meetMapper.getMyMeetListCount(1);   // 참여중인 미팅룸 총 수
+            Long mInfoCnt = meetMapper.getMyMeetListCount(uInfo.getIdx_user());   // 참여중인 미팅룸 총 수
 
             if(meetingVO.getPageSort()==null){
                 meetingVO.setPageSort(1);
@@ -1886,7 +1886,8 @@ public class MeetController extends BaseController {
 
             // 시간
             String _chkHour = meetingInfo.getMt_start_dt().split("\\s")[1];
-            _rs.put("mtMeetiTime", _chkHour.substring(0,5) + " ~ " + _chkHour.substring(0,5));
+            String _chkHour2 = meetingInfo.getMt_end_dt().split("\\s")[1];
+            _rs.put("mtMeetiTime", _chkHour.substring(0,5) + " ~ " + _chkHour2.substring(0,5));
 
             if(meetingVO.getFile_no()==null){
                 meetingVO.setFile_no(1);
@@ -1906,15 +1907,19 @@ public class MeetController extends BaseController {
                     _ul.put("recordDt",_mlist.getRecord_dt());    // 녹화 시작 시간
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
                     String _furl = "";
+                    String _furl2 = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        if(!voddomain.equals("https://vod.eura.site")){
+                        if(srvinfo.equals("dev")){
                             _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
+                            _furl2 = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                         }else{
                             String _mpath = _mlist.getFile_name().replace(".mp4","");
                             _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
+                            _furl2 = voddomain + "/input" + _mlist.getFile_path().replace("/meetmovie","") + _mlist.getFile_name();
                         }
                     }
                     _ul.put("fileUrl", _furl);    // 영상
+                    _ul.put("fileUrl2", _furl2);    // 영상
                     _mls.add(_ul);
 
                     if(meetingVO.getFile_no()==_mlist.getFile_no()){
@@ -2010,12 +2015,12 @@ public class MeetController extends BaseController {
 
                         // 개인 오른쪽 집중도
                         if(_auth==1 || _uin.getIdx_user() == concentrationVO.getIdx_meeting_user_join()){
-                            _ul.put("goodValue",concentrationVO.getGood());    // 집중도
-                            _ul.put("badValue",concentrationVO.getBad());    // 집중도
-                            _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
+                            _ul.put("goodValue",Math.round(concentrationVO.getGood()));    // 집중도
+                            _ul.put("badValue",Math.round(concentrationVO.getBad()));    // 집중도
+                            _ul.put("cameraOffValue",Math.round(concentrationVO.getCameraOff()));    // 집중도
 
                             if(concentrationVO.getGood() > 0 && concentrationVO.getBad() > 0){
-                                _ul.put("value", ((concentrationVO.getGood() / (concentrationVO.getGood()+concentrationVO.getBad()) * 100)));    // 집중도
+                                _ul.put("value", Math.round(((concentrationVO.getGood() / (concentrationVO.getGood()+concentrationVO.getBad()) * 100))));    // 집중도
                             }else{
                                 _ul.put("value", 0.0);    // 집중도
                             }
@@ -2065,9 +2070,9 @@ public class MeetController extends BaseController {
                     concentrationVO = analysisService.getMeetingRate(goodList, badList);
 
                     // 전체 집중도율
-                    _tglist.put("good",concentrationVO.getGood());
-                    _tglist.put("bad",concentrationVO.getBad());
-                    _tglist.put("off",concentrationVO.getCameraOff());
+                    _tglist.put("good",Math.round(concentrationVO.getGood()));
+                    _tglist.put("bad",Math.round(concentrationVO.getBad()));
+                    _tglist.put("off",Math.round(concentrationVO.getCameraOff()));
                     
                     // 전체 분석 상단 그래프 데이터
                     for(int i = 0;i<goodList.size();i++){
@@ -2106,8 +2111,8 @@ public class MeetController extends BaseController {
             if(_auth==0){
                 // 참석자 용
                 // 개인 인디게이터 데이터
+                ArrayList<Object> _dlists = new ArrayList<Object>();
                 if(!_livein.equals(0)){
-                    ArrayList<Object> _dlists = new ArrayList<Object>();
                     Map<String, Object> _d2list = new HashMap<String, Object>();
 
                     MeetingVO _ulinfo = new MeetingVO();
@@ -2123,7 +2128,6 @@ public class MeetController extends BaseController {
                             _dlist.put("bad",paramVo.getBad()*-1);  // GOOD~BAD 100 ~ -100
                             _dlists.add(_dlist);
                         }
-                        _rs.put("mtData0", _dlists);
 
                         concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
@@ -2133,11 +2137,17 @@ public class MeetController extends BaseController {
                         _d2list.put("off",Math.round(concentrationVO.getCameraOff()));  // OFF
                         _d2list.put("tcnt",0); // 현재 점수
                         _d2list.put("acnt",0); // 누적 평균
+                    }else{
+                        _d2list.put("good",0); // GOOD
+                        _d2list.put("bad",0);  // BAD
+                        _d2list.put("off",0);  // OFF
+                        _d2list.put("tcnt",0); // 현재 점수
+                        _d2list.put("acnt",0); // 누적 평균
                     }
-
+                    _rs.put("mtData0", _dlists);
                     _rs.put("mtData1", _d2list);
                 }else{
-                    _rs.put("mtData0", null);
+                    _rs.put("mtData0", _dlists);
 
                     Map<String, Object> _d2list = new HashMap<String, Object>();
                     _d2list.put("good",0); // GOOD
@@ -2218,9 +2228,9 @@ public class MeetController extends BaseController {
                 ConcentrationVO concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
                 // 분석 요약 데이터
-                _d2list.put("good",concentrationVO.getGood()); // GOOD
-                _d2list.put("bad",concentrationVO.getBad()*-1);  // BAD
-                _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                _d2list.put("good",Math.round(concentrationVO.getGood())); // GOOD
+                _d2list.put("bad",Math.round(concentrationVO.getBad()*-1));  // BAD
+                _d2list.put("off",Math.round(concentrationVO.getCameraOff()));  // OFF
                 _d2list.put("tcnt",0); // 현재 점수
                 _d2list.put("acnt",0); // 누적 평균
                 _rs.put("mtData1", _d2list);

@@ -10,7 +10,9 @@ import java.util.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.eura.web.model.UserMapper;
 import com.eura.web.model.DTO.UserVO;
@@ -20,6 +22,9 @@ import com.google.gson.reflect.TypeToken;
 public class BaseController {
     @Autowired
     private UserMapper userMapper;
+
+    @Value("${srvinfo}")
+    public String srvinfo;
 
     public String getBrowser(HttpServletRequest req) {
         String userAgent = req.getHeader("User-Agent");
@@ -218,11 +223,26 @@ public class BaseController {
      */
     public UserVO getChkUserLogin(HttpServletRequest req) throws Exception{
         UserVO rs = new UserVO();
-        String a = req.getHeader("uid");
-        if(a != null || !a.equals("") || !a.isEmpty()){
-            rs = userMapper.getUserInfoById(a);
-        }
-        if(rs == null){
+        if(srvinfo.equals("dev")){
+            String a = req.getHeader("uid");
+            if(a != null || StringUtils.isNotEmpty(a)){
+                rs = userMapper.getUserInfoById(a);
+            }
+            if(rs == null){
+                if(req.getCookies() != null){
+                    Cookie o[] = req.getCookies();
+                    if(o!=null){
+                        for (Cookie c : o) {
+                            if(c.getName().equals("user_id")){
+                                if(!c.getValue().isEmpty()){
+                                    rs = userMapper.getUserInfoById(c.getValue());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
             if(req.getCookies() != null){
                 Cookie o[] = req.getCookies();
                 if(o!=null){
@@ -247,26 +267,10 @@ public class BaseController {
      */
     public String getUserID(HttpServletRequest req) throws Exception{
         String rs = "";
-        String a = req.getHeader("uid");
-        System.out.println(req.getHeader("uid"));
-        if(a == null){
-            if(req.getCookies() != null){
-                Cookie o[] = req.getCookies();
-                if(o!=null){
-                    for (Cookie c : o) {
-                        if(c.getName().equals("user_id")){
-                            if(!c.getValue().isEmpty()){
-                                rs = c.getValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }else{
-            if(a != null || !a.equals("") || !a.isEmpty()){
-                rs = req.getHeader("uid");
-            }
-            if(rs == ""){
+        if(srvinfo.equals("dev")){
+            String a = req.getHeader("uid");
+            System.out.println(req.getHeader("uid"));
+            if(a == null){
                 if(req.getCookies() != null){
                     Cookie o[] = req.getCookies();
                     if(o!=null){
@@ -275,6 +279,37 @@ public class BaseController {
                                 if(!c.getValue().isEmpty()){
                                     rs = c.getValue();
                                 }
+                            }
+                        }
+                    }
+                }
+            }else{
+                if(a != null || !a.equals("") || !a.isEmpty()){
+                    rs = req.getHeader("uid");
+                }
+                if(rs == ""){
+                    if(req.getCookies() != null){
+                        Cookie o[] = req.getCookies();
+                        if(o!=null){
+                            for (Cookie c : o) {
+                                if(c.getName().equals("user_id")){
+                                    if(!c.getValue().isEmpty()){
+                                        rs = c.getValue();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }else{
+            if(req.getCookies() != null){
+                Cookie o[] = req.getCookies();
+                if(o!=null){
+                    for (Cookie c : o) {
+                        if(c.getName().equals("user_id")){
+                            if(!c.getValue().isEmpty()){
+                                rs = c.getValue();
                             }
                         }
                     }
@@ -299,29 +334,6 @@ public class BaseController {
                     if(c.getName().equals("user_id")){
                         if(!c.getValue().isEmpty()){
                             rs = userMapper.getUserInfoById(c.getValue());
-                        }
-                    }
-                }
-            }
-        }
-        return rs;
-    }
-
-    /**
-     * 쿠키에서 아이디 가져오기
-     * @param req
-     * @return String
-     * @throws Exception
-     */
-    public String getUserID2(HttpServletRequest req) throws Exception{
-        String rs = "";
-        if(req.getCookies() != null){
-            Cookie o[] = req.getCookies();
-            if(o!=null){
-                for (Cookie c : o) {
-                    if(c.getName().equals("user_id")){
-                        if(!c.getValue().isEmpty()){
-                            rs = c.getValue();
                         }
                     }
                 }
