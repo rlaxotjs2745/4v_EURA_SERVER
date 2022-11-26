@@ -320,10 +320,11 @@ public class MeetController extends BaseController {
             meetingVO.setIdx_user(uInfo.getIdx_user());   // 미팅룸 호스트
             MeetingVO rs = meetMapper.getRoomInfo(meetingVO);
             if(rs!=null){
-                // 공개 상태 이외에서는 호스트만 볼 수 있게
-                if(rs.getMt_status()!=1 && !rs.getIdx_user().equals(uInfo.getIdx_user())){
-                    resultVO.setResult_str("미팅룸에 참여할 권한이 없습니다.");
-                    return resultVO;
+                String _auth = "0"; // 게스트 권한 부여
+
+                // 호스트 권한 부여
+                if(rs.getIdx_user().equals(uInfo.getIdx_user())){
+                    _auth = "1";
                 }
 
                 // 미팅이 종료된 상태는 분석 페이지로 이동하게
@@ -332,18 +333,19 @@ public class MeetController extends BaseController {
                     resultVO.setResult_str("미팅이 종료되어 분석 페이지로 이동합니다.");
                     return resultVO;
                 }
-
-                if(rs.getIs_live()==0 && getDateTimeDiff(rs.getMt_end_dt(),new Date())<0){
-                    resultVO.setResult_str("종료된 미팅입니다.");
-                    return resultVO;
-                }
                 
-                String _auth = "0"; // 게스트 권한 부여
-
-                // 호스트 권한 부여
-                if(rs.getIdx_user().equals(uInfo.getIdx_user())){
-                    _auth = "1";
+                if(_auth.equals("0")){
+                    // 공개 상태 이외에서는 호스트만 볼 수 있게
+                    if(rs.getMt_status()!=1){
+                        resultVO.setResult_str("미팅룸에 참여할 권한이 없습니다.");
+                        return resultVO;
+                    }
+                    if(rs.getIs_live()==0 && getDateTimeDiff(rs.getMt_end_dt(),new Date())<0){
+                        resultVO.setResult_str("종료된 미팅입니다.");
+                        return resultVO;
+                    }
                 }
+
                 Map<String, Object> _rs = new HashMap<String, Object>();
                 _rs.put("mt_ishost", _auth);
                 _rs.put("mt_name", rs.getMt_name());
@@ -1863,8 +1865,12 @@ public class MeetController extends BaseController {
             // 참석여부
             Integer _livein = 0;
             MeetingVO _uin = meetMapper.chkMeetLiveJoin(meetingVO);
-            if(_uin!=null && StringUtils.isNotEmpty(_uin.getToken())){
-                _livein = 1;
+            if(_uin!=null){
+                if(StringUtils.isNotEmpty(_uin.getToken())){
+                    _livein = 1;
+                }else{
+                    _livein = 2;
+                }
             }
             if(_uin==null){
                 resultVO.setResult_str("미팅룸 참석자가 아닙니다.");
@@ -1901,7 +1907,7 @@ public class MeetController extends BaseController {
                     _ul.put("filename",_mlist.getFile_name());    // 파일명
                     String _furl = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        if(srvinfo.equals("dev")){
+                        if(!voddomain.equals("https://vod.eura.site")){
                             _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                         }else{
                             String _mpath = _mlist.getFile_name().replace(".mp4","");
@@ -1983,7 +1989,7 @@ public class MeetController extends BaseController {
 
             // 미팅 분석 결과(강의 참여자 명단) - 미팅 참석자도 참석자 전체 목록 리스팅
             List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
-            if(_ulists!=null){
+            if(_ulists!=null && !_livein.equals(0)){
                 Integer _joincnt = 0;
                 ArrayList<Object> _uls = new ArrayList<Object>();
                 List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
@@ -2100,15 +2106,15 @@ public class MeetController extends BaseController {
             if(_auth==0){
                 // 참석자 용
                 // 개인 인디게이터 데이터
-                if(_livein == 1){
+                if(!_livein.equals(0)){
                     ArrayList<Object> _dlists = new ArrayList<Object>();
                     Map<String, Object> _d2list = new HashMap<String, Object>();
 
                     MeetingVO _ulinfo = new MeetingVO();
                     _ulinfo.setIdx_meeting(meetingVO.getIdx_meeting());
-                    _ulinfo.setIdx_user(meetingVO.getIdx_user());
+                    _ulinfo.setIdx_user(uInfo.getIdx_user());
                     analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
-                    if(analysisVOList!=null){
+                    if(analysisVOList!=null && analysisVOList.size()>0){
                         personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
                         for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
                             Map<String, Object> _dlist = new HashMap<String, Object>();
@@ -2132,7 +2138,15 @@ public class MeetController extends BaseController {
                     _rs.put("mtData1", _d2list);
                 }else{
                     _rs.put("mtData0", null);
-                    _rs.put("mtData1", null);
+
+                    Map<String, Object> _d2list = new HashMap<String, Object>();
+                    _d2list.put("good",0); // GOOD
+                    _d2list.put("bad",0);  // BAD
+                    _d2list.put("off",0);  // OFF
+                    _d2list.put("tcnt",0); // 현재 점수
+                    _d2list.put("acnt",0); // 누적 평균
+
+                    _rs.put("mtData1", _d2list);
                 }
             }
 
@@ -2190,7 +2204,7 @@ public class MeetController extends BaseController {
             // _ulinfo.setI?dx_meeting(meetingVO.getIdx_meeting());
             _ulinfo.setIdx_meeting_user_join(meetingVO.getIdx_user());
             List<AnalysisVO> analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
-            if(analysisVOList!=null){
+            if(analysisVOList!=null && analysisVOList.size()>0){
                 PersonalLevelVO personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
                 for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
                     Map<String, Object> _dlist = new HashMap<String, Object>();
@@ -2211,8 +2225,13 @@ public class MeetController extends BaseController {
                 _d2list.put("acnt",0); // 누적 평균
                 _rs.put("mtData1", _d2list);
             }else{
-                _rs.put("mtData0", null);
-                _rs.put("mtData1", null);
+                _rs.put("mtData0", _dlists);
+                _d2list.put("good",0); // GOOD
+                _d2list.put("bad",0);  // BAD
+                _d2list.put("off",0);  // OFF
+                _d2list.put("tcnt",0); // 현재 점수
+                _d2list.put("acnt",0); // 누적 평균
+                _rs.put("mtData1", _d2list);
             }
 
             resultVO.setResult_code(CONSTANT.success);

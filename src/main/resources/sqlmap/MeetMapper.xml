@@ -329,9 +329,9 @@
 
     <!-- 미팅에 참여중인지 확인 -->
     <select id="chkMeetLiveJoin" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT TOKEN, SESSIONID, IS_LIVE, IDX_MEETING_USER_JOIN
+        SELECT TOKEN, SESSIONID, IS_LIVE, IDX_MEETING_USER_JOIN, JOIN_DT
             FROM TB_MEETING_USER_JOIN
-            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND JOIN_DT IS NOT NULL
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
     </select>
 
     <!-- 미팅 시간 중복 체크 -->
