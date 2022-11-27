@@ -961,6 +961,10 @@ public class MeetController extends BaseController {
                     resultVO.setResult_str("미팅 종료 시간은 시작 시간보다 빠르거나 같을 수 없습니다.");
                     return resultVO;
                 }
+                if(getDateTimeDiff(meetingVO.getMt_start_dt(), new Date())<0){
+                    resultVO.setResult_str("미팅 시간은 현재 시간보다 빠를 수 없습니다.");
+                    return resultVO;
+                }
                 if(meetingVO.getMt_remind_type().equals(0)){
                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, 0, meetingVO);
                     if(_dayChk.equals(0)){
@@ -970,7 +974,7 @@ public class MeetController extends BaseController {
                         resultVO.setResult_code(CONSTANT.success);
                         resultVO.setResult_str("미팅룸을 생성하였습니다.");
                     }else{
-                        resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
+                        resultVO.setResult_str("중복 일정이 있어 미팅룸 생성을 중단합니다.");
                     }
 
                 // 일 주기
