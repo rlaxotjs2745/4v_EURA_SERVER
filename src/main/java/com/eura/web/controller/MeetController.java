@@ -1722,7 +1722,7 @@ public class MeetController extends BaseController {
 
                     // 미팅에 참여중인지 확인
                     MeetingVO _chkMeet = meetMapper.chkMeetLiveJoin(meetingVO);
-                    if(_chkMeet != null){
+                    if(_chkMeet != null && StringUtils.isNotEmpty(_chkMeet.getJoin_dt())){
                         Map<String, Object> _rs = new HashMap<String, Object>();
                         _rs.put("mcid", "euraclass" + meetingVO.getIdx_meeting().toString());
                         _rs.put("token", _chkMeet.getToken());
@@ -1913,9 +1913,11 @@ public class MeetController extends BaseController {
                             _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                             _furl2 = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                         }else{
+                            // voddomain = "https://eura-media.s3.ap-northeast-2.amazonaws.com";
                             String _mpath = _mlist.getFile_name().replace(".mp4","");
                             _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
-                            _furl2 = voddomain + "/input" + _mlist.getFile_path().replace("/meetmovie","") + _mlist.getFile_name();
+                            _furl2 = voddomain + "/output/" + _mpath + CONSTANT._movieMp4 + _mlist.getFile_name();
+                            // _furl2 = voddomain + "/input" + _mlist.getFile_path().replace("/meetmovie","") + _mlist.getFile_name();
                         }
                     }
                     _ul.put("fileUrl", _furl);    // 영상

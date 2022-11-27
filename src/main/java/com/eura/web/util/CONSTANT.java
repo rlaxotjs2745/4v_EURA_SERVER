@@ -20,4 +20,5 @@ public class CONSTANT {
     public static String REGEXPW = "(?=.*\\d{1,50})(?=.*[~`!@#$%\\^&*()-+=]{1,50})(?=.*[a-zA-Z]{2,50}).{10,20}$";
 
     public static String _movieUrl = "/Default/HLS/";
+    public static String _movieMp4 = "/Default/MP4/";
 }
