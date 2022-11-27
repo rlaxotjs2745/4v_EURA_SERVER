@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service("analysisService")
 public class AnalysisServiceImpl extends BaseController implements AnalysisService {
@@ -46,6 +44,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         level = (int) Math.ceil((double)duration/60);  // 60등분
         if(duration<=600 && duration > 60){
             level = 10;  // 600초 이하 10초 간격
+            _tcnt = (int) Math.ceil((double)duration/10);
         }else if(duration<=60){
             level = 1;  // 600초 이하 10초 간격
             _tcnt = duration;
@@ -126,8 +125,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
 
                 result.add(concentrationVO);
             }
-            // count += level; // 다음 측정 최대 시간 설정
-            // count0 += level;
+
             level_num++; // 레벨 순서 업데이트
         }
 
@@ -262,7 +260,4 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
 
         return concentrationVO;
     }
-
-
-
 }

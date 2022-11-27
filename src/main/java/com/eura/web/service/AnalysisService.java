@@ -6,7 +6,6 @@ import com.eura.web.model.DTO.GraphMidVO;
 import com.eura.web.model.DTO.PersonalLevelVO;
 
 import java.util.List;
-import java.util.Map;
 
 public interface AnalysisService {
     public Long insertAnalysisData(AnalysisVO analysisVO);

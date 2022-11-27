@@ -24,7 +24,6 @@ import com.eura.web.model.UserMapper;
 import com.eura.web.service.MeetingService;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.TokenJWT;
-// import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -1774,15 +1773,10 @@ public class MeetController extends BaseController {
                         
                         // 참가자
                         }else{
-                            // 10분 전 입장이 가능하므로 방송 시작 여부 체크 필요 없음
-                            // if(rrs.getIs_live().equals(1)){
-                                meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
+                            meetMapper.putMeetLiveJoin(meetingVO);  // 미팅룸에 들어가기용 데이터 저장
 
-                                resultVO.setResult_code(CONSTANT.success);
-                                resultVO.setResult_str("미팅룸에 참여합니다.");
-                            // }else{
-                                // resultVO.setResult_str("미팅이 시작하지 않아 참여가 불가합니다.");
-                            // }
+                            resultVO.setResult_code(CONSTANT.success);
+                            resultVO.setResult_str("미팅룸에 참여합니다.");
                         }
                     }
                 }else{
@@ -2118,7 +2112,7 @@ public class MeetController extends BaseController {
                 _rs.put("mtAnalyMid", null);
             }
 
-            // 전체 분석 하단 인디게이터 데이터 - setMiddata
+            // 전체 분석 하단 인디게이터 데이터 - setBtmdata
             if(_auth==0){
                 // 참석자 용
                 // 개인 인디게이터 데이터
@@ -2222,7 +2216,6 @@ public class MeetController extends BaseController {
             Map<String, Object> _d2list = new HashMap<String, Object>();
             AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
             MeetingVO _ulinfo = new MeetingVO();
-            // _ulinfo.setI?dx_meeting(meetingVO.getIdx_meeting());
             _ulinfo.setIdx_meeting_user_join(meetingVO.getIdx_user());
             List<AnalysisVO> analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
             if(analysisVOList!=null && analysisVOList.size()>0){

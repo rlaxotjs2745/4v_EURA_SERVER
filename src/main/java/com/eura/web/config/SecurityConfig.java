@@ -1,3 +1,7 @@
+/**
+ * @author Woong Sung(WiNMasTeR)
+ * 보안 설정
+ */
 package com.eura.web.config;
 
 import java.util.Arrays;

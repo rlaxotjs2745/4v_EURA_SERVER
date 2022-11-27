@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.File;
-// import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -84,10 +83,6 @@ public class LiveController extends BaseController {
                 analysisMapper.insertAnalysisDataUserRate(analysisVO);
                 
                 List<MultipartFile> fileList = req.getFiles("file");
-                // if(req.getFiles("file").get(0).getSize() != 0){
-                //     fileList = req.getFiles("file");
-                // }
-
                 if(fileList.size()>0){
                     String path = "/emotiondata/" + liveEmotionVO.getMcid() + "/" + _urs.getIdx_user() + "/";
                     String fullpath = this.filepath + path;
@@ -146,9 +141,6 @@ public class LiveController extends BaseController {
             if(rs == 1){
                 List<MultipartFile> fileList = req.getFiles("file");
                 if(fileList.size()>0){
-                    // if(req.getFiles("file").get(0).getSize() != 0){
-                    //     fileList = req.getFiles("file");
-                    // }
                     String path = "";
                     String fullpath = "";
                     if(srvinfo.equals("dev")){

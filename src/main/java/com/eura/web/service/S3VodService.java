@@ -51,7 +51,6 @@ public class S3VodService {
 
     // PutObjectRequest는 Aws s3 버킷에 업로드할 객체 메타 데이터와 파일 데이터로 이루어져 있다.
     private void uploadToS3(PutObjectRequest putObjectRequest, String key) {
-        String _url = "";
         try {
             this.s3Client.putObject(putObjectRequest);
         } catch (AmazonServiceException e) {
