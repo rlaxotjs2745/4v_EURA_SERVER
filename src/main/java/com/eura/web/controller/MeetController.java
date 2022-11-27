@@ -530,6 +530,7 @@ public class MeetController extends BaseController {
                         if(getDateTimeDiff(rrs.getMt_end_dt(), new Date())<0){
                             resultVO.setResult_code(CONSTANT.fail+"01");
                             resultVO.setResult_str("일정이 지난 미팅은 공개할 수 없어서 수정페이지로 이동합니다.");
+                            return resultVO;
                         }
                         Integer rs = meetMapper.putMeetOpen(meetingVO);
                         if(rs==1){
@@ -1277,6 +1278,10 @@ public class MeetController extends BaseController {
                             resultVO.setResult_str("미팅 종료 시간은 시작 시간보다 빠르거나 같을 수 없습니다.");
                             return resultVO;
                         }
+                        if(getDateTimeDiff(meetingVO.getMt_start_dt(), new Date())<0){
+                            resultVO.setResult_str("미팅 시간은 현재 시간보다 빠를 수 없습니다.");
+                            return resultVO;
+                        }
 
                         if(meetingVO.getMt_remind_type().equals(0)){
                             Integer _dayChk = 0;
@@ -1334,7 +1339,7 @@ public class MeetController extends BaseController {
                                     return resultVO;
                                 }
                             }else{
-                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
+                                resultVO.setResult_str("중복 일정이 있어 미팅룸 "+ _edittxt +"을 중단합니다.");
                                 return resultVO;
                             }
                         }else{
