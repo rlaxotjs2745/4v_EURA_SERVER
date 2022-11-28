@@ -76,20 +76,22 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
             Integer _ncnt = 0;
             if(analysisVOList.size()>0){
                 for(AnalysisVO analysisVO : analysisVOList){
-                    if(count0 <= analysisVO.getTimestamp() && count > analysisVO.getTimestamp()){ // 만약 반복문 내 현재 데이터가 10분 이후의 데이터일 시
-                        if(analysisVO.getEngagement() >= 0.25){
-                            eng1++;
-                        } else {
-                            eng0++;
-                        }
+                    if(_Time.getTimeend() >= analysisVO.getTimestamp()){
+                        if(count0 <= analysisVO.getTimestamp() && count > analysisVO.getTimestamp()){ // 만약 반복문 내 현재 데이터가 10분 이후의 데이터일 시
+                            if(analysisVO.getEngagement() >= 0.25){
+                                eng1++;
+                            } else {
+                                eng0++;
+                            }
 
-                        // if(analysisVO.getAttention() >= 0.75){
-                        //     att1++;
-                        // } else {
-                        //     att0++;
-                        // }
+                            // if(analysisVO.getAttention() >= 0.75){
+                            //     att1++;
+                            // } else {
+                            //     att0++;
+                            // }
+                        }
+                        _ncnt++;
                     }
-                    _ncnt++;
                 }
 
                 ConcentrationVO concentrationVO = new ConcentrationVO();
@@ -107,6 +109,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 }else{
                     concentrationVO.setBad(0);
                 }
+                concentrationVO.setTotalcnt(_ncnt);
 
                 result.add(concentrationVO); // 현재값 저장
 

@@ -13,4 +13,5 @@ public class ConcentrationVO {
     private double enggood;
     private double engbad;
     private double cameraOff;
+    private Integer totalcnt;
 }

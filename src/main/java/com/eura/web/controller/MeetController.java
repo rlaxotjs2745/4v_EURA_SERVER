@@ -1916,11 +1916,9 @@ public class MeetController extends BaseController {
                             _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                             _furl2 = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                         }else{
-                            // voddomain = "https://eura-media.s3.ap-northeast-2.amazonaws.com";
                             String _mpath = _mlist.getFile_name().replace(".mp4","");
                             _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
                             _furl2 = voddomain + "/output/" + _mpath + CONSTANT._movieMp4 + _mlist.getFile_name();
-                            // _furl2 = voddomain + "/input" + _mlist.getFile_path().replace("/meetmovie","") + _mlist.getFile_name();
                         }
                     }
                     _ul.put("fileUrl", _furl);    // 영상
@@ -1936,37 +1934,26 @@ public class MeetController extends BaseController {
                 _rs.put("mtMovieFiles", null);
             }
             
-            // SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss", Locale.KOREA);
             SimpleDateFormat ff = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
             String _rdt = "";
             String _edt = "";
-            if(meetingInfo.getIs_live_dt() == null){
-                if(_mlists != null && _mlists.size() > 0){
-                    _rdt = _mlists.get(0).getRecord_dt();
-                }else{
-                    _rdt = ff.format(new Date());
-                }
-            }else{
+            if(meetingInfo.getIs_live_dt() != null){
                 _rdt = meetingInfo.getIs_live_dt();
-            }
-            if(_rdt==null){
-                _rdt = ff.format(new Date());
             }
 
             if(meetingInfo.getIs_finish() == 1){
                 _edt = meetingInfo.getIs_finish_dt();
-            }else{
-                _edt = ff.format(new Date());
-            }
-            if(_edt==null){
-                _edt = ff.format(new Date());
             }
 
             // 소요시간
-            long diff = ff.parse(_edt).getTime() - ff.parse(_rdt).getTime();
-            if(diff>0){
-                long sec = diff / 1000;
-                _rs.put("mtMeetTimer", getSec2Time((int)sec));
+            if(StringUtils.isNotEmpty(_rdt) && StringUtils.isNotEmpty(_edt)){
+                long diff = ff.parse(_edt).getTime() - ff.parse(_rdt).getTime();
+                if(diff>0){
+                    long sec = diff / 1000;
+                    _rs.put("mtMeetTimer", getSec2Time((int)sec));
+                }else{
+                    _rs.put("mtMeetTimer", "00:00:00");
+                }
             }else{
                 _rs.put("mtMeetTimer", "00:00:00");
             }
@@ -1994,8 +1981,15 @@ public class MeetController extends BaseController {
 
             List<AnalysisVO> analysisVOList = new ArrayList<>();
             PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+            PersonalLevelVO personalLevelVO2 = new PersonalLevelVO();
             ConcentrationVO concentrationVO = new ConcentrationVO();
             AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
+            AnalysisVO _Time2 = new AnalysisVO();
+            Date sdate = ff.parse("2022-11-28 11:27:49");
+            Integer _sDt = (int) (sdate.getTime()/1000);
+            Integer _eDt = _sDt + _dur;
+            _Time2.setTimefirst(_sDt);
+            _Time2.setTimeend(_eDt);
 
             // 미팅 분석 결과(강의 참여자 명단) - 미팅 참석자도 참석자 전체 목록 리스팅
             List<MeetingVO> _ulists = meetMapper.getMeetInvites(meetingVO);
@@ -2003,6 +1997,7 @@ public class MeetController extends BaseController {
                 Integer _joincnt = 0;
                 ArrayList<Object> _uls = new ArrayList<Object>();
                 List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
+                List<PersonalLevelVO> personalLevelVOList2 = new ArrayList<>();
                 for(MeetingVO _ulist : _ulists){
                     Map<String, Object> _ul = new HashMap<String, Object>();
                     _ul.put("idx",_ulist.getIdx_meeting_user_join());    // 참석자 회원 INDEX
@@ -2018,8 +2013,11 @@ public class MeetController extends BaseController {
                         personalLevelVOList.add(personalLevelVO);
                         concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
+                        personalLevelVO2 = analysisService.getPersonalLevel(analysisVOList, _Time2, _ulist.getIdx_meeting_user_join(), _dur);
+                        personalLevelVOList2.add(personalLevelVO2);
+                        
                         // 개인 오른쪽 집중도
-                        if(_auth==1 || _uin.getIdx_user() == concentrationVO.getIdx_meeting_user_join()){
+                        if(_auth==1 || uInfo.getIdx_user() == concentrationVO.getIdx_meeting_user_join()){
                             _ul.put("goodValue",Math.round(concentrationVO.getGood()));    // 집중도
                             _ul.put("badValue",Math.round(concentrationVO.getBad()));    // 집중도
                             _ul.put("cameraOffValue",Math.round(concentrationVO.getCameraOff()));    // 집중도
@@ -2063,10 +2061,8 @@ public class MeetController extends BaseController {
                 // 전체 참여자 집중도 수치 평균값
                 ArrayList<Object> _dlists = new ArrayList<Object>();
                 Map<String, Object> _tglist = new HashMap<String, Object>();
-                if(personalLevelVOList!=null){
-                    // System.out.println("personalLevelVOList:" + new Gson().toJson(personalLevelVOList));
-
-                    GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
+                if(personalLevelVOList2!=null){
+                    GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList2);
 
                     List<Double> goodList = userRateMap.getGoodList();
                     List<Double> badList = userRateMap.getBadList();
