@@ -67,6 +67,7 @@
             </if>
             <if test="user_pwd != null">
                 , USER_PWD = #{user_pwd}
+                , TEMP_PW_Y = 0
             </if>
             <if test="user_phone != null">
                 , USER_PHONE = #{user_phone}
