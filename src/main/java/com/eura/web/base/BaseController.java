@@ -285,8 +285,8 @@ public class BaseController {
      */
     public String getSec2Time(Integer sec) throws Exception {
         int hour = (int)sec/(60*60);
-        int minute = (int)sec/60;
-        int second = (int)sec%60;
+        int minute = (int) (sec-(hour*3600))/60;
+        int second = (int) (sec-(minute*60))%60;
         String _hour = "";
         String _minute = "";
         String _second = "";

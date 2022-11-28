@@ -99,13 +99,13 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 concentrationVO.setLevel_num(getSec2Time(nowtime));
                 concentrationVO.setEnggood(eng1);
                 concentrationVO.setEngbad(eng0);
-                if((eng1 + att1) > 0 && (eng0+eng1+att0+att1)>0){
-                    concentrationVO.setGood(((eng1 + att1) / (eng0+eng1+att0+att1)) * 100);
+                if(eng1 > 0 && (eng0+eng1)>0){
+                    concentrationVO.setGood((eng1 / (eng0+eng1)) * 100);
                 }else{
                     concentrationVO.setGood(0);
                 }
-                if((eng0 + att0) > 0 && (eng0+eng1+att0+att1)>0){
-                    concentrationVO.setBad(((eng0 + att0) / (eng0+eng1+att0+att1)) * 100);
+                if(eng0 > 0 && (eng0+eng1)>0){
+                    concentrationVO.setBad((eng0 / (eng0+eng1)) * 100);
                 }else{
                     concentrationVO.setBad(0);
                 }
