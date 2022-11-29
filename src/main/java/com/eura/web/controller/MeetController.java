@@ -2018,23 +2018,25 @@ public class MeetController extends BaseController {
                     _ulinfo.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
                     analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
                     if(analysisVOList!=null){
+                        // 전체 동영상용
                         personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
                         personalLevelVOList.add(personalLevelVO);
                         concentrationVO = analysisService.getPersonalRate(personalLevelVO);
 
+                        // 동영상 당 그래프용
                         if(StringUtils.isNotEmpty(_redStartDt)){
                             personalLevelVO2 = analysisService.getPersonalLevel(analysisVOList, _Time2, _ulist.getIdx_meeting_user_join(), _dur);
                             personalLevelVOList2.add(personalLevelVO2);
                         }
                         
-                        // 개인 오른쪽 집중도
-                        if(_auth==1 || _uin.getIdx_meeting_user_join() == concentrationVO.getIdx_meeting_user_join()){
-                            _ul.put("goodValue",Math.round(concentrationVO.getGood()));    // 집중도
-                            _ul.put("badValue",Math.round(concentrationVO.getBad()));    // 집중도
-                            _ul.put("cameraOffValue",Math.round(concentrationVO.getCameraOff()));    // 집중도
+                        // 개인 오른쪽 집중도 - 전체데이터
+                        if(_auth==1 || _uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join())){
+                            _ul.put("goodValue",concentrationVO.getGood());    // 집중도
+                            _ul.put("badValue",concentrationVO.getBad());    // 집중도
+                            _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
 
-                            if(concentrationVO.getGood() > 0 && concentrationVO.getBad() > 0){
-                                _ul.put("value", Math.round(((concentrationVO.getGood() / (concentrationVO.getGood()+concentrationVO.getBad()) * 100))));    // 집중도
+                            if(concentrationVO.getGood()>0){
+                                _ul.put("value", concentrationVO.getGood());    // 집중도
                             }else{
                                 _ul.put("value", 0.0);    // 집중도
                             }
@@ -2054,6 +2056,7 @@ public class MeetController extends BaseController {
                             _ul.put("is_iam", 0);    // 0:남일때, 1:나일때
                         }
                         _ul.put("is_host",_ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
+
                         String _upic = "";
                         if(StringUtils.isNotEmpty(_ulist.getFile_name())){
                             if(srvinfo.equals("dev")){
@@ -2076,35 +2079,33 @@ public class MeetController extends BaseController {
                 // 전체 참여자 집중도 수치 평균값
                 ArrayList<Object> _dlists = new ArrayList<Object>();
                 Map<String, Object> _tglist = new HashMap<String, Object>();
-                if(personalLevelVOList2!=null){
-                    GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
+                GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
 
-                    List<Double> goodList = userRateMap.getGoodList();
-                    List<Double> badList = userRateMap.getBadList();
+                List<Double> goodList = userRateMap.getGoodList();
+                List<Double> badList = userRateMap.getBadList();
 
-                    concentrationVO = analysisService.getMeetingRate(goodList, badList);
+                concentrationVO = analysisService.getMeetingRate(goodList, badList);
 
-                    // 전체 집중도율
-                    _tglist.put("good",concentrationVO.getGood());
-                    _tglist.put("bad",concentrationVO.getBad());
-                    _tglist.put("off",concentrationVO.getCameraOff());
+                // 전체 집중도율
+                _tglist.put("good",concentrationVO.getGood());
+                _tglist.put("bad",concentrationVO.getBad());
+                _tglist.put("off",concentrationVO.getCameraOff());
 
-                    if(StringUtils.isNotEmpty(_redStartDt)){
-                        GraphMidVO userRateMap2 = analysisService.getAllUserRate(personalLevelVOList2);
+                // 전체 그래프용 데이터 만들기
+                if(StringUtils.isNotEmpty(_redStartDt) && personalLevelVOList2!=null){
+                    GraphMidVO userRateMap2 = analysisService.getAllUserRate(personalLevelVOList2);
 
-                        List<Double> goodList2 = userRateMap2.getGoodList();
-                        List<Double> badList2 = userRateMap2.getBadList();
-                        List<String> lvlList2 = userRateMap2.getLvlList();
-                        
-                        // 전체 분석 상단 그래프 데이터
-                        for(int i = 0;i<goodList2.size();i++){
-                            Map<String, Object> _dlist = new HashMap<String, Object>();
-                            _dlist.put("name",lvlList2.get(i)); // duration을 시간으로 환산
-                            _dlist.put("Good",Math.round(goodList2.get(i)));  // GOOD 100
-                            _dlist.put("Bad",(Math.round(badList2.get(i))*-1));  // BAD -100
-                            _dlist.put("amt",0);
-                            _dlists.add(_dlist);
-                        }
+                    List<Double> goodList2 = userRateMap2.getGoodList();
+                    List<Double> badList2 = userRateMap2.getBadList();
+                    List<String> lvlList2 = userRateMap2.getLvlList();
+                    
+                    for(int i = 0;i<goodList2.size();i++){
+                        Map<String, Object> _dlist = new HashMap<String, Object>();
+                        _dlist.put("name",lvlList2.get(i)); // duration을 시간으로 환산
+                        _dlist.put("Good",Math.round(goodList2.get(i)));  // GOOD 100
+                        _dlist.put("Bad",(Math.round(badList2.get(i))*-1));  // BAD -100
+                        _dlist.put("amt",0);
+                        _dlists.add(_dlist);
                     }
                 }
                 _rs.put("mtAnalyTop", _tglist);
@@ -2130,7 +2131,7 @@ public class MeetController extends BaseController {
                 _rs.put("mtAnalyMid", null);
             }
 
-            // 전체 분석 하단 인디게이터 데이터 - setBtmdata
+            // 개인 인디게이터 데이터 - setBtmdata
             if(_auth==0){
                 // 참석자 용
                 // 개인 인디게이터 데이터
@@ -2139,19 +2140,19 @@ public class MeetController extends BaseController {
                     Map<String, Object> _d2list = new HashMap<String, Object>();
 
                     MeetingVO _ulinfo = new MeetingVO();
-                    _ulinfo.setIdx_meeting(meetingVO.getIdx_meeting());
-                    _ulinfo.setIdx_user(uInfo.getIdx_user());
+                    _ulinfo.setIdx_meeting_user_join(_uin.getIdx_meeting_user_join());
                     analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
                     if(analysisVOList!=null && analysisVOList.size()>0){
                         personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
 
+                        // 개인 그래프용 데이터 만들기
                         if(StringUtils.isNotEmpty(_redStartDt)){
                             personalLevelVO2 = analysisService.getPersonalLevel(analysisVOList, _Time2, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
                             for(ConcentrationVO paramVo : personalLevelVO2.getConcentrationList()){
                                 Map<String, Object> _dlist = new HashMap<String, Object>();
                                 _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
-                                _dlist.put("good",paramVo.getGood());
-                                _dlist.put("bad",paramVo.getBad()*-1);  // GOOD~BAD 100 ~ -100
+                                _dlist.put("good",paramVo.getEnggood());
+                                _dlist.put("bad",paramVo.getEngbad()*-1);  // GOOD~BAD 100 ~ -100
                                 _dlists.add(_dlist);
                             }
                         }

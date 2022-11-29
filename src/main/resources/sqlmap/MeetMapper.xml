@@ -122,7 +122,9 @@
                     A.MT_START_DT ASC
                 </otherwise>
             </choose>
-            LIMIT 8
+            <if test="currentPage != null and currentPage > 0">
+                LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+            </if>
     </select>
 
     <!-- 미팅룸 정보 -->

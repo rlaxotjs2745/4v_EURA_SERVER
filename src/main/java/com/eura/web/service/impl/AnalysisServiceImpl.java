@@ -158,15 +158,15 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         realResult.setBad(0);
         realResult.setCameraOff(0);
 
-        int goodNum = 0;
-        int badNum = 0;
+        double goodNum = 0;
+        double badNum = 0;
         if(personalLevelVO!=null){
             int count = personalLevelVO.getMaxLevel();
             if(personalLevelVO.getConcentrationList()!=null && personalLevelVO.getConcentrationList().size()>0){
                 if(count>0){
                     for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
-                        goodNum += con.getGood();
-                        badNum += con.getBad();
+                        goodNum += (double) con.getGood();
+                        badNum += (double) con.getBad();
                     }
 
                     double goodAvg = (double) (goodNum / count);
