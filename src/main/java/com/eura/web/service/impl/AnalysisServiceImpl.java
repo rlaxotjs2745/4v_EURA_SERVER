@@ -171,10 +171,10 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
 
                     double goodAvg = (double) (goodNum / count);
                     double badAvg = (double) (badNum / count);
-                    double cameraOff = 100 - (goodAvg+badAvg);
+                    double cameraOff = 100 - (Math.round(goodAvg)+Math.round(badAvg));
                     // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
-                    realResult.setGood(goodAvg);
-                    realResult.setBad(badAvg);
+                    realResult.setGood(Math.round(goodAvg));
+                    realResult.setBad(Math.round(badAvg));
                     realResult.setCameraOff(cameraOff);
                 }
             }
@@ -256,9 +256,9 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
             resultBad = resultBad/badList.size();
         }
 
-        concentrationVO.setGood(resultGood); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
-        concentrationVO.setBad(resultBad);
-        concentrationVO.setCameraOff(100-(resultGood + resultBad));
+        concentrationVO.setGood(Math.round(resultGood)); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
+        concentrationVO.setBad(Math.round(resultBad));
+        concentrationVO.setCameraOff(100-(Math.round(resultGood) + Math.round(resultBad)));
         // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
 
         return concentrationVO;
