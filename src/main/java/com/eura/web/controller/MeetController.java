@@ -203,6 +203,8 @@ public class MeetController extends BaseController {
             }
             Map<String, Object> _rs = new HashMap<String, Object>();
 
+            Long mInfoCnt = meetMapper.getMyMeetEndListCount(uInfo.getIdx_user());   // 지난 미팅룸 총 수
+
             // 개인화 - 지난 미팅
             if(meetingVO.getPageSort()==null){
                 meetingVO.setPageSort(1);
@@ -235,6 +237,7 @@ public class MeetController extends BaseController {
                 _merss.add(_mers);
             }
             _rs.put("mt_meetEndMyList", _merss);    // 지난 미팅
+            _rs.put("mt_meetMyListCount", mInfoCnt);    // 지난 미팅룸 총 수
 
             resultVO.setData(_rs);
             resultVO.setResult_code(CONSTANT.success);
@@ -1913,7 +1916,7 @@ public class MeetController extends BaseController {
                     String _furl = "";
                     String _furl2 = "";
                     if(StringUtils.isNotEmpty(_mlist.getFile_name())){
-                        if(srvinfo.equals("dev")){
+                        if(!srvinfo.equals("dev")){
                             _furl = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                             _furl2 = voddomain + "/meetmovie" + _mlist.getFile_path() + _mlist.getFile_name();
                         }else{

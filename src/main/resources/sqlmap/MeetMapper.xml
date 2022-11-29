@@ -97,6 +97,16 @@
             </if>
     </select>
 
+    <!-- 개인화 - 지난 미팅 - 지난 미팅룸 총 수 -->
+    <select id="getMyMeetEndListCount" resultType="Long">
+        SELECT COUNT(1)
+            FROM TB_MEETING
+            WHERE DELETE_STAT=0 
+                AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+                AND ((MT_END_DT <![CDATA[<]]> NOW() AND MT_STATUS=1) OR IS_FINISH=1)
+                AND CASE WHEN IDX_USER!=#{idx_user} THEN MT_STATUS=1 ELSE 1=1 END
+    </select>
+
     <!-- 개인화 - 지난 미팅 -->
     <select id="getMyMeetEndList" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT A.*, B.USER_NAME
