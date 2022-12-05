@@ -2,9 +2,11 @@ package com.eura.web.service.impl;
 
 import com.eura.web.base.BaseController;
 import com.eura.web.model.AnalysisMapper;
+import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.DTO.ConcentrationVO;
 import com.eura.web.model.DTO.GraphMidVO;
+import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.PersonalLevelVO;
 import com.eura.web.service.AnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +17,11 @@ import java.util.List;
 
 @Service("analysisService")
 public class AnalysisServiceImpl extends BaseController implements AnalysisService {
-    private final AnalysisMapper analysisMapper;
+    @Autowired
+    private AnalysisMapper analysisMapper;
 
     @Autowired
-    public AnalysisServiceImpl (AnalysisMapper analysisMapper){
-        this.analysisMapper = analysisMapper;
-    }
+    private MeetMapper meetMapper;
 
     @Override
     public Long insertAnalysisData(AnalysisVO analysisVO) {
@@ -34,11 +35,54 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         return analysisIdx;
     }
 
+    /**
+     * 상단 반원 그래프용 데이터 산출
+     * @param meetingVO
+     * @return
+     * @throws Exception
+     */
+    public PersonalLevelVO getTotalValue(MeetingVO meetingVO) throws Exception {
+        PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+        MeetingVO _param = new MeetingVO();
+        _param.setIdx_meeting(meetingVO.getIdx_meeting());
+        Integer _mcnt = meetMapper.getMeetInvitesCnt(_param);
+        List<AnalysisVO> analysisVOList = analysisMapper.getUserAnalysisData(_param);
+        Integer _eng1 = 0;
+        Integer _eng0 = 0;
+        Integer _good = 0;
+        Integer _bad = 0;
+        Integer _off = 100;
+        if(analysisVOList!=null && _mcnt > 0){
+            for(AnalysisVO analysisVO : analysisVOList){
+                if(analysisVO.getEngagement() >= 0.25){
+                    _eng1++;
+                } else {
+                    _eng0++;
+                }
+            }
+            // 반원 그래프 = (good / (totalcnt * 인원수)) * 100, (bad / (totalcnt * 인원수)) * 100
+            if(_eng1>0){
+                _good = (int) Math.round( (_eng1 / (analysisVOList.size() * _mcnt)) * 100 );
+            }
+            if(_eng0>0){
+                _bad = (int) Math.round( (_eng0 / (analysisVOList.size() * _mcnt)) * 100 );
+            }
+            _off = 100 - (_good+_bad);
+        }
+        personalLevelVO.setGood(_good);
+        personalLevelVO.setBad(_bad);
+        personalLevelVO.setOff(_off);
+        return personalLevelVO;
+    }
+
     // 개인의 10분 단위 감정분석 데이터를 수식에 적용한 평균값, 이하 레벨
     // 매개변수: 한 미팅의 개인 전체 데이터 리스트(time_stamp sorted)
     public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer duration) throws Exception{
         PersonalLevelVO personalLevelVO = new PersonalLevelVO();
 
+        if(duration == 0){
+            duration = _Time.getTimeend() - _Time.getTimefirst();
+        }
         int _tcnt = 60;
         int level = 60; //1분
         level = (int) Math.ceil((double)duration/60);  // 60등분
@@ -89,8 +133,8 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                             // } else {
                             //     att0++;
                             // }
+                            _ncnt++;
                         }
-                        _ncnt++;
                     }
                 }
 
@@ -125,6 +169,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 concentrationVO.setBad(0);
                 concentrationVO.setEnggood(0);
                 concentrationVO.setEngbad(0);
+                concentrationVO.setTotalcnt(0);
 
                 result.add(concentrationVO);
             }
@@ -148,7 +193,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         return personalLevelVO;
     }
 
-    // 개인별 집중도 수치(웹뷰 오른쪽 개인 집중 %)
+    // 개인별 집중도 수치(참석자별 몰입도 %)
     // 매개변수: AnalysisService getPersonalLevel을 통해 나온 개인 데이터
     @Override
     public ConcentrationVO getPersonalRate(PersonalLevelVO personalLevelVO){
@@ -160,17 +205,19 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
 
         double goodNum = 0;
         double badNum = 0;
+        int timecnt = 0;
         if(personalLevelVO!=null){
             int count = personalLevelVO.getMaxLevel();
             if(personalLevelVO.getConcentrationList()!=null && personalLevelVO.getConcentrationList().size()>0){
                 if(count>0){
                     for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
-                        goodNum += (double) con.getGood();
-                        badNum += (double) con.getBad();
+                        goodNum += (double) con.getEnggood();
+                        badNum += (double) con.getEngbad();
+                        timecnt += con.getTotalcnt();
                     }
 
-                    double goodAvg = (double) (goodNum / count);
-                    double badAvg = (double) (badNum / count);
+                    double goodAvg = (double) (goodNum / timecnt) * 100;
+                    double badAvg = (double) (badNum / timecnt) * 100;
                     double cameraOff = 100 - (Math.round(goodAvg)+Math.round(badAvg));
                     // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
                     realResult.setGood(Math.round(goodAvg));
@@ -184,7 +231,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
     }
 
 
-    // 미팅의 레벨당 전체 참여자 집중도 수치 평균값(웹뷰 동영상 밑 막대 그래프)
+    // 미팅의 레벨당 전체 참여자 집중도 수치 평균값(전체 그래프)
     // 매개변수: AnalysisService getPersonalLevel을 통해 나온 모든 참여자의 개인 데이터 리스트
     @Override
     public GraphMidVO getAllUserRate(List<PersonalLevelVO> personalLevelVOList) {
@@ -211,16 +258,16 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                     List<ConcentrationVO> contList = person.getConcentrationList();
                     if(contList!=null && contList.size()>0){
                         for(int i=0; i < maxLevel; i++){ // 참여자 한명의 모든 레벨 데이터 불러오기
-                            goodList0.set(i, goodList0.get(i) + contList.get(i).getGood());
-                            badList0.set(i, badList0.get(i) + contList.get(i).getBad());
+                            goodList0.set(i, goodList0.get(i) + contList.get(i).getEnggood());
+                            badList0.set(i, badList0.get(i) + contList.get(i).getEngbad());
                             lvlList.set(i, contList.get(i).getLevel_num());
                             // 모든 참여자의 레벨 당 good, bad 값을 더함
                         }
                     }
                 }
                 for(int i=0; i < maxLevel; i++){ // 참여자 한명의 모든 레벨 데이터 불러오기
-                    goodList.set(i, goodList0.get(i) / _psize);
-                    badList.set(i, badList0.get(i)  / _psize);
+                    goodList.set(i, goodList0.get(i));
+                    badList.set(i, badList0.get(i));
                     // 모든 참여자의 레벨 당 good, bad 값을 더함
                 }
             }
@@ -235,7 +282,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         return result;
     }
 
-    // 미팅의 전체 집중도 수치 평균값(웹뷰 미팅 분석결과 우측 원형 그래프)
+    // 미팅의 전체 집중도 수치 평균값(상단 반원 그래프)
     // 매개변수: AnalysisService getAllUserRate를 통해 나온 모든 레벨 당 전체 참여자 데이터 평균 리스트
     @Override
     public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList) {
