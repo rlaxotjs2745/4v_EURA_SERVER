@@ -109,9 +109,10 @@
 
     <!-- 개인화 - 지난 미팅 -->
     <select id="getMyMeetEndList" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT A.*, B.USER_NAME
+        SELECT A.*, B.USER_NAME, IF(C.TOKEN IS NULL,0,1) AS IS_JOIN
             FROM TB_MEETING A
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
+            JOIN TB_MEETING_USER_JOIN C ON C.IDX_MEETING=A.IDX_MEETING AND C.IDX_USER=#{idx_user}
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1) OR A.IS_FINISH=1)
@@ -176,6 +177,14 @@
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>
+    </select>
+
+    <!-- 미팅룸 참여자 리스트 카운트 -->
+    <select id="getMeetInvitesCnt" resultType="Integer">
+        SELECT COUNT(1)
+            FROM TB_MEETING_USER_JOIN 
+            WHERE DELETE_STAT=0
+                AND IDX_MEETING=#{idx_meeting}
     </select>
 
     <!-- 미팅룸 생성 -->

@@ -225,6 +225,7 @@ public class MeetController extends BaseController {
                 _mers.put("mt_end_dt", rs0.getMt_end_dt());
                 _mers.put("mt_live", rs0.getIs_live());
                 _mers.put("is_host", _auth);
+                _mers.put("is_join", rs0.getIs_join()); // 참석여부 0:미참석, 1:참석
                 
                 // 참여도 표시
                 Integer _hmind = 0;
@@ -1995,12 +1996,14 @@ public class MeetController extends BaseController {
             ConcentrationVO concentrationVO2 = new ConcentrationVO();
             AnalysisVO _Time = analysisMapper.getAnalysisFirstData(meetingVO);
             AnalysisVO _Time2 = new AnalysisVO();
-            if(StringUtils.isNotEmpty(_redStartDt)){
-                Date sdate = ff.parse(_redStartDt);
-                Integer _sDt = (int) (sdate.getTime()/1000);
-                Integer _eDt = _sDt + _dur;
-                _Time2.setTimefirst(_sDt);
-                _Time2.setTimeend(_eDt);
+            if(_Time!=null){
+                if(StringUtils.isNotEmpty(_redStartDt)){
+                    Date sdate = ff.parse(_redStartDt);
+                    Integer _sDt = (int) (sdate.getTime()/1000);
+                    Integer _eDt = _sDt + _dur;
+                    _Time2.setTimefirst(_sDt);
+                    _Time2.setTimeend(_eDt);
+                }
             }
 
             // 미팅 분석 결과(강의 참여자 명단) - 미팅 참석자도 참석자 전체 목록 리스팅
@@ -2022,13 +2025,15 @@ public class MeetController extends BaseController {
                     analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
                     if(analysisVOList!=null){
                         // 전체 동영상용
-                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
-                        personalLevelVOList.add(personalLevelVO);
-                        concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+                        if(_Time != null){
+                            personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, _ulist.getIdx_meeting_user_join(), _dur);
+                            personalLevelVOList.add(personalLevelVO);
+                            concentrationVO = analysisService.getPersonalRate(personalLevelVO);
+                        }
 
                         // 동영상 당 그래프용
                         if(StringUtils.isNotEmpty(_redStartDt)){
-                            personalLevelVO2 = analysisService.getPersonalLevel(analysisVOList, _Time2, _ulist.getIdx_meeting_user_join(), _dur);
+                            personalLevelVO2 = analysisService.getPersonalLevel(analysisVOList, _Time2, _ulist.getIdx_meeting_user_join(), 0);
                             personalLevelVOList2.add(personalLevelVO2);
                         }
                         
@@ -2082,17 +2087,18 @@ public class MeetController extends BaseController {
                 // 전체 참여자 집중도 수치 평균값
                 ArrayList<Object> _dlists = new ArrayList<Object>();
                 Map<String, Object> _tglist = new HashMap<String, Object>();
-                GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
+                // GraphMidVO userRateMap = analysisService.getAllUserRate(personalLevelVOList);
 
-                List<Double> goodList = userRateMap.getGoodList();
-                List<Double> badList = userRateMap.getBadList();
+                // List<Double> goodList = userRateMap.getGoodList();
+                // List<Double> badList = userRateMap.getBadList();
 
-                concentrationVO = analysisService.getMeetingRate(goodList, badList);
+                // concentrationVO = analysisService.getMeetingRate(goodList, badList);
 
-                // 전체 집중도율
-                _tglist.put("good",concentrationVO.getGood());
-                _tglist.put("bad",concentrationVO.getBad());
-                _tglist.put("off",concentrationVO.getCameraOff());
+                // 전체 집중도율 - 반원 그래프
+                PersonalLevelVO _topVal = analysisService.getTotalValue(meetingVO);
+                _tglist.put("good",_topVal.getGood());
+                _tglist.put("bad",_topVal.getBad());
+                _tglist.put("off",_topVal.getOff());
 
                 // 전체 그래프용 데이터 만들기
                 if(StringUtils.isNotEmpty(_redStartDt) && personalLevelVOList2!=null){
@@ -2132,10 +2138,16 @@ public class MeetController extends BaseController {
                 _uinfo.put("user_invite",0);
                 _rs.put("mtInviteInfo", null);
                 _rs.put("mtAnalyMid", null);
+
+                Map<String, Object> _tglist = new HashMap<String, Object>();
+                _tglist.put("good",0);
+                _tglist.put("bad",0);
+                _tglist.put("off",100);
+                _rs.put("mtAnalyTop", _tglist);
             }
 
             // 개인 인디게이터 데이터 - setBtmdata
-            if(_auth==0){
+            if(_auth==0 && _Time != null){
                 // 참석자 용
                 // 개인 인디게이터 데이터
                 ArrayList<Object> _dlists = new ArrayList<Object>();
@@ -2146,7 +2158,7 @@ public class MeetController extends BaseController {
                     _ulinfo.setIdx_meeting_user_join(_uin.getIdx_meeting_user_join());
                     analysisVOList = analysisMapper.getUserAnalysisData(_ulinfo);
                     if(analysisVOList!=null && analysisVOList.size()>0){
-                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), _dur);
+                        personalLevelVO = analysisService.getPersonalLevel(analysisVOList, _Time, analysisVOList.get(0).getIdx_meeting_user_join(), 0);
 
                         // 개인 그래프용 데이터 만들기
                         if(StringUtils.isNotEmpty(_redStartDt)){

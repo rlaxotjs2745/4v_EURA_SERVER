@@ -57,6 +57,9 @@ public interface MeetMapper {
     // 미팅룸 참여자 리스트
     public List<MeetingVO> getMeetInvites(MeetingVO meetingVO) throws Exception;
 
+    // 미팅룸 참여자 리스트 카운트
+    public Integer getMeetInvitesCnt(MeetingVO meetingVO) throws Exception;
+
     // 미팅룸 공개
     public Integer putMeetOpen(MeetingVO meetingVO) throws Exception;
 

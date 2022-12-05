@@ -99,8 +99,11 @@
         <if test="idx_meeting_user_join != null">
             AND IDX_MEETING_USER_JOIN=#{idx_meeting_user_join}
         </if>
-        <if test="idx_meeting != null">
-            AND IDX_MEETING_USER_JOIN=(SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user})
+        <if test="idx_meeting != null and idx_user != null">
+            AND IDX_MEETING_USER_JOIN IN (SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user})
+        </if>
+        <if test="idx_meeting != null and idx_user == null">
+            AND IDX_MEETING_USER_JOIN IN (SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting})
         </if>
         ORDER BY TIMESTAMP ASC
     </select>

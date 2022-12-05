@@ -193,7 +193,7 @@ public class LiveController extends BaseController {
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{
-                resultVO.setResult_str("미팅이 종료할 수 없습니다.");
+                resultVO.setResult_str("미팅을 종료할 수 없습니다.");
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -222,7 +222,7 @@ public class LiveController extends BaseController {
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{
-                resultVO.setResult_str("미팅이 종료할 수 없습니다.");
+                resultVO.setResult_str("미팅을 종료할 수 없습니다.");
             }
         } catch (Exception e){
             e.printStackTrace();

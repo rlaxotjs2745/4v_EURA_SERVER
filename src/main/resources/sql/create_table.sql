@@ -189,3 +189,12 @@ COMMENT='미팅 메일 발송 정보'
 COLLATE='utf8mb4_general_ci'
 ENGINE=MyISAM
 ;
+
+CREATE TABLE `TB_MEETING_ANALYSIS` (
+  `IDX_MEETING_ANALYSIS` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `IDX_MEETING` int(11) NOT NULL COMMENT '미팅 INDEX',
+  `TOTAL_GOOD` tinyint(3) DEFAULT 0 COMMENT '분석 요약 Good %',
+  `TOTAL_BAD` tinyint(3) DEFAULT 0 COMMENT '분석 요약 Bad %',
+  `REG_DT` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`IDX_MEETING_ANALYSIS`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='감정분석 - 분석요약';
