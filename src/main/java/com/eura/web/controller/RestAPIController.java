@@ -302,6 +302,7 @@ public class RestAPIController extends BaseController {
 
         if (StringUtils.isNotEmpty(userVo.getUser_id())) {
 
+            /*
             String regexId = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
             Matcher matcherId = Pattern.compile(regexId).matcher(userVo.getUser_id());
             if (!matcherId.find()) {
@@ -310,7 +311,6 @@ public class RestAPIController extends BaseController {
                 return resultVO;
             }
 
-            /*
             Matcher matcherPw = Pattern.compile(CONSTANT.REGEXPW).matcher(userVo.getUser_pwd());
             if (userVo.getUser_pwd().length() < 10 || !matcherPw.find()) {
                 resultVO.setResult_code(CONSTANT.fail);
@@ -321,7 +321,7 @@ public class RestAPIController extends BaseController {
 
             UserVO findUser = userService.findUserById(userVo.getUser_id());
             if (findUser != null) {
-                resultVO.setResult_str("이미 사용중인 아이디입니다.");
+                resultVO.setResult_str("중복되는 아이디 입니다.");
                 return resultVO;
             }
             resultVO.setResult_code(CONSTANT.success);
