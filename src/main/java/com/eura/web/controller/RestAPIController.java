@@ -292,7 +292,7 @@ public class RestAPIController extends BaseController {
     public ResultVO join_default(HttpServletRequest req, HttpSession session, @RequestBody UserVO userVo) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
+        resultVO.setResult_str("아이디를 다시 확인해 주세요.");
 
         /*
         if (StringUtils.isNotEmpty(userVo.getUser_name()) &&
