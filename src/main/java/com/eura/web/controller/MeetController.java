@@ -1306,6 +1306,8 @@ public class MeetController extends BaseController {
                                             ee.setIdx_meeting(meetingVO.getIdx_meeting());
                                             ee.setUser_email(ue);
                                             meetMapper.meet_invite_del(ee);
+
+                                            meetingService.sendModifyMail(ee, 3);
                                         }
                                     }
 

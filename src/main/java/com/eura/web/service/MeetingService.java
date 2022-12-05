@@ -214,6 +214,36 @@ public class MeetingService extends BaseController {
         }
     }
 
+    public void sendModifyMail(MeetingVO ee, Integer _mFTyp) throws Exception {
+
+        String _data = getMailForm(_mFTyp);
+        String _ebody = _data.replace("${DOMAIN}", w3domain);
+
+        UserVO userVO = userService.findUserById(ee.getUser_email());
+        MeetingVO meetingVO = meetMapper.getRoomInfo(ee);
+        String _subject = "";
+
+        String _unm = userVO.getUser_name();
+        if(StringUtils.isEmpty(_unm)){
+            _unm = userVO.getUser_email();
+        }
+
+        String _sebody = _ebody.replace("${USERNAME}", _unm)
+                .replace("${USEREMAIL}", userVO.getUser_id())
+                .replace("${MEETNAME}", meetingVO.getMt_name())
+                .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
+
+        if(_mFTyp==3) {
+            _subject = " 미팅이 취소되었습니다.";
+        }
+
+        if(_mFTyp==4) {
+            _subject = " 미팅에 초대되었습니다.";
+        }
+        mailSender.sender(userVO.getUser_id(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
+    }
+
+
     /**
      * 파일 저장
      * @param req

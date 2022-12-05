@@ -30,9 +30,10 @@
         SELECT A.*, B.USER_NAME, IF(A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1, 1, A.IS_FINISH) AS IS_FINISH
             FROM TB_MEETING A
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
-            WHERE A.DELETE_STAT=0 
+            WHERE A.DELETE_STAT=0
+                AND A.MT_STATUS=1
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS=1 ELSE 1=1 END
+                AND CASE WHEN A.MT_END_DT <![CDATA[<]]> NOW() THEN A.IS_LIVE=1 ELSE 1=1 END
                 <if test="calYear != null">
                     AND LEFT(A.MT_START_DT,4)=#{calYear}
                 </if>
@@ -100,11 +101,12 @@
     <!-- 개인화 - 지난 미팅 - 지난 미팅룸 총 수 -->
     <select id="getMyMeetEndListCount" resultType="Long">
         SELECT COUNT(1)
-            FROM TB_MEETING
-            WHERE DELETE_STAT=0 
-                AND (IDX_USER=#{idx_user} OR IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND ((MT_END_DT <![CDATA[<]]> NOW() AND MT_STATUS=1) OR IS_FINISH=1)
-                AND CASE WHEN IDX_USER!=#{idx_user} THEN MT_STATUS=1 ELSE 1=1 END
+            FROM TB_MEETING A
+            JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
+            WHERE A.DELETE_STAT=0
+              AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
+              AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1 AND A.IS_LIVE=1) OR A.IS_FINISH=1)
+              AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS=1 ELSE 1=1 END
     </select>
 
     <!-- 개인화 - 지난 미팅 -->
@@ -114,7 +116,7 @@
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
-                AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1) OR A.IS_FINISH=1)
+                AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1 AND A.IS_LIVE=1) OR A.IS_FINISH=1)
                 AND CASE WHEN A.IDX_USER!=#{idx_user} THEN A.MT_STATUS=1 ELSE 1=1 END
             ORDER BY 
             <choose>
