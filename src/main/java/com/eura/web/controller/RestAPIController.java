@@ -292,12 +292,17 @@ public class RestAPIController extends BaseController {
     public ResultVO join_default(HttpServletRequest req, HttpSession session, @RequestBody UserVO userVo) {
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
-        resultVO.setResult_str("Data error");
+        resultVO.setResult_str("아이디를 다시 확인해 주세요.");
 
+        /*
         if (StringUtils.isNotEmpty(userVo.getUser_name()) &&
             StringUtils.isNotEmpty(userVo.getUser_id()) &&
             StringUtils.isNotEmpty(userVo.getUser_pwd())) {
+         */
 
+        if (StringUtils.isNotEmpty(userVo.getUser_id())) {
+
+            /*
             String regexId = "^[_a-zA-Z0-9-\\.]+@[\\.a-zA-Z0-9-]+\\.[a-zA-Z]+$";
             Matcher matcherId = Pattern.compile(regexId).matcher(userVo.getUser_id());
             if (!matcherId.find()) {
@@ -312,14 +317,15 @@ public class RestAPIController extends BaseController {
                 resultVO.setResult_str("비밀번호는 영문+숫자+특수문자 10자 이상으로 설정해주세요.");
                 return resultVO;
             }
+             */
 
             UserVO findUser = userService.findUserById(userVo.getUser_id());
             if (findUser != null) {
-                resultVO.setResult_str("이미 사용중인 아이디입니다.");
+                resultVO.setResult_str("중복되는 아이디 입니다.");
                 return resultVO;
             }
             resultVO.setResult_code(CONSTANT.success);
-            resultVO.setResult_str("사용 가능한 아이디, 비밀번호 입니다.");
+            resultVO.setResult_str("사용 가능한 아이디 입니다.");
         }
         return resultVO;
     }
