@@ -60,12 +60,12 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                     _eng0++;
                 }
             }
-            // 반원 그래프 = (good / (totalcnt * 인원수)) * 100, (bad / (totalcnt * 인원수)) * 100
+            // 반원 그래프 = (good / (totalcnt)) * 100, (bad / (totalcnt)) * 100
             if(_eng1>0){
-                _good = (int) Math.round( (_eng1 / (analysisVOList.size() * _mcnt)) * 100 );
+                _good = (int) Math.round( (_eng1 / (analysisVOList.size())) * 100 );
             }
             if(_eng0>0){
-                _bad = (int) Math.round( (_eng0 / (analysisVOList.size() * _mcnt)) * 100 );
+                _bad = (int) Math.round( (_eng0 / (analysisVOList.size())) * 100 );
             }
             _off = 100 - (_good+_bad);
         }
@@ -203,25 +203,25 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         realResult.setBad(0);
         realResult.setCameraOff(0);
 
-        double goodNum = 0;
-        double badNum = 0;
+        int goodNum = 0;
+        int badNum = 0;
         int timecnt = 0;
         if(personalLevelVO!=null){
             int count = personalLevelVO.getMaxLevel();
             if(personalLevelVO.getConcentrationList()!=null && personalLevelVO.getConcentrationList().size()>0){
                 if(count>0){
                     for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
-                        goodNum += (double) con.getEnggood();
-                        badNum += (double) con.getEngbad();
+                        goodNum += con.getEnggood();
+                        badNum += con.getEngbad();
                         timecnt += con.getTotalcnt();
                     }
 
-                    double goodAvg = (double) (goodNum / timecnt) * 100;
-                    double badAvg = (double) (badNum / timecnt) * 100;
-                    double cameraOff = 100 - (Math.round(goodAvg)+Math.round(badAvg));
+                    int goodAvg = Math.round((goodNum / timecnt) * 100);
+                    int badAvg = Math.round((badNum / timecnt) * 100);
+                    int cameraOff = 100 - (goodAvg+badAvg);
                     // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
-                    realResult.setGood(Math.round(goodAvg));
-                    realResult.setBad(Math.round(badAvg));
+                    realResult.setGood(goodAvg);
+                    realResult.setBad(badAvg);
                     realResult.setCameraOff(cameraOff);
                 }
             }
@@ -246,12 +246,14 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
             List<Double> badList = new ArrayList<>();
             List<Double> goodList0 = new ArrayList<>();
             List<Double> badList0 = new ArrayList<>();
+            List<Integer> totcalCntList = new ArrayList<>();
             for(int i=0; i < maxLevel; i++){
                 goodList.add(0.0);
                 badList.add(0.0);
                 goodList0.add(0.0);
                 badList0.add(0.0);
                 lvlList.add("");
+                totcalCntList.add(0);
             }
             if(maxLevel>0){
                 for(PersonalLevelVO person : personalLevelVOList){ // 참여자 한명씩 탐색함
@@ -261,6 +263,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                             goodList0.set(i, goodList0.get(i) + contList.get(i).getEnggood());
                             badList0.set(i, badList0.get(i) + contList.get(i).getEngbad());
                             lvlList.set(i, contList.get(i).getLevel_num());
+                            totcalCntList.set(i, contList.get(i).getTotalcnt());
                             // 모든 참여자의 레벨 당 good, bad 값을 더함
                         }
                     }
@@ -274,10 +277,11 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
             result.setGoodList(goodList);
             result.setBadList(badList);
             result.setLvlList(lvlList);
+            result.setTotcalCntList(totcalCntList);
         }else{
             result.setGoodList(null);
             result.setBadList(null);
-            result.setLvlList(null);
+            result.setTotcalCntList(null);
         }
         return result;
     }
@@ -285,22 +289,24 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
     // 미팅의 전체 집중도 수치 평균값(상단 반원 그래프)
     // 매개변수: AnalysisService getAllUserRate를 통해 나온 모든 레벨 당 전체 참여자 데이터 평균 리스트
     @Override
-    public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList) {
+    public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList, List<Integer> totcalCntList) {
         // AnalysisService getAllUserRate의 값은 Map이기 때문에 매개변수에 goodList, badList를 나누어 적용해야 함.
 
         ConcentrationVO concentrationVO = new ConcentrationVO();
 
         Double resultGood = 0.0;
         Double resultBad = 0.0;
+        Integer resultTotcalCnt = 0;
 
         if(goodList != null && goodList.size() > 0 && badList != null && badList.size() > 0){
             for(int i=0; i<goodList.size(); i++){
                 resultGood += (Double) goodList.get(i);
                 resultBad += (Double) badList.get(i);
+                resultTotcalCnt += totcalCntList.get(i);
                 // 모든 레벨 당 데이터를 더함
             }
-            resultGood = resultGood/goodList.size();
-            resultBad = resultBad/badList.size();
+            resultGood = resultGood/resultTotcalCnt;
+            resultBad = resultBad/resultTotcalCnt;
         }
 
         concentrationVO.setGood(Math.round(resultGood)); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
