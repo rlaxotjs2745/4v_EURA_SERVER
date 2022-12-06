@@ -101,6 +101,9 @@ public class MeetingService extends BaseController {
      * @throws Exception
      */
     public void saveMeetInvite(MeetingVO meetingVO) throws Exception {
+
+        MeetingVO orM = meetMapper.getRoomInfo(meetingVO);
+
         if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
             String[] inEmail = meetingVO.getMt_invite_email().split(",");
             for(String uemail : inEmail){
@@ -108,7 +111,13 @@ public class MeetingService extends BaseController {
                     MeetingVO ee = new MeetingVO();
                     ee.setIdx_meeting(meetingVO.getIdx_meeting());
                     ee.setUser_email(uemail);
-                    meetMapper.meet_invite(ee);
+
+                    int num = meetMapper.meet_invite(ee);
+
+                    //공개된 상태에서 새로 추가된 회원은 초대메일 발송
+                    if(orM.getMt_status() == 1 && num == 2){
+                        sendModifyMail(ee, 4);
+                    }
                 }
             }
         }
@@ -208,7 +217,7 @@ public class MeetingService extends BaseController {
                 if(_mFTyp==7){
                     _subject = " 미팅 일정이 변경되었습니다.";
                 }
-                
+
                 mailSender.sender(_ss.getUser_email(), "[EURA] \"" + rrs.getMt_name() + "\"" + _subject, _sebody);
             }
         }
@@ -216,6 +225,7 @@ public class MeetingService extends BaseController {
 
     public void sendModifyMail(MeetingVO ee, Integer _mFTyp) throws Exception {
 
+        // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
         String _ebody = _data.replace("${DOMAIN}", w3domain);
 
@@ -240,6 +250,7 @@ public class MeetingService extends BaseController {
         if(_mFTyp==4) {
             _subject = " 미팅에 초대되었습니다.";
         }
+
         mailSender.sender(userVO.getUser_id(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
     }
 
