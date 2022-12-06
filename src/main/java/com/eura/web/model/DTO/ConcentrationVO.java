@@ -10,8 +10,8 @@ public class ConcentrationVO {
     private String level_num;
     private double good;
     private double bad;
-    private double enggood;
-    private double engbad;
+    private Integer enggood;
+    private Integer engbad;
     private double cameraOff;
     private Integer totalcnt;
 }

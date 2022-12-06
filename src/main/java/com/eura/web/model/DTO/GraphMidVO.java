@@ -10,5 +10,6 @@ import lombok.Setter;
 public class GraphMidVO {
     List<Double> goodList;
     List<Double> badList;
+    List<Integer> TotcalCntList;
     List<String> lvlList;
 }
