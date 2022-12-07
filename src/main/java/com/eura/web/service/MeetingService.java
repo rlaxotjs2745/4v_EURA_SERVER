@@ -2,10 +2,7 @@ package com.eura.web.service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -385,6 +382,7 @@ public class MeetingService extends BaseController {
     public Integer chkRoomDup(Integer _tp, Integer _dayChk, Integer _cnt, MeetingVO meetingVO) throws Exception{
         String _sd = meetingVO.getMt_start_dt();
         String _ed = meetingVO.getMt_end_dt();
+
         if(_cnt>0){
             for(Integer i=0;i<_cnt;i++){
                 String _sdate = getCalDate(_sd, 0, 0, 0);
@@ -392,13 +390,24 @@ public class MeetingService extends BaseController {
                 if(_tp==1){
                     _sdate = getCalDate(_sd, 0, 0, i);
                     _edate = getCalDate(_ed, 0, 0, i);
-                }else if(_tp==3){
-                    _sdate = getCalDate(_sd, 0, i, 0);
-                    _edate = getCalDate(_ed, 0, i, 0);
                 }else if(_tp==4){
+                    if(meetingVO.getMt_remind_monthType() == 1) {
+                        _sd = meetingVO.getMt_start_dt().substring(0,8) + meetingVO.getMt_remind_monthDay() + meetingVO.getMt_start_dt().substring(10,18);
+                        _ed = meetingVO.getMt_end_dt().substring(0,8) + meetingVO.getMt_remind_monthDay() + meetingVO.getMt_end_dt().substring(10,18);
+
+                        _sdate = getCalDate(_sd, 0, i, 0);
+                        _edate = getCalDate(_ed, 0, i, 0);
+                    }
+                    if(meetingVO.getMt_remind_monthType() == 2) {
+
+                    }
+                }
+                /*
+                else if(_tp==4){
                     _sdate = getCalDate(_sd, i, 0, 0);
                     _edate = getCalDate(_ed, i, 0, 0);
                 }
+                */
                 meetingVO.setMt_start_dt(_sdate);
                 meetingVO.setMt_end_dt(_edate);
                 MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
