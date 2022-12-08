@@ -148,7 +148,7 @@ public class MeetingService extends BaseController {
             mail = "mail_password.html";
         }
         if(_stat==7){
-            mail = "mail_alarm_change.html";
+            mail = "mail_alarm_modify.html";
         }
         String _fpath = filepath + "/html/" + mail;
         FileInputStream fis = new FileInputStream(_fpath);
@@ -213,6 +213,12 @@ public class MeetingService extends BaseController {
                     _subject = " 미팅에 초대되었습니다.";
                 }
                 if(_mFTyp==7){
+                    _sebody = _ebody.replace("${USERNAME}", _unm)
+                            .replace("${USEREMAIL}", _ss.getUser_email())
+                            .replace("${MEETNAME}", rrs.getMt_name())
+                            .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting())
+                            .replace("${MEETDATE}", meetingVO.getMt_start_dt())
+                            .replace("${MEETORIDATE}", rrs.getMt_start_dt());
                     _subject = " 미팅 일정이 변경되었습니다.";
                 }
 
