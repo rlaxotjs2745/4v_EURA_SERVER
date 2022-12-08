@@ -937,6 +937,7 @@ public class MeetController extends BaseController {
                 resultVO.setResult_str("로그인 후 이용해주세요.");
                 return resultVO;
             }
+
             if(meetingVO != null){
                 Integer _dayChk = 0;
 
@@ -1228,8 +1229,6 @@ public class MeetController extends BaseController {
                     }else if(meetingVO.getMt_remind_end() == null){
                         resultVO.setResult_str("종료일을 선택해주세요.");
                     }else{
-                        // 월 단위 중복 체크
-
                         //매월 특정일자 반복
                         if(meetingVO.getMt_remind_monthType() == 1) {
 
@@ -1285,6 +1284,77 @@ public class MeetController extends BaseController {
                             }
                             resultVO.setData(null);
                         }
+
+                        //매월 특정번째 요일 반복
+                        if(meetingVO.getMt_remind_monthType() == 2) {
+
+                            MeetingVO param = meetingVO;
+                            String _enddt = meetingVO.getMt_remind_end();
+                            int sequence = meetingVO.getMt_remind_sequence();   // 요일이 해당되는 순차 (n번째 요일)
+                            String week = meetingVO.getMt_remind_week();   // 요일 선택
+                            String _sd = meetingVO.getMt_start_dt();
+                            String _ed = meetingVO.getMt_end_dt();
+
+                            _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
+
+                            System.out.println("_dayChk = " + _dayChk);
+
+                            if(_dayChk.equals(0)){
+                                Integer _idx = 0;
+                                List<MeetingVO> _frss = new ArrayList<>();
+
+                                Calendar cal = Calendar.getInstance();
+                                cal.set(Integer.parseInt(_sd.substring(0,4)), Integer.parseInt(_sd.substring(5,7))-1, Integer.parseInt(_sd.substring(8,10)), Integer.parseInt(_sd.substring(11,13)), Integer.parseInt(_sd.substring(14,16)));
+
+                                for(Integer i=0;i<_cnt;i++){   // 월 반복
+                                    for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                        Integer _dw = getCalDayOfWeek(_sd, 0, i, j);
+                                        if(Integer.valueOf(week) == _dw){
+                                            cal.set(cal.DAY_OF_WEEK, Integer.valueOf(week));
+                                            if(sequence <= 4){
+                                                cal.set(cal.DAY_OF_WEEK_IN_MONTH, sequence);
+                                            } else if(sequence==5){
+                                                cal.set(cal.DAY_OF_WEEK_IN_MONTH, -1);
+                                            }
+
+                                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                            String _sdate = format.format(cal.getTime());
+                                            String _edate = _sdate.substring(0,10) + _ed.substring(10,19);
+
+                                            param.setMt_start_dt(_sdate);
+                                            param.setMt_end_dt(_edate);
+                                            if(i>0){
+                                            param.setMt_remind_type(0);
+                                            param.setMt_remind_count(0);
+                                            param.setMt_remind_week("");
+                                            param.setMt_remind_end(null);
+                                            }
+                                            if(getDateDiff(_sdate, _enddt)<0){
+                                                resultVO = meetingService.createMeetRoom(req, param);
+                                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+                                                if(i==0){
+                                                  // 미팅룸 첨부파일 저장
+                                                    _frss = meetingService.meetFileSave(req, _idx);
+                                                }else{
+                                                    if(!_idx.equals(0)){
+                                                        meetingService.meetFileCopy(_idx, _frss);
+                                                    }
+                                                }
+                                            }
+                                            cal.add(Calendar.MONTH, 1);
+                                        }
+                                    }
+                                }
+
+                                resultVO.setResult_code(CONSTANT.success);
+                                resultVO.setResult_str("미팅룸을 생성하였습니다.");
+                            }else{
+                                resultVO.setResult_str("되풀이 주기 중 중복 일정이 있어 미팅룸 생성을 중단합니다.");
+                            }
+                            resultVO.setData(null);
+                        }
+
+
                     }
                 }
                 // 년 주기
@@ -1439,7 +1509,6 @@ public class MeetController extends BaseController {
                                             if(rrs.getMt_status()==1) {
                                                 meetingService.sendModifyMail(ee, 3);
                                             }
-
                                         }
                                     }
 
@@ -1849,11 +1918,8 @@ public class MeetController extends BaseController {
                                     }else if(meetingVO.getMt_remind_type().equals(4)){
 
                                         if(meetingVO.getMt_remind_monthType() == 1) {
-
                                             String _sdM = _sd.substring(0,8) + meetingVO.getMt_remind_monthDay() + _sd.substring(10,19);
                                             String _edM = _ed.substring(0,8) + meetingVO.getMt_remind_monthDay() + _ed.substring(10,19);
-                                            System.out.println("_sdM = " + _sdM);
-                                            System.out.println("_edM = " + _edM);
 
                                             int creatN = 0;
                                             int i = 0;
@@ -1907,6 +1973,73 @@ public class MeetController extends BaseController {
                                                     }
                                                 } else { break; }
                                                 ++i;
+                                            }
+                                        }
+
+                                        if(meetingVO.getMt_remind_monthType() == 2) {
+                                            int sequence = meetingVO.getMt_remind_sequence();   // 요일이 해당되는 순차 (n번째 요일)
+                                            String week = meetingVO.getMt_remind_week();   // 요일 선택
+
+                                            Calendar cal = Calendar.getInstance();
+                                            cal.set(Integer.parseInt(_sd.substring(0,4)), Integer.parseInt(_sd.substring(5,7))-1, Integer.parseInt(_sd.substring(8,10)), Integer.parseInt(_sd.substring(11,13)), Integer.parseInt(_sd.substring(14,16)));
+
+                                            for(Integer i=0;i<_cnt;i++){   // 월 반복
+                                                for(Integer j=0;j<=6;j++){  // 일~월 1~7
+                                                    Integer _dw = getCalDayOfWeek(_sd, 0, i, j);
+                                                    if(Integer.valueOf(week) == _dw){
+                                                        cal.set(cal.DAY_OF_WEEK, Integer.valueOf(week));
+                                                        if(sequence <= 4){
+                                                            cal.set(cal.DAY_OF_WEEK_IN_MONTH, sequence);
+                                                        } else if(sequence==5){
+                                                            cal.set(cal.DAY_OF_WEEK_IN_MONTH, -1);
+                                                        }
+
+                                                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                                        String _sdate = format.format(cal.getTime());
+                                                        String _edate = _sdate.substring(0,10) + _ed.substring(10,19);
+
+                                                        param.setMt_start_dt(_sdate);
+                                                        param.setMt_end_dt(_edate);
+                                                        if(i>0){
+                                                            param.setMt_remind_type(0);
+                                                            param.setMt_remind_count(0);
+                                                            param.setMt_remind_week("");
+                                                            param.setMt_remind_end(null);
+                                                        }
+
+                                                        if(getDateDiff(_sdate, _enddt)<0) {
+                                                            if (i == 0) {
+                                                                rs = meetMapper.meet_modify(meetingVO);
+                                                                if (rs > 0) {
+                                                                    // 미팅룸 참여자 추가 저장
+                                                                    meetingService.saveMeetInvite(meetingVO);
+
+                                                                    // 미팅룸 첨부파일 저장
+                                                                    _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
+
+                                                                    if (rrs.getMt_status() == 1 && (getDateTimeDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt()) != 0 || getDateTimeDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt()) != 0)) {
+                                                                        meetingService.sendMail(meetingVO, rrs, 7);
+                                                                    }
+                                                                    resultVO.setResult_code(CONSTANT.success);
+                                                                    resultVO.setResult_str("미팅룸을 " + _edittxt + "하였습니다.");
+                                                                } else {
+                                                                    resultVO.setResult_str("미팅룸 " + _edittxt + "이 실패 되었습니다.");
+                                                                }
+                                                            } else {
+                                                                resultVO = meetingService.createMeetRoom(req, param);
+                                                                _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+
+                                                                // 미팅룸 첨부파일 복사
+                                                                if (!_idx.equals(0)) {
+                                                                    meetingService.meetFileCopy(_idx, _frss);
+                                                                }
+                                                                resultVO.setResult_code(CONSTANT.success);
+                                                                resultVO.setResult_str("미팅룸을 " + _edittxt + "하였습니다.");
+                                                            }
+                                                        }
+                                                        cal.add(Calendar.MONTH, 1);
+                                                    }
+                                                }
                                             }
                                         }
                                     }
