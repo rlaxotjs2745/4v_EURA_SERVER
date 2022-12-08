@@ -2,10 +2,8 @@ package com.eura.web.service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -101,6 +99,9 @@ public class MeetingService extends BaseController {
      * @throws Exception
      */
     public void saveMeetInvite(MeetingVO meetingVO) throws Exception {
+
+        MeetingVO orM = meetMapper.getRoomInfo(meetingVO);
+
         if(meetingVO.getMt_invite_email() != null && meetingVO.getMt_invite_email() != ""){
             String[] inEmail = meetingVO.getMt_invite_email().split(",");
             for(String uemail : inEmail){
@@ -108,7 +109,13 @@ public class MeetingService extends BaseController {
                     MeetingVO ee = new MeetingVO();
                     ee.setIdx_meeting(meetingVO.getIdx_meeting());
                     ee.setUser_email(uemail);
-                    meetMapper.meet_invite(ee);
+
+                    int num = meetMapper.meet_invite(ee);
+
+                    //공개된 상태에서 새로 추가된 회원은 초대메일 발송
+                    if(orM.getMt_status() == 1 && num == 2){
+                        sendModifyMail(ee, 4);
+                    }
                 }
             }
         }
@@ -141,7 +148,7 @@ public class MeetingService extends BaseController {
             mail = "mail_password.html";
         }
         if(_stat==7){
-            mail = "mail_alarm_change.html";
+            mail = "mail_alarm_modify.html";
         }
         String _fpath = filepath + "/html/" + mail;
         FileInputStream fis = new FileInputStream(_fpath);
@@ -206,9 +213,20 @@ public class MeetingService extends BaseController {
                     _subject = " 미팅에 초대되었습니다.";
                 }
                 if(_mFTyp==7){
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+                    Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
+                    Date _mod = dateFormat.parse(rrs.getMt_start_dt());
+                    dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
+
+                    _sebody = _ebody.replace("${USERNAME}", _unm)
+                            .replace("${USEREMAIL}", _ss.getUser_email())
+                            .replace("${MEETNAME}", rrs.getMt_name())
+                            .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting())
+                            .replace("${MEETDATE}", dateFormat.format(_md))
+                            .replace("${MEETORIDATE}", dateFormat.format(_mod));
                     _subject = " 미팅 일정이 변경되었습니다.";
                 }
-                
+
                 mailSender.sender(_ss.getUser_email(), "[EURA] \"" + rrs.getMt_name() + "\"" + _subject, _sebody);
             }
         }
@@ -216,6 +234,7 @@ public class MeetingService extends BaseController {
 
     public void sendModifyMail(MeetingVO ee, Integer _mFTyp) throws Exception {
 
+        // 이메일 데이터 호출
         String _data = getMailForm(_mFTyp);
         String _ebody = _data.replace("${DOMAIN}", w3domain);
 
@@ -240,6 +259,7 @@ public class MeetingService extends BaseController {
         if(_mFTyp==4) {
             _subject = " 미팅에 초대되었습니다.";
         }
+
         mailSender.sender(userVO.getUser_id(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
     }
 
@@ -364,7 +384,7 @@ public class MeetingService extends BaseController {
 
     /**
      * 일,월,년 단위 중복 체크
-     * @param _tp = 1:일,3:월,4:년
+     * @param _tp = 1:일,4:월
      * @param _dayChk
      * @param _cnt
      * @param meetingVO
@@ -374,25 +394,82 @@ public class MeetingService extends BaseController {
     public Integer chkRoomDup(Integer _tp, Integer _dayChk, Integer _cnt, MeetingVO meetingVO) throws Exception{
         String _sd = meetingVO.getMt_start_dt();
         String _ed = meetingVO.getMt_end_dt();
+
         if(_cnt>0){
-            for(Integer i=0;i<_cnt;i++){
-                String _sdate = getCalDate(_sd, 0, 0, 0);
-                String _edate = getCalDate(_ed, 0, 0, 0);
-                if(_tp==1){
-                    _sdate = getCalDate(_sd, 0, 0, i);
-                    _edate = getCalDate(_ed, 0, 0, i);
-                }else if(_tp==3){
-                    _sdate = getCalDate(_sd, 0, i, 0);
-                    _edate = getCalDate(_ed, 0, i, 0);
-                }else if(_tp==4){
+            if(_tp!=4) {
+                for(Integer i=0;i<_cnt;i++){
+                    String _sdate = getCalDate(_sd, 0, 0, 0);
+                    String _edate = getCalDate(_ed, 0, 0, 0);
+                    if(_tp==1){
+                        _sdate = getCalDate(_sd, 0, 0, i);
+                        _edate = getCalDate(_ed, 0, 0, i);
+                    }
+                /* else if(_tp==4){
                     _sdate = getCalDate(_sd, i, 0, 0);
                     _edate = getCalDate(_ed, i, 0, 0);
+                } */
+                    meetingVO.setMt_start_dt(_sdate);
+                    meetingVO.setMt_end_dt(_edate);
+                    MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
+                    _dayChk=_dayChk+_chk.getChkcnt();
                 }
-                meetingVO.setMt_start_dt(_sdate);
-                meetingVO.setMt_end_dt(_edate);
-                MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
-                _dayChk=_dayChk+_chk.getChkcnt();
+            } else {    // 월 주기
+                String _sdate = getCalDate(_sd, 0, 0, 0);
+                String _edate = getCalDate(_ed, 0, 0, 0);
+
+                if(meetingVO.getMt_remind_monthType() == 1) {   // 특정일자 반복
+                    String _sdM = meetingVO.getMt_start_dt().substring(0,8) + meetingVO.getMt_remind_monthDay() + meetingVO.getMt_start_dt().substring(10,18);
+                    String _edM = meetingVO.getMt_end_dt().substring(0,8) + meetingVO.getMt_remind_monthDay() + meetingVO.getMt_end_dt().substring(10,18);
+
+                    int creatN = 0;
+                    int i = 0;
+
+                    while (creatN <_cnt){
+                        _sdate = getCalDate(_sdM, 0, i, 0);
+                        _edate = getCalDate(_edM, 0, i, 0);
+
+                        int _loofday = Integer.parseInt(_sdate.substring(8,10));
+                        if(_loofday == meetingVO.getMt_remind_monthDay()){
+                            meetingVO.setMt_start_dt(_sdate);
+                            meetingVO.setMt_end_dt(_edate);
+                            MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
+                            _dayChk=_dayChk+_chk.getChkcnt();
+                            ++creatN;
+                        }
+                        ++i;
+                    }
+                }
+                if(meetingVO.getMt_remind_monthType() == 2) {   // 특정번째요일 반복
+                    int sequence = meetingVO.getMt_remind_sequence();
+                    Calendar cal = Calendar.getInstance();
+                    cal.set(Integer.parseInt(_sd.substring(0,4)), Integer.parseInt(_sd.substring(5,7))-1, Integer.parseInt(_sd.substring(8,10)), Integer.parseInt(_sd.substring(11,13)), Integer.parseInt(_sd.substring(14,16)));
+
+                    for(Integer i=0;i<_cnt;i++){
+                        for(Integer j=0;j<=6;j++) {  // 일~월 1~7
+                            Integer _dw = getCalDayOfWeek(_sd, 0, i, j);
+                            if(Integer.valueOf(meetingVO.getMt_remind_week()) == _dw){
+                                cal.set(cal.DAY_OF_WEEK, Integer.valueOf(meetingVO.getMt_remind_week()));
+                                if(sequence <= 4){
+                                    cal.set(cal.DAY_OF_WEEK_IN_MONTH, sequence);
+                                } else if(sequence==5){
+                                    cal.set(cal.DAY_OF_WEEK_IN_MONTH, -1);
+                                }
+                                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                _sdate = format.format(cal.getTime());
+                                _edate = _sdate.substring(0, 10) + _ed.substring(10, 19);
+
+                                meetingVO.setMt_start_dt(_sdate);
+                                meetingVO.setMt_end_dt(_edate);
+                                MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
+                                _dayChk=_dayChk+_chk.getChkcnt();
+
+                                cal.add(Calendar.MONTH, 1);
+                            }
+                        }
+                    }
+                }
             }
+
         }else{
             MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
             _dayChk=_dayChk+_chk.getChkcnt();
