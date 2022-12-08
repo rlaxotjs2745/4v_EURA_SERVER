@@ -213,12 +213,17 @@ public class MeetingService extends BaseController {
                     _subject = " 미팅에 초대되었습니다.";
                 }
                 if(_mFTyp==7){
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+                    Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
+                    Date _mod = dateFormat.parse(rrs.getMt_start_dt());
+                    dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
+
                     _sebody = _ebody.replace("${USERNAME}", _unm)
                             .replace("${USEREMAIL}", _ss.getUser_email())
                             .replace("${MEETNAME}", rrs.getMt_name())
                             .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting())
-                            .replace("${MEETDATE}", meetingVO.getMt_start_dt())
-                            .replace("${MEETORIDATE}", rrs.getMt_start_dt());
+                            .replace("${MEETDATE}", dateFormat.format(_md))
+                            .replace("${MEETORIDATE}", dateFormat.format(_mod));
                     _subject = " 미팅 일정이 변경되었습니다.";
                 }
 
