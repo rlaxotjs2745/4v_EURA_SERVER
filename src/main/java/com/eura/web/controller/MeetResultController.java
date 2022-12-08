@@ -58,7 +58,7 @@ public class MeetResultController extends BaseController {
      */
     @GetMapping("/meeting")
     public ResultVO getResultMeeting(HttpServletRequest req, MeetingVO meetingVO) throws Exception {
-        srvinfo = "prod";
+        // srvinfo = "prod";
         ResultVO resultVO = new ResultVO();
         resultVO.setResult_code(CONSTANT.fail);
         resultVO.setResult_str("Data error");
