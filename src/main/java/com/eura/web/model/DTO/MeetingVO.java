@@ -54,7 +54,7 @@ public class MeetingVO extends BaseVO {
     private Integer good;
     private Integer bad;
 
-    private Integer mt_remind_monthDay; // 미팅 되풀이 매월 반복일자
+    private String mt_remind_monthDay; // 미팅 되풀이 매월 반복일자
     private Integer mt_remind_monthType;    // 미팅 월별 되풀이타입 1:지정날짜 2:지정번째 요일
     private Integer mt_remind_sequence;    //미팅 월별 되풀이티입 몇번째에 오는 요일
 }

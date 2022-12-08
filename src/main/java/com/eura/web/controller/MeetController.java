@@ -1258,10 +1258,10 @@ public class MeetController extends BaseController {
                                         param.setMt_remind_end(null);
                                     }
 
-                                    int _loofday = Integer.parseInt(_sdate.substring(8,10));
+                                    String _loofday = _sdate.substring(8,10);
 
                                     if(getDateDiff(_sdate, _enddt)<0){
-                                        if(_loofday == meetingVO.getMt_remind_monthDay()){
+                                        if(_loofday.equals(meetingVO.getMt_remind_monthDay())){
                                             resultVO = meetingService.createMeetRoom(req, param);
                                             _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                             if(i==0){
@@ -1936,10 +1936,10 @@ public class MeetController extends BaseController {
                                                     param.setMt_remind_end(null);
                                                 }
 
-                                                int _loofday = Integer.parseInt(_sdate.substring(8,10));
+                                                String _loofday = _sdate.substring(8,10);
 
                                                 if(getDateDiff(_sdate, _enddt)<0){
-                                                    if(_loofday == meetingVO.getMt_remind_monthDay()){
+                                                    if(_loofday.equals(meetingVO.getMt_remind_monthDay())){
                                                         if(i==0){
                                                             rs = meetMapper.meet_modify(meetingVO);
                                                             if(rs > 0){
