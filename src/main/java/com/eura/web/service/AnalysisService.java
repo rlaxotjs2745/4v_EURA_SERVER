@@ -11,13 +11,18 @@ import java.util.List;
 public interface AnalysisService {
     public Long insertAnalysisData(AnalysisVO analysisVO);
 
-    public ConcentrationVO getPersonalRate(PersonalLevelVO personalLevelVO);
+    // 개인 분석 요약 데이터
+    public ConcentrationVO getPersonalRate(List<PersonalLevelVO> allLevelVOList, Integer _idx);
 
-    public GraphMidVO getAllUserRate(List<PersonalLevelVO> personalLevelVOList);
+    public GraphMidVO getAllUserRate(List<PersonalLevelVO> allLevelVOList);
 
     public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList, List<Integer> totcalCntList);
 
     public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer duration) throws Exception;
 
     public PersonalLevelVO getTotalValue(MeetingVO meetingVO) throws Exception;
+
+    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin) throws Exception;
+
+
 }

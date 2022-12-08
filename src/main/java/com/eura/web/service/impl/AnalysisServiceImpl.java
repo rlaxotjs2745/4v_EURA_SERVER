@@ -28,11 +28,96 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         Long analysisIdx = 0L;
         try {
             analysisIdx = analysisMapper.insertAnalysisData(analysisVO);
-            System.out.println("anal Idx: " + analysisIdx);
         } catch (Exception e){
-            throw new RuntimeException("표정 분석 데이터 입력 중 문제가 발생했습니다.",e);
+            throw new RuntimeException("감정 분석 데이터 입력 중 문제가 발생했습니다.",e);
         }
         return analysisIdx;
+    }
+
+    /**
+     * 종합 데이터를 이용하여 구간당 개별 몰입도를 뽑는다.
+     * @param analysisVOList
+     * @param _Time
+     * @param _idxjoin
+     * @return PersonalLevelVO
+     * @throws Exception
+     */
+    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin) throws Exception{
+        PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+        Integer duration = _Time.getDuration();
+        int _tcnt = 60;  // 구간 수
+        int level = 60; // 60초
+        int level_num = 0;
+        int eng1 = 0;
+        int eng0 = 0;
+        int nowtime = 0;
+
+        level = (int) Math.ceil((double)duration/60);  // 60등분
+        if(duration<=600 && duration > 60){
+            level = 10;  // 600초 이하 10초 간격
+            _tcnt = (int) Math.ceil((double)duration/10);
+        }else if(duration<=60){
+            level = 1;  // 600초 이하 10초 간격
+            _tcnt = duration;
+        }
+
+        List<ConcentrationVO> result = new ArrayList<>();
+        
+        for(int i=0;i<_tcnt;i++){
+            Integer count0 = _Time.getTimefirst() + (level*i);
+            Integer count = _Time.getTimefirst() + (level*(i+1));
+            if(i==(_tcnt-1)){
+                nowtime = duration;
+            }else{
+                nowtime = level*(i+1);
+            }
+            if(analysisVOList.size()>0){
+                Integer _ncnt = 0;
+                for(AnalysisVO analysisVO : analysisVOList){
+                    if(_Time.getTimeend() >= analysisVO.getTimestamp()){
+                        // 만약 반복문 내 현재 데이터가 10분 이후의 데이터일 시
+                        if(count0 <= analysisVO.getTimestamp() && count > analysisVO.getTimestamp()){
+                            if(analysisVO.getIdx_meeting_user_join() == _idxjoin){
+                                if(analysisVO.getEngagement() >= 0.25){
+                                    eng1++;
+                                } else {
+                                    eng0++;
+                                }
+                            }
+                            _ncnt++;
+                        }
+                    }
+                }
+
+                ConcentrationVO concentrationVO = new ConcentrationVO();
+                concentrationVO.setIdx_meeting_user_join(_idxjoin);
+                concentrationVO.setLevel_num(getSec2Time(nowtime) + "");
+                concentrationVO.setGood(eng1);
+                concentrationVO.setBad(eng0);
+                concentrationVO.setTotalcnt(_ncnt);
+                result.add(concentrationVO);
+
+                eng1 = 0;
+                eng0 = 0;
+                _ncnt = 0;
+            }else{
+                ConcentrationVO concentrationVO = new ConcentrationVO();
+                concentrationVO.setIdx_meeting_user_join(_idxjoin);
+                concentrationVO.setLevel_num(getSec2Time(nowtime));
+                concentrationVO.setGood(0);
+                concentrationVO.setBad(0);
+                concentrationVO.setTotalcnt(0);
+                result.add(concentrationVO);
+            }
+
+            level_num++; // 레벨 순서 업데이트
+        }
+
+        personalLevelVO.setIdx_meeting_user_join(_idxjoin);
+        personalLevelVO.setMaxLevel(level_num);
+        personalLevelVO.setConcentrationList(result);
+
+        return personalLevelVO;
     }
 
     /**
@@ -60,7 +145,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                     _eng0++;
                 }
             }
-            // 반원 그래프 = (good / (totalcnt)) * 100, (bad / (totalcnt)) * 100
+            // 반원 그래프 = (good / totalcnt) * 100, (bad / totalcnt) * 100
             if(_eng1>0){
                 _good = (int) Math.round( (_eng1 / (analysisVOList.size())) * 100 );
             }
@@ -193,11 +278,10 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         return personalLevelVO;
     }
 
-    // 개인별 집중도 수치(참석자별 몰입도 %)
+    // 개인 분석 요약 데이터 : 개인별 집중도 수치(참석자별 몰입도 %)
     // 매개변수: AnalysisService getPersonalLevel을 통해 나온 개인 데이터
     @Override
-    public ConcentrationVO getPersonalRate(PersonalLevelVO personalLevelVO){
-
+    public ConcentrationVO getPersonalRate(List<PersonalLevelVO> allLevelVOList, Integer _idx){
         ConcentrationVO realResult = new ConcentrationVO();
         realResult.setGood(0);
         realResult.setBad(0);
@@ -206,23 +290,27 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         int goodNum = 0;
         int badNum = 0;
         int timecnt = 0;
-        if(personalLevelVO!=null){
-            int count = personalLevelVO.getMaxLevel();
-            if(personalLevelVO.getConcentrationList()!=null && personalLevelVO.getConcentrationList().size()>0){
-                if(count>0){
-                    for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
-                        goodNum += con.getEnggood();
-                        badNum += con.getEngbad();
-                        timecnt += con.getTotalcnt();
-                    }
+        if(allLevelVOList!=null){
+            for(PersonalLevelVO personalLevelVO : allLevelVOList){
+                if(personalLevelVO.getIdx_meeting_user_join() == _idx){
+                    int count = personalLevelVO.getMaxLevel();
+                    if(personalLevelVO.getConcentrationList()!=null && personalLevelVO.getConcentrationList().size()>0){
+                        if(count>0){
+                            for (ConcentrationVO con : personalLevelVO.getConcentrationList()){
+                                goodNum += con.getGood();
+                                badNum += con.getBad();
+                                timecnt += con.getTotalcnt();
+                            }
 
-                    int goodAvg = Math.round((goodNum / timecnt) * 100);
-                    int badAvg = Math.round((badNum / timecnt) * 100);
-                    int cameraOff = 100 - (goodAvg+badAvg);
-                    // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
-                    realResult.setGood(goodAvg);
-                    realResult.setBad(badAvg);
-                    realResult.setCameraOff(cameraOff);
+                            int goodAvg = Math.round((goodNum / timecnt) * 100);
+                            int badAvg = Math.round((badNum / timecnt) * 100);
+                            int cameraOff = 100 - (goodAvg+badAvg);
+                            // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
+                            realResult.setGood(goodAvg);
+                            realResult.setBad(badAvg);
+                            realResult.setCameraOff(cameraOff);
+                        }
+                    }
                 }
             }
         }
@@ -234,13 +322,13 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
     // 미팅의 레벨당 전체 참여자 집중도 수치 평균값(전체 그래프)
     // 매개변수: AnalysisService getPersonalLevel을 통해 나온 모든 참여자의 개인 데이터 리스트
     @Override
-    public GraphMidVO getAllUserRate(List<PersonalLevelVO> personalLevelVOList) {
+    public GraphMidVO getAllUserRate(List<PersonalLevelVO> allLevelVOList) {
         GraphMidVO result = new GraphMidVO();
 
-        Integer _psize = personalLevelVOList.size();
-        if(personalLevelVOList != null && _psize > 0){
+        Integer _psize = allLevelVOList.size();
+        if(allLevelVOList != null && _psize > 0){
             // ArrayList의 인덱스 값 = 레벨 순서
-            Integer maxLevel = personalLevelVOList.get(0).getMaxLevel();
+            Integer maxLevel = allLevelVOList.get(0).getMaxLevel();
             List<String> lvlList = new ArrayList<>();
             List<Double> goodList = new ArrayList<>();
             List<Double> badList = new ArrayList<>();
@@ -256,12 +344,12 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 totcalCntList.add(0);
             }
             if(maxLevel>0){
-                for(PersonalLevelVO person : personalLevelVOList){ // 참여자 한명씩 탐색함
+                for(PersonalLevelVO person : allLevelVOList){ // 참여자 한명씩 탐색함
                     List<ConcentrationVO> contList = person.getConcentrationList();
                     if(contList!=null && contList.size()>0){
                         for(int i=0; i < maxLevel; i++){ // 참여자 한명의 모든 레벨 데이터 불러오기
-                            goodList0.set(i, goodList0.get(i) + contList.get(i).getEnggood());
-                            badList0.set(i, badList0.get(i) + contList.get(i).getEngbad());
+                            goodList0.set(i, goodList0.get(i) + contList.get(i).getGood());
+                            badList0.set(i, badList0.get(i) + contList.get(i).getBad());
                             lvlList.set(i, contList.get(i).getLevel_num());
                             totcalCntList.set(i, contList.get(i).getTotalcnt());
                             // 모든 참여자의 레벨 당 good, bad 값을 더함
@@ -316,4 +404,6 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
 
         return concentrationVO;
     }
+
+
 }
