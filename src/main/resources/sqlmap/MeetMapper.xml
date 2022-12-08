@@ -175,7 +175,7 @@
             <if test="idx_meeting != null">
                 AND A.IDX_MEETING=#{idx_meeting}
             </if>
-            ORDER BY FIELD(IF(A.IDX_USER=C.IDX_USER,1,0),1,0), A.USER_EMAIL ASC
+            ORDER BY FIELD(IF(A.IDX_USER=C.IDX_USER,1,0),1,0), IFNULL(B.USER_NAME,A.USER_EMAIL) ASC
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>

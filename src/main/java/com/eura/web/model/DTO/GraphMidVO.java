@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GraphMidVO {
-    List<Double> goodList;
-    List<Double> badList;
+    List<Integer> goodList;
+    List<Integer> badList;
     List<Integer> TotcalCntList;
     List<String> lvlList;
 }

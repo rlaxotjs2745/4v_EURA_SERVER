@@ -8,10 +8,8 @@ import lombok.Setter;
 public class ConcentrationVO {
     private Integer idx_meeting_user_join;
     private String level_num;
-    private double good;
-    private double bad;
-    private Integer enggood;
-    private Integer engbad;
-    private double cameraOff;
+    private Integer good;
+    private Integer bad;
+    private Integer cameraOff;
     private Integer totalcnt;
 }

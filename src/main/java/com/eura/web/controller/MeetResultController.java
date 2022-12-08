@@ -231,22 +231,55 @@ public class MeetResultController extends BaseController {
                     _ulistsSize = _ulists.size();
                     for(AnalysisVO _Time0 : _Time){
                         for(MeetingVO _ulist : _ulists){
+                            Integer _join = 0;
+
                             // 개인 막대 그래프용 데이터 뽑기
                             PersonalLevelVO personalLevelVO = analysisService.getLevelData(allAnalysisList, _Time0, _ulist.getIdx_meeting_user_join());
                             allLevelVOList.add(personalLevelVO);    // 분석요약용 : 모든 동영상
-                            
+
                             // 지정 동영상 감정분석 데이터 뽑기
                             if(meetingVO.getFile_no()==(_ri+1)){
                                 personalLevelVOList.add(personalLevelVO);   // 지정 동영상 연계용
+
                                 if(_auth==1 || (!_livein.equals(0) && _uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join()))){
                                     // 개인 그래프용 데이터 만들기
+                                    Map<String, Object> _dlistrs = new HashMap<String, Object>();
+                                    ArrayList<Object> _dlists00 = new ArrayList<Object>();
                                     for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
                                         Map<String, Object> _dlist = new HashMap<String, Object>();
                                         _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
                                         _dlist.put("good",paramVo.getGood());
                                         _dlist.put("bad",paramVo.getBad()*-1);
-                                        _dlists0.add(_dlist);
+                                        _dlists00.add(_dlist);
                                     }
+
+                                    // 프로필 사진 -----------------------------------------------
+                                    String _upic = "";
+                                    if(StringUtils.isNotEmpty(_ulist.getFile_name())){
+                                        if(srvinfo.equals("dev")){
+                                            _upic = filedomain + "/pic?fnm=" + _ulist.getFile_path() + _ulist.getFile_name();
+                                        }else{
+                                            _upic = filedomain + _ulist.getFile_path() + _ulist.getFile_name();
+                                        }
+                                    }
+                                    _dlistrs.put("upic",_upic);
+                                    // 프로필 사진 -----------------------------------------------
+
+                                    // 미팅 참석 여부
+                                    if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                                        _join = 1;
+                                    }
+                                    _dlistrs.put("uname",_ulist.getUser_name()); // 참석자명
+                                    _dlistrs.put("uemail",_ulist.getUser_email());
+                                    if(_uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join())){
+                                        _dlistrs.put("is_iam", 1);    // 0:남일때, 1:나일때
+                                    }else{
+                                        _dlistrs.put("is_iam", 0);    // 0:남일때, 1:나일때
+                                    }
+                                    _dlistrs.put("is_host", _ulist.getIs_host());   // 호스트 여부 0:참석자, 1:호스트
+                                    _dlistrs.put("join",_join);    // 미팅 참석 여부
+                                    _dlistrs.put("list",_dlists00);
+                                    _dlists0.add(_dlistrs);
                                 }
                             }
                         }
@@ -321,29 +354,30 @@ public class MeetResultController extends BaseController {
                 // 전체 그래프용 데이터 만들기 : 지정 동영상
                 GraphMidVO userRateMap2 = analysisService.getAllUserRate(personalLevelVOList);
 
-                List<Double> goodList2 = userRateMap2.getGoodList();
-                List<Double> badList2 = userRateMap2.getBadList();
+                List<Integer> goodList2 = userRateMap2.getGoodList();
+                List<Integer> badList2 = userRateMap2.getBadList();
                 List<String> lvlList2 = userRateMap2.getLvlList();
                 
-                for(int i = 0;i<goodList2.size();i++){
-                    Map<String, Object> _dlist = new HashMap<String, Object>();
-                    _dlist.put("name",lvlList2.get(i)); // duration을 시간으로 환산
-                    _dlist.put("Good",Math.round(goodList2.get(i)));  // GOOD 100
-                    _dlist.put("Bad",(Math.round(badList2.get(i))*-1));  // BAD -100
-                    _dlist.put("amt",0);
-                    _dlists.add(_dlist);
+                if(goodList2!=null && goodList2.size()>0){
+                    for(int i = 0;i<goodList2.size();i++){
+                        Map<String, Object> _dlist = new HashMap<String, Object>();
+                        _dlist.put("name",lvlList2.get(i)); // duration을 시간으로 환산
+                        _dlist.put("Good",Math.round(goodList2.get(i)));  // GOOD 100
+                        _dlist.put("Bad",(Math.round(badList2.get(i))*-1));  // BAD -100
+                        _dlist.put("amt",0);
+                        _dlists.add(_dlist);
+                    }
                 }
 
-                // 전체 참여자 집중도 수치 평균값 : 동영상 통합
-                Map<String, Object> _tglist = new HashMap<String, Object>();
-                GraphMidVO userRateMap = analysisService.getAllUserRate(allLevelVOList);
-
-                List<Double> goodList = userRateMap.getGoodList();
-                List<Double> badList = userRateMap.getBadList();
-                List<Integer> totcalCntList = userRateMap.getTotcalCntList();
-
                 // 전체 집중도율 - 반원 그래프 : 동영상 통합
+                GraphMidVO userRateMap = analysisService.getAllUserRate(allLevelVOList);
+                
+                List<Integer> goodList = userRateMap.getGoodList();
+                List<Integer> badList = userRateMap.getBadList();
+                List<Integer> totcalCntList = userRateMap.getTotcalCntList();
+                
                 ConcentrationVO conVO = analysisService.getMeetingRate(goodList, badList, totcalCntList);
+                Map<String, Object> _tglist = new HashMap<String, Object>();
                 _tglist.put("good",conVO.getGood());
                 _tglist.put("bad",conVO.getBad());
                 _tglist.put("off",conVO.getCameraOff());

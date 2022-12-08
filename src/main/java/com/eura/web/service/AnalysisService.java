@@ -16,11 +16,7 @@ public interface AnalysisService {
 
     public GraphMidVO getAllUserRate(List<PersonalLevelVO> allLevelVOList);
 
-    public ConcentrationVO getMeetingRate(List<Double> goodList, List<Double> badList, List<Integer> totcalCntList);
-
-    public PersonalLevelVO getPersonalLevel(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer duration) throws Exception;
-
-    public PersonalLevelVO getTotalValue(MeetingVO meetingVO) throws Exception;
+    public ConcentrationVO getMeetingRate(List<Integer> goodList, List<Integer> badList, List<Integer> totcalCntList);
 
     public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin) throws Exception;
 
