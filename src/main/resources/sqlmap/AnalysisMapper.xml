@@ -108,8 +108,60 @@
         ORDER BY TIMESTAMP ASC
     </select>
 
-    <!-- 최초 기록 시간 가져오기 -->
-    <select id="getAnalysisFirstData" resultType="com.eura.web.model.DTO.AnalysisVO">
-        SELECT MIN(timestamp) AS TIMEFIRST, MAX(timestamp) AS TIMEEND FROM TB_ANALYSIS WHERE IDX_MEETING_USER_JOIN IN (SELECT IDX_MEETING_USER_JOIN FROM TB_MEETING_USER_JOIN WHERE IDX_MEETING=#{idx_meeting})
+    <!-- 분석 요약 -->
+    <select id="getMeetResultData" resultType="com.eura.web.model.DTO.MeetResultVO">
+        SELECT TOTAL_GOOD, TOTAL_BAD FROM TB_MEETING_ANALYSIS_TOTAL WHERE IDX_MEETING=#{idx_meeting}
     </select>
+
+    <!-- 분석 요약 저장 -->
+    <insert id="saveMeetResultData">
+        INSERT INTO TB_MEETING_ANALYSIS_TOTAL (TOTAL_GOOD, TOTAL_BAD, IDX_MEETING) VALUES (#{good}, #{bad}, #{idx_meeting})
+    </insert>
+
+    <!-- 개인 막대그래프용 데이터 -->
+    <select id="getPersoanlBarData" resultType="com.eura.web.model.DTO.ConcentrationVO">
+        SELECT GOOD, BAD, LVL, IDX_MEETING_USER_JOIN 
+        FROM TB_MEETING_ANALYSIS_PERSONAL_BAR 
+        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{file_no}
+        ORDER BY IDX_MEETING_USER_JOIN, LVL
+    </select>
+
+    <!-- 개인 막대그래프용 데이터 저장 -->
+    <insert id="savePersoanlBarData" parameterType="java.util.Map">
+        INSERT INTO TB_MEETING_ANALYSIS_PERSONAL_BAR (GOOD, BAD, LVL, IDX_MEETING, MOVIE_NO, IDX_MEETING_USER_JOIN) VALUES 
+        <foreach item="item" collection="list" separator=",">
+        (#{item.good}, #{item.bad}, #{item.lvl}, #{item.idx_meeting}, #{item.movie_no}, #{item.idx_meeting_user_join})
+        </foreach>
+    </insert>
+
+    <!-- 개인 분석요약 데이터 -->
+    <select id="getPersoanlTotalData" resultType="com.eura.web.model.DTO.ConcentrationVO">
+        SELECT TOTAL_GOOD, TOTAL_BAD, IDX_MEETING_USER_JOIN 
+        FROM TB_MEETING_ANALYSIS_PERSONAL
+        WHERE IDX_MEETING=#{idx_meeting}
+    </select>
+
+    <!-- 개인 분석요약 데이터 저장 -->
+    <insert id="savePersoanlTotalData" parameterType="java.util.Map">
+        INSERT INTO TB_MEETING_ANALYSIS_PERSONAL (TOTAL_GOOD, TOTAL_BAD, IDX_MEETING, IDX_MEETING_USER_JOIN) VALUES 
+        <foreach item="item" collection="list" separator=",">
+        (#{item.good}, #{item.bad}, #{item.idx_meeting}, #{item.idx_meeting_user_join})
+        </foreach>
+    </insert>
+
+    <!-- 전체 막대그래프용 데이터 -->
+    <select id="getTotalBarData" resultType="com.eura.web.model.DTO.ConcentrationVO">
+        SELECT GOOD, BAD, LVL
+        FROM TB_MEETING_ANALYSIS_TOTAL_BAR 
+        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{file_no}
+        ORDER BY LVL ASC
+    </select>
+
+    <!-- 전체 막대그래프용 데이터 저장 -->
+    <insert id="saveTotalBarData" parameterType="java.util.Map">
+        INSERT INTO TB_MEETING_ANALYSIS_TOTAL_BAR (GOOD, BAD, LVL, IDX_MEETING, MOVIE_NO) VALUES 
+        <foreach item="item" collection="list" separator=",">
+        (#{item.good}, #{item.bad}, #{item.lvl}, #{item.idx_meeting}, #{item.movie_no})
+        </foreach>
+    </insert>
 </mapper>
