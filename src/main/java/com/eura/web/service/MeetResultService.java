@@ -67,7 +67,6 @@ public class MeetResultService {
      * @throws Exception
      */
     public ResultVO getResultData(ResultVO resultVO, MeetingVO meetingVO, List<AnalysisVO> _Time, Integer _auth, MeetingVO _uin, Map<String, Object> _rs) throws Exception {
-        srvinfo = "prod";
         Integer _livein = 0;
         if(_uin!=null){
             if(StringUtils.isNotEmpty(_uin.getToken())){
