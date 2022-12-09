@@ -21,7 +21,7 @@
 
     <!-- 미팅룸 첨부파일 정보 -->
     <select id="getMeetFile" resultType="com.eura.web.model.DTO.MeetingVO">
-        SELECT FILE_PATH, FILE_NAME
+        SELECT FILE_PATH, FILE_NAME, FILE_SIZE
         FROM TB_ATTACHMENT_FILE_INFO_JOIN 
         WHERE DELETE_STAT=0 AND IDX_ATTACHMENT_FILE_INFO_JOIN=#{idx_attachment_file_info_join} AND IDX_MEETING=#{idx_meeting}
     </select>

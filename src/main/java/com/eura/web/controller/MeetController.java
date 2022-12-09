@@ -1780,10 +1780,27 @@ public class MeetController extends BaseController {
                                                     resultVO = meetingService.createMeetRoom(req, param);
                                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
 
+                                                    // 미팅룸 기존파일 가져오기
+                                                    if(i==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
+                                                        String[] fileIdx = meetingVO.getOri_file().split(",");
+                                                        for(String fidx : fileIdx){
+                                                            MeetingVO ee = new MeetingVO();
+                                                            ee.setIdx_meeting(rrs.getIdx_meeting());
+                                                            ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+
+                                                            MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                                            if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                                finfo.setIdx_meeting(_idx);
+                                                                _frss.add(finfo);
+                                                            }
+                                                        }
+                                                    }
+
                                                     // 미팅룸 첨부파일 복사
                                                     if(!_idx.equals(0)){
                                                         meetingService.meetFileCopy(_idx, _frss);
                                                     }
+
                                                     resultVO.setResult_code(CONSTANT.success);
                                                     resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                 }
@@ -1833,11 +1850,32 @@ public class MeetController extends BaseController {
                                                                 resultVO = meetingService.createMeetRoom(req, param);
                                                                 _idx = Integer.valueOf(resultVO.getData().get("key").toString());
 
+                                                                System.out.println("_idx = " + _idx);
+                                                                System.out.println("_fcnt = " + _fcnt);
+
+                                                                // 미팅룸 기존파일 가져오기
+                                                                if(_fcnt==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
+                                                                    String[] fileIdx = meetingVO.getOri_file().split(",");
+                                                                    for(String fidx : fileIdx){
+                                                                        MeetingVO ee = new MeetingVO();
+                                                                        ee.setIdx_meeting(rrs.getIdx_meeting());
+                                                                        ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+
+                                                                        MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                                                        if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                                            finfo.setIdx_meeting(_idx);
+                                                                            _frss.add(finfo);
+                                                                        }
+                                                                    }
+                                                                }
+
                                                                 // 미팅룸 첨부파일 복사
                                                                 if(!_idx.equals(0)){
-                                                                    _fcnt++;
                                                                     meetingService.meetFileCopy(_idx, _frss);
                                                                 }
+
+                                                                ++_fcnt;
+
                                                                 resultVO.setResult_code(CONSTANT.success);
                                                                 resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                             }
@@ -1902,11 +1940,29 @@ public class MeetController extends BaseController {
                                                                 resultVO = meetingService.createMeetRoom(req, param);
                                                                 _idx = Integer.valueOf(resultVO.getData().get("key").toString());
 
+                                                                // 미팅룸 기존파일 가져오기
+                                                                if(_fcnt==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
+                                                                    String[] fileIdx = meetingVO.getOri_file().split(",");
+                                                                    for(String fidx : fileIdx){
+                                                                        MeetingVO ee = new MeetingVO();
+                                                                        ee.setIdx_meeting(rrs.getIdx_meeting());
+                                                                        ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+
+                                                                        MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                                                        if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                                            finfo.setIdx_meeting(_idx);
+                                                                            _frss.add(finfo);
+                                                                        }
+                                                                    }
+                                                                }
+
                                                                 // 미팅룸 첨부파일 복사
                                                                 if(!_idx.equals(0)){
-                                                                    _fcnt++;
                                                                     meetingService.meetFileCopy(_idx, _frss);
                                                                 }
+
+                                                                _fcnt++;
+
                                                                 resultVO.setResult_code(CONSTANT.success);
                                                                 resultVO.setResult_str("미팅룸을 "+ _edittxt +"하였습니다.");
                                                             }
@@ -1965,6 +2021,22 @@ public class MeetController extends BaseController {
                                                         }else{
                                                             resultVO = meetingService.createMeetRoom(req, param);
                                                             _idx = Integer.valueOf(resultVO.getData().get("key").toString());
+
+                                                            // 미팅룸 기존파일 가져오기
+                                                            if(creatN==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
+                                                                String[] fileIdx = meetingVO.getOri_file().split(",");
+                                                                for(String fidx : fileIdx){
+                                                                    MeetingVO ee = new MeetingVO();
+                                                                    ee.setIdx_meeting(rrs.getIdx_meeting());
+                                                                    ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+
+                                                                    MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                                                    if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                                        finfo.setIdx_meeting(_idx);
+                                                                        _frss.add(finfo);
+                                                                    }
+                                                                }
+                                                            }
 
                                                             // 미팅룸 첨부파일 복사
                                                             if(!_idx.equals(0)){
@@ -2033,8 +2105,24 @@ public class MeetController extends BaseController {
                                                             resultVO = meetingService.createMeetRoom(req, param);
                                                             _idx = Integer.valueOf(resultVO.getData().get("key").toString());
 
+                                                            // 미팅룸 기존파일 가져오기
+                                                            if(creatN==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
+                                                                String[] fileIdx = meetingVO.getOri_file().split(",");
+                                                                for(String fidx : fileIdx){
+                                                                    MeetingVO ee = new MeetingVO();
+                                                                    ee.setIdx_meeting(rrs.getIdx_meeting());
+                                                                    ee.setIdx_attachment_file_info_join(Integer.valueOf(fidx));
+
+                                                                    MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
+                                                                    if(StringUtils.isNotEmpty(finfo.getFile_name())){
+                                                                        finfo.setIdx_meeting(_idx);
+                                                                        _frss.add(finfo);
+                                                                    }
+                                                                }
+                                                            }
+
                                                             // 미팅룸 첨부파일 복사
-                                                            if (!_idx.equals(0)) {
+                                                            if(!_idx.equals(0)){
                                                                 meetingService.meetFileCopy(_idx, _frss);
                                                             }
                                                             resultVO.setResult_code(CONSTANT.success);
