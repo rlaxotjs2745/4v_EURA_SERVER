@@ -142,7 +142,7 @@ public class MeetResultService {
                                 // 프로필 사진 -----------------------------------------------
 
                                 // 미팅 참석 여부
-                                if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                                if(StringUtils.isNotEmpty(_ulist.getToken())){
                                     _join = 1;
                                 }
                                 _dlistrs.put("uname",_ulist.getUser_name()); // 참석자명
@@ -162,9 +162,9 @@ public class MeetResultService {
                     _ri++;
                 }
 
-                Integer _join = 0;
                 if(_auth==1 || !_livein.equals(0)){
                     for(MeetingVO _ulist : _ulists){
+                        Integer _join = 0;
                         Map<String, Object> _ul = new HashMap<String, Object>();
                         ConcentrationVO concentrationVO = analysisService.getPersonalRate(allLevelVOList, _ulist.getIdx_meeting_user_join());
 
@@ -200,7 +200,7 @@ public class MeetResultService {
                         // 프로필 사진 -----------------------------------------------
 
                         // 미팅 참석 여부
-                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                        if(StringUtils.isNotEmpty(_ulist.getToken())){
                             _join = 1;
                             _joincnt++;
                         }
@@ -346,7 +346,7 @@ public class MeetResultService {
                         // 프로필 사진 -----------------------------------------------
 
                         // 미팅 참석 여부
-                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                        if(StringUtils.isNotEmpty(_ulist.getToken())){
                             _join = 1;
                         }
                         _dlistrs.put("uname",_ulist.getUser_name()); // 참석자명
@@ -363,11 +363,11 @@ public class MeetResultService {
                     }
                 }
 
-                Integer _join = 0;
                 
                 if(_auth==1 || !_livein.equals(0)){
                     List<ConcentrationVO> _tprs = analysisMapper.getPersoanlTotalData(meetingVO);
                     for(MeetingVO _ulist : _ulists){
+                        Integer _join = 0;
                         Integer _value = 0;
                         Map<String, Object> _ul = new HashMap<String, Object>();
 
@@ -409,7 +409,7 @@ public class MeetResultService {
                         // 프로필 사진 -----------------------------------------------
 
                         // 미팅 참석 여부
-                        if(StringUtils.isNotEmpty(_ulist.getJoin_dt())){
+                        if(StringUtils.isNotEmpty(_ulist.getToken())){
                             _join = 1;
                             _joincnt++;
                         }

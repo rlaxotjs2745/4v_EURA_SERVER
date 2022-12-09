@@ -224,8 +224,6 @@ public class LiveController extends BaseController {
             meetingVO.setIs_finish(1);
             Integer rs = meetMapper.endMeetLive(meetingVO);
             if(rs == 1){
-                MeetingVO param = meetMapper.getMeetLiveIdx(meetingVO);
-                meetResultService.makeResultData(param);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{
