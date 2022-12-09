@@ -428,8 +428,8 @@ public class MeetingService extends BaseController {
                         _sdate = getCalDate(_sdM, 0, i, 0);
                         _edate = getCalDate(_edM, 0, i, 0);
 
-                        int _loofday = Integer.parseInt(_sdate.substring(8,10));
-                        if(_loofday == meetingVO.getMt_remind_monthDay()){
+                        String _loofday = _sdate.substring(8,10);
+                        if(_loofday.equals(meetingVO.getMt_remind_monthDay())){
                             meetingVO.setMt_start_dt(_sdate);
                             meetingVO.setMt_end_dt(_edate);
                             MeetingVO _chk = meetMapper.chkRoomDupDate(meetingVO);
@@ -456,7 +456,7 @@ public class MeetingService extends BaseController {
                                 }
                                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                 _sdate = format.format(cal.getTime());
-                                _edate = _sdate.substring(0, 10) + _ed.substring(10, 19);
+                                _edate = _sdate.substring(0, 10) + _ed.substring(10);
 
                                 meetingVO.setMt_start_dt(_sdate);
                                 meetingVO.setMt_end_dt(_edate);
