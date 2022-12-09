@@ -3,7 +3,6 @@ package com.eura.web.service;
 import com.eura.web.model.DTO.AnalysisVO;
 import com.eura.web.model.DTO.ConcentrationVO;
 import com.eura.web.model.DTO.GraphMidVO;
-import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.PersonalLevelVO;
 
 import java.util.List;
@@ -18,7 +17,7 @@ public interface AnalysisService {
 
     public ConcentrationVO getMeetingRate(List<Integer> goodList, List<Integer> badList, List<Integer> totcalCntList);
 
-    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin) throws Exception;
+    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer _dataChk) throws Exception;
 
 
 }

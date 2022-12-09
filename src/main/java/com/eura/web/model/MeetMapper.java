@@ -105,6 +105,8 @@ public interface MeetMapper {
     // APP 미팅룸 종료 시 영상 파일 받기
     public Integer endMeetLive(MeetingVO meetingVO) throws Exception;
 
+    public MeetingVO getMeetLiveIdx(MeetingVO meetingVO) throws Exception;
+
     // 미팅 참가자 INDEX 정보 추출
     public MeetingVO getMeetInvite(MeetingVO meetingVO) throws Exception;
 

@@ -10,6 +10,7 @@ import com.eura.web.model.DTO.MeetEndVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
+import com.eura.web.service.MeetResultService;
 import com.eura.web.service.S3Service;
 import com.eura.web.service.S3VodService;
 import com.eura.web.util.CONSTANT;
@@ -41,6 +42,7 @@ public class LiveController extends BaseController {
     private final MeetMapper meetMapper;
     private final S3Service s3Service;
     private final S3VodService s3VodService;
+    private final MeetResultService meetResultService;
 
     @Value("${srvinfo}")
     public String srvinfo;
@@ -190,6 +192,9 @@ public class LiveController extends BaseController {
                         }
                     }
                 }
+
+                MeetingVO param = meetMapper.getMeetLiveIdx(meetingVO);
+                meetResultService.makeResultData(param);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{
@@ -219,6 +224,8 @@ public class LiveController extends BaseController {
             meetingVO.setIs_finish(1);
             Integer rs = meetMapper.endMeetLive(meetingVO);
             if(rs == 1){
+                MeetingVO param = meetMapper.getMeetLiveIdx(meetingVO);
+                meetResultService.makeResultData(param);
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{

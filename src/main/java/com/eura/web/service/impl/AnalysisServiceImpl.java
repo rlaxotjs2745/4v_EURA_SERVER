@@ -37,75 +37,77 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
      * @return PersonalLevelVO
      * @throws Exception
      */
-    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin) throws Exception{
+    public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer _dataChk) throws Exception{
         PersonalLevelVO personalLevelVO = new PersonalLevelVO();
-        Integer duration = _Time.getDuration();
-        int _tcnt = 60;  // 구간 수
-        int level = 60; // 60초
         int level_num = 0;
-        int eng1 = 0;
-        int eng0 = 0;
-        int nowtime = 0;
-
-        level = (int) Math.ceil((double)duration/60);  // 60등분
-        if(duration<=600 && duration > 60){
-            level = 10;  // 600초 이하 10초 간격
-            _tcnt = (int) Math.ceil((double)duration/10);
-        }else if(duration<=60){
-            level = 1;  // 600초 이하 10초 간격
-            _tcnt = duration;
-        }
-
         List<ConcentrationVO> result = new ArrayList<>();
-        
-        for(int i=0;i<_tcnt;i++){
-            Integer count0 = _Time.getTimefirst() + (level*i);
-            Integer count = _Time.getTimefirst() + (level*(i+1));
-            if(i==(_tcnt-1)){
-                nowtime = duration;
-            }else{
-                nowtime = level*(i+1);
+        if(_dataChk==1){
+            Integer duration = _Time.getDuration();
+            int _tcnt = 60;  // 구간 수
+            int level = 60; // 60초
+            int eng1 = 0;
+            int eng0 = 0;
+            int nowtime = 0;
+
+            level = (int) Math.ceil((double)duration/60);  // 60등분
+            if(duration<=600 && duration > 60){
+                level = 10;  // 600초 이하 10초 간격
+                _tcnt = (int) Math.ceil((double)duration/10);
+            }else if(duration<=60){
+                level = 1;  // 600초 이하 10초 간격
+                _tcnt = duration;
             }
-            if(analysisVOList.size()>0){
-                Integer _ncnt = 0;
-                for(AnalysisVO analysisVO : analysisVOList){
-                    if(_Time.getTimeend() >= analysisVO.getTimestamp()){
-                        // 만약 반복문 내 현재 데이터가 10분 이후의 데이터일 시
-                        if(count0 <= analysisVO.getTimestamp() && count > analysisVO.getTimestamp()){
-                            if(analysisVO.getIdx_meeting_user_join() == _idxjoin){
-                                if(analysisVO.getEngagement() >= 0.25){
-                                    eng1++;
-                                } else {
-                                    eng0++;
+            
+            
+            for(int i=0;i<_tcnt;i++){
+                Integer count0 = _Time.getTimefirst() + (level*i);
+                Integer count = _Time.getTimefirst() + (level*(i+1));
+                if(i==(_tcnt-1)){
+                    nowtime = duration;
+                }else{
+                    nowtime = level*(i+1);
+                }
+                if(analysisVOList.size()>0){
+                    Integer _ncnt = 0;
+                    for(AnalysisVO analysisVO : analysisVOList){
+                        if(_Time.getTimeend() >= analysisVO.getTimestamp()){
+                            // 만약 반복문 내 현재 데이터가 10분 이후의 데이터일 시
+                            if(count0 <= analysisVO.getTimestamp() && count > analysisVO.getTimestamp()){
+                                if(analysisVO.getIdx_meeting_user_join() == _idxjoin){
+                                    if(analysisVO.getEngagement() >= 0.25){
+                                        eng1++;
+                                    } else {
+                                        eng0++;
+                                    }
                                 }
+                                _ncnt++;
                             }
-                            _ncnt++;
                         }
                     }
+
+                    ConcentrationVO concentrationVO = new ConcentrationVO();
+                    concentrationVO.setIdx_meeting_user_join(_idxjoin);
+                    concentrationVO.setLevel_num(getSec2Time(nowtime) + "");
+                    concentrationVO.setGood(eng1);
+                    concentrationVO.setBad(eng0);
+                    concentrationVO.setTotalcnt(_ncnt);
+                    result.add(concentrationVO);
+
+                    eng1 = 0;
+                    eng0 = 0;
+                    _ncnt = 0;
+                }else{
+                    ConcentrationVO concentrationVO = new ConcentrationVO();
+                    concentrationVO.setIdx_meeting_user_join(_idxjoin);
+                    concentrationVO.setLevel_num(getSec2Time(nowtime));
+                    concentrationVO.setGood(0);
+                    concentrationVO.setBad(0);
+                    concentrationVO.setTotalcnt(0);
+                    result.add(concentrationVO);
                 }
 
-                ConcentrationVO concentrationVO = new ConcentrationVO();
-                concentrationVO.setIdx_meeting_user_join(_idxjoin);
-                concentrationVO.setLevel_num(getSec2Time(nowtime) + "");
-                concentrationVO.setGood(eng1);
-                concentrationVO.setBad(eng0);
-                concentrationVO.setTotalcnt(_ncnt);
-                result.add(concentrationVO);
-
-                eng1 = 0;
-                eng0 = 0;
-                _ncnt = 0;
-            }else{
-                ConcentrationVO concentrationVO = new ConcentrationVO();
-                concentrationVO.setIdx_meeting_user_join(_idxjoin);
-                concentrationVO.setLevel_num(getSec2Time(nowtime));
-                concentrationVO.setGood(0);
-                concentrationVO.setBad(0);
-                concentrationVO.setTotalcnt(0);
-                result.add(concentrationVO);
+                level_num++; // 레벨 순서 업데이트
             }
-
-            level_num++; // 레벨 순서 업데이트
         }
 
         personalLevelVO.setIdx_meeting_user_join(_idxjoin);
