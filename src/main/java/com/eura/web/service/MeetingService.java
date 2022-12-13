@@ -109,6 +109,7 @@ public class MeetingService extends BaseController {
                     MeetingVO ee = new MeetingVO();
                     ee.setIdx_meeting(meetingVO.getIdx_meeting());
                     ee.setUser_email(uemail);
+                    ee.setMt_start_dt(meetingVO.getMt_start_dt());
 
                     int num = meetMapper.meet_invite(ee);
 
@@ -139,7 +140,7 @@ public class MeetingService extends BaseController {
             mail = "mail_alarm_cancel.html";
         }
         if(_stat==4){
-            mail = "mail_alarm_open.html";
+            mail = "mail_alarm_invite.html";
         }
         if(_stat==5){
             mail = "mail_auth.html";
@@ -190,32 +191,47 @@ public class MeetingService extends BaseController {
         // 참가자 이메일 전송
         }else{
             List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+            String _subject = "";
             for(MeetingVO _ss : irs){
                 String _unm = _ss.getUser_name();
                 if(StringUtils.isEmpty(_unm)){
                     _unm = _ss.getUser_email();
                 }
-                _sebody = _ebody.replace("${USERNAME}", _unm)
-                                .replace("${USEREMAIL}", _ss.getUser_email())
-                                .replace("${MEETNAME}", rrs.getMt_name())
-                                .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
-                String _subject = "";
-                if(_mFTyp==1){
-                    _subject = " 미팅 시작 안내입니다.";
+
+                if(_mFTyp==1 || _mFTyp==2){
+                    _sebody = _ebody.replace("${USERNAME}", _unm)
+                            .replace("${USEREMAIL}", _ss.getUser_email())
+                            .replace("${MEETNAME}", rrs.getMt_name())
+                            .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
+                    if(_mFTyp==1){
+                        _subject = " 미팅 시작 안내입니다.";
+                    }
+                    if(_mFTyp==2){
+                        _subject = " 미팅 시작 30분전 안내입니다.";
+                    }
                 }
-                if(_mFTyp==2){
-                    _subject = " 미팅 시작 30분전 안내입니다.";
-                }
-                if(_mFTyp==3){
-                    _subject = " 미팅이 취소되었습니다.";
-                }
-                if(_mFTyp==4){
-                    _subject = " 미팅에 초대되었습니다.";
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+                Date _mod = dateFormat.parse(rrs.getMt_start_dt());
+                dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
+
+                if(_mFTyp==3 || _mFTyp==4){
+                    _sebody = _ebody.replace("${USERNAME}", _unm)
+                            .replace("${USEREMAIL}", _ss.getUser_email())
+                            .replace("${MEETNAME}", rrs.getMt_name())
+                            .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting())
+                            .replace("${MEETORIDATE}", dateFormat.format(_mod));
+
+                    if(_mFTyp==3){
+                        _subject = " 미팅이 취소되었습니다.";
+                    }
+                    if(_mFTyp==4){
+                        _subject = " 미팅에 초대되었습니다.";
+                    }
                 }
                 if(_mFTyp==7){
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+                    dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
                     Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
-                    Date _mod = dateFormat.parse(rrs.getMt_start_dt());
                     dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
 
                     _sebody = _ebody.replace("${USERNAME}", _unm)
@@ -247,9 +263,14 @@ public class MeetingService extends BaseController {
             _unm = userVO.getUser_email();
         }
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+        Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
+        dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
+
         String _sebody = _ebody.replace("${USERNAME}", _unm)
                 .replace("${USEREMAIL}", userVO.getUser_id())
                 .replace("${MEETNAME}", meetingVO.getMt_name())
+                .replace("${MEETORIDATE}", dateFormat.format(_md))
                 .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
 
         if(_mFTyp==3) {
