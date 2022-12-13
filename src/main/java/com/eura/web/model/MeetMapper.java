@@ -112,4 +112,7 @@ public interface MeetMapper {
 
     // 참여자에서 본인이 있다면 참여자 정보와 연동
     public Integer chkMeetInviteChain(UserVO paramVo) throws Exception;
+
+    //유저 이메일이 기존에 있는 참가자인지 확인
+    public Integer getMeetInviteUser(MeetingVO meetingVO) throws Exception;
 }

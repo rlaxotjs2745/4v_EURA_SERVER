@@ -111,10 +111,11 @@ public class MeetingService extends BaseController {
                     ee.setUser_email(uemail);
                     ee.setMt_start_dt(meetingVO.getMt_start_dt());
 
-                    int num = meetMapper.meet_invite(ee);
+                    int num= meetMapper.getMeetInviteUser(ee);
+                    meetMapper.meet_invite(ee);
 
                     //공개된 상태에서 새로 추가된 회원은 초대메일 발송
-                    if(orM.getMt_status() == 1 && num == 2){
+                    if(orM.getMt_status() == 1 && num == 0){
                         sendModifyMail(ee, 4);
                     }
                 }
@@ -257,10 +258,12 @@ public class MeetingService extends BaseController {
         UserVO userVO = userService.findUserById(ee.getUser_email());
         MeetingVO meetingVO = meetMapper.getRoomInfo(ee);
         String _subject = "";
+        String _unm = "";
 
-        String _unm = userVO.getUser_name();
-        if(StringUtils.isEmpty(_unm)){
-            _unm = userVO.getUser_email();
+        if(userVO!=null){
+            _unm = userVO.getUser_name();
+        } else {
+            _unm = ee.getUser_email();
         }
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
@@ -268,7 +271,7 @@ public class MeetingService extends BaseController {
         dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
 
         String _sebody = _ebody.replace("${USERNAME}", _unm)
-                .replace("${USEREMAIL}", userVO.getUser_id())
+                .replace("${USEREMAIL}", ee.getUser_email())
                 .replace("${MEETNAME}", meetingVO.getMt_name())
                 .replace("${MEETORIDATE}", dateFormat.format(_md))
                 .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
@@ -281,7 +284,7 @@ public class MeetingService extends BaseController {
             _subject = " 미팅에 초대되었습니다.";
         }
 
-        mailSender.sender(userVO.getUser_id(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
+        mailSender.sender(ee.getUser_email(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
     }
 
 

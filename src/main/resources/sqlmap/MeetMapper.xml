@@ -189,6 +189,15 @@
                 AND IDX_MEETING=#{idx_meeting}
     </select>
 
+    <!-- 미팅룸 참여자 여부 확인 -->
+    <select id="getMeetInviteUser" resultType="Integer">
+        SELECT COUNT(1)
+        FROM TB_MEETING_USER_JOIN
+        WHERE DELETE_STAT=0
+          AND IDX_MEETING=#{idx_meeting}
+          AND USER_EMAIL=#{user_email}
+    </select>
+
     <!-- 미팅룸 생성 -->
     <insert id="meet_create" parameterType="com.eura.web.model.DTO.MeetingVO" useGeneratedKeys="true" keyColumn="idx_meeting" keyProperty="idx_meeting">
         INSERT INTO TB_MEETING (
