@@ -1851,9 +1851,6 @@ public class MeetController extends BaseController {
                                                                 resultVO = meetingService.createMeetRoom(req, param);
                                                                 _idx = Integer.valueOf(resultVO.getData().get("key").toString());
 
-                                                                System.out.println("_idx = " + _idx);
-                                                                System.out.println("_fcnt = " + _fcnt);
-
                                                                 // 미팅룸 기존파일 가져오기
                                                                 if(_fcnt==1 && meetingVO.getOri_file() != null && meetingVO.getOri_file() != ""){
                                                                     String[] fileIdx = meetingVO.getOri_file().split(",");
@@ -1976,8 +1973,6 @@ public class MeetController extends BaseController {
                                     // 월 주기
                                     }else if(meetingVO.getMt_remind_type().equals(4)){
 
-                                        String _startdt = rrs.getMt_start_dt();
-
                                         if(meetingVO.getMt_remind_monthType() == 1) {
                                             String _sdM = _sd.substring(0,8) + meetingVO.getMt_remind_monthDay() + _sd.substring(10);
                                             String _edM = _ed.substring(0,8) + meetingVO.getMt_remind_monthDay() + _ed.substring(10);
@@ -2000,7 +1995,7 @@ public class MeetController extends BaseController {
                                                 String _loofday = _sdate.substring(8,10);
 
                                                 if(getDateDiff(_sdate, _enddt)<0){
-                                                    if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_startdt, _sdate)< 0){
+                                                    if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_sd, _sdate)< 0){
                                                         if(creatN==0){
                                                             rs = meetMapper.meet_modify(meetingVO);
                                                             if(rs > 0){
