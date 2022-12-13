@@ -6,9 +6,6 @@ package com.eura.web.controller;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +13,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.eura.web.model.AnalysisMapper;
 import com.eura.web.model.DTO.*;
 import com.eura.web.service.AnalysisService;
-import org.omg.PortableServer._ServantActivatorStub;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -43,9 +39,6 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
-    private final AnalysisMapper analysisMapper;
-
-    private final AnalysisService analysisService;
 
     @Value("${srvinfo}")
     public String srvinfo;
@@ -349,6 +342,14 @@ public class MeetController extends BaseController {
                     }
                     if(rs.getIs_live()==0 && getDateTimeDiff(rs.getMt_end_dt(),new Date())<0){
                         resultVO.setResult_str("종료된 미팅입니다.");
+                        return resultVO;
+                    }
+                    MeetingVO param = new MeetingVO();
+                    param.setIdx_meeting(meetingVO.getIdx_meeting());
+                    param.setUser_email(uInfo.getUser_id());
+                    Integer _chkInvite = meetMapper.getMeetInviteUser(param);
+                    if(_chkInvite==0){
+                        resultVO.setResult_str("미팅룸에 참여할 권한이 없습니다.");
                         return resultVO;
                     }
                 }
