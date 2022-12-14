@@ -192,14 +192,21 @@ public class MeetResultController extends BaseController {
                     _ul.put("fileUrl2", _furl2);    // 영상
                     _mls.add(_ul);
 
-                    Date sdate = ff.parse(_mlist.getRecord_dt());
-                    Integer _sDt = (int) (sdate.getTime()/1000);
-                    Integer _eDt = _sDt + _mlist.getDuration();
                     AnalysisVO _rs0 = new AnalysisVO();
-                    _rs0.setTimefirst(_sDt);
-                    _rs0.setTimeend(_eDt);
-                    _rs0.setDuration(_mlist.getDuration());
-                    _Time.add(_rs0);
+                    if(_mlist.getRecord_dt()!=null){
+                        Date sdate = ff.parse(_mlist.getRecord_dt());
+                        Integer _sDt = (int) (sdate.getTime()/1000);
+                        Integer _eDt = _sDt + _mlist.getDuration();
+                        _rs0.setTimefirst(_sDt);
+                        _rs0.setTimeend(_eDt);
+                        _rs0.setDuration(_mlist.getDuration());
+                        _Time.add(_rs0);
+                    }else{
+                        _rs0.setTimefirst(0);
+                        _rs0.setTimeend(0);
+                        _rs0.setDuration(_mlist.getDuration());
+                        _Time.add(_rs0);
+                    }
                 }
                 _rs.put("mtMovieFiles", _mls);
             }else{

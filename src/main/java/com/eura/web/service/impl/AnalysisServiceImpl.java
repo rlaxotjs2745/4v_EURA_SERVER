@@ -39,6 +39,9 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
      */
     public PersonalLevelVO getLevelData(List<AnalysisVO> analysisVOList, AnalysisVO _Time, Integer _idxjoin, Integer _dataChk) throws Exception{
         PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+        if(_Time==null){
+            return personalLevelVO;
+        }
         int level_num = 0;
         List<ConcentrationVO> result = new ArrayList<>();
         if(_dataChk==1){

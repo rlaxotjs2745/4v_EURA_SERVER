@@ -93,7 +93,7 @@
     </select>
 
     <select id="getUserAnalysisData" resultType="com.eura.web.model.DTO.AnalysisVO">
-        SELECT IDX_ANALYSIS, IDX_MEETING_USER_JOIN, `TIMESTAMP`, ENGAGEMENT, ATTENTION, VALENCE
+        SELECT IDX_ANALYSIS, IDX_MEETING_USER_JOIN, IFNULL(`TIMESTAMP`,0) AS `TIMESTAMP`, ENGAGEMENT, ATTENTION, VALENCE
         FROM TB_ANALYSIS
         WHERE 1=1
         <if test="idx_meeting_user_join != null">

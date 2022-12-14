@@ -109,23 +109,32 @@ public class MeetResultService {
                         }
 
                         // 개인 막대 그래프용 데이터 뽑기
-                        PersonalLevelVO personalLevelVO = analysisService.getLevelData(allAnalysisList, _Time0, _ulist.getIdx_meeting_user_join(), _dataChk);
-                        allLevelVOList.add(personalLevelVO);    // 분석요약용 : 모든 동영상
+                        PersonalLevelVO personalLevelVO = new PersonalLevelVO();
+                        if(allAnalysisList.size()>0){
+                            personalLevelVO = analysisService.getLevelData(allAnalysisList, _Time0, _ulist.getIdx_meeting_user_join(), _dataChk);
+                        }
+                        if(personalLevelVO!=null){
+                            allLevelVOList.add(personalLevelVO);    // 분석요약용 : 모든 동영상
+                        }
 
                         // 지정 동영상 감정분석 데이터 뽑기
                         if(meetingVO.getFile_no()==(_ri+1)){
-                            personalLevelVOList.add(personalLevelVO);   // 지정 동영상 연계용
+                            if(personalLevelVO!=null){
+                                personalLevelVOList.add(personalLevelVO);   // 지정 동영상 연계용
+                            }
 
                             if(_auth==1 || (!_livein.equals(0) && _uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join()))){
                                 // 개인 그래프용 데이터 만들기
                                 Map<String, Object> _dlistrs = new HashMap<String, Object>();
                                 ArrayList<Object> _dlists00 = new ArrayList<Object>();
-                                for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
-                                    Map<String, Object> _dlist = new HashMap<String, Object>();
-                                    _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
-                                    _dlist.put("good",paramVo.getGood());
-                                    _dlist.put("bad",paramVo.getBad()*-1);
-                                    _dlists00.add(_dlist);
+                                if(personalLevelVO!=null){
+                                    for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
+                                        Map<String, Object> _dlist = new HashMap<String, Object>();
+                                        _dlist.put("name",paramVo.getLevel_num());   // 동영상 재생 위치
+                                        _dlist.put("good",paramVo.getGood());
+                                        _dlist.put("bad",paramVo.getBad()*-1);
+                                        _dlists00.add(_dlist);
+                                    }
                                 }
 
                                 // 프로필 사진 -----------------------------------------------
@@ -165,14 +174,25 @@ public class MeetResultService {
                     for(MeetingVO _ulist : _ulists){
                         Integer _join = 0;
                         Map<String, Object> _ul = new HashMap<String, Object>();
-                        ConcentrationVO concentrationVO = analysisService.getPersonalRate(allLevelVOList, _ulist.getIdx_meeting_user_join());
+                        ConcentrationVO concentrationVO = new ConcentrationVO();
+                        if(allLevelVOList!=null){
+                            concentrationVO = analysisService.getPersonalRate(allLevelVOList, _ulist.getIdx_meeting_user_join());
 
-                        if(_auth==1 || _uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join())){
-                            // 개인 분석 요약 데이터
+                            if(_auth==1 || _uin.getIdx_meeting_user_join().equals(_ulist.getIdx_meeting_user_join())){
+                                // 개인 분석 요약 데이터
+                                Map<String, Object> _d2list = new HashMap<String, Object>();
+                                _d2list.put("good",concentrationVO.getGood()); // GOOD
+                                _d2list.put("bad",concentrationVO.getBad());  // BAD
+                                _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                                _d2list.put("tcnt",0); // 현재 점수
+                                _d2list.put("acnt",0); // 누적 평균
+                                _dlists1.add(_d2list);
+                            }
+                        }else{
                             Map<String, Object> _d2list = new HashMap<String, Object>();
-                            _d2list.put("good",concentrationVO.getGood()); // GOOD
-                            _d2list.put("bad",concentrationVO.getBad());  // BAD
-                            _d2list.put("off",concentrationVO.getCameraOff());  // OFF
+                            _d2list.put("good",0); // GOOD
+                            _d2list.put("bad",0);  // BAD
+                            _d2list.put("off",0);  // OFF
                             _d2list.put("tcnt",0); // 현재 점수
                             _d2list.put("acnt",0); // 누적 평균
                             _dlists1.add(_d2list);
@@ -213,8 +233,12 @@ public class MeetResultService {
                         // _ul.put("badValue",concentrationVO.getBad());    // 집중도
                         // _ul.put("cameraOffValue",concentrationVO.getCameraOff());    // 집중도
 
-                        if(concentrationVO.getGood()>0){
-                            _ul.put("value", concentrationVO.getGood());    // 집중도
+                        if(concentrationVO!=null){
+                            if(concentrationVO.getGood()>0){
+                                _ul.put("value", concentrationVO.getGood());    // 집중도
+                            }else{
+                                _ul.put("value", 0.0);    // 집중도
+                            }
                         }else{
                             _ul.put("value", 0.0);    // 집중도
                         }
