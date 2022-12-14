@@ -1995,7 +1995,7 @@ public class MeetController extends BaseController {
                                                 String _loofday = _sdate.substring(8,10);
 
                                                 if(getDateDiff(_sdate, _enddt)<0){
-                                                    if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_sd, _sdate)< 0){
+                                                    if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_sd, _sdate)<= 0){
                                                         if(creatN==0){
                                                             rs = meetMapper.meet_modify(meetingVO);
                                                             if(rs > 0){
@@ -2079,7 +2079,7 @@ public class MeetController extends BaseController {
                                                 }
 
                                                 if(getDateDiff(_sdate, _enddt)<0) {
-                                                    if(getDateDiff(_sd, _sdate)<0) {
+                                                    if(getDateDiff(_sd, _sdate)<=0) {
                                                         if (creatN == 0) {
                                                             rs = meetMapper.meet_modify(meetingVO);
                                                             if (rs > 0) {
