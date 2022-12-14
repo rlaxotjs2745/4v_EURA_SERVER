@@ -254,9 +254,6 @@
                 MT_START_DT=#{mt_start_dt},
                 MT_END_DT=#{mt_end_dt},
                 MT_INFO=#{mt_info}
-            <if test="mt_status != null">
-                , MT_STATUS=#{mt_status}
-            </if>
             <if test="mt_remind_type != null">
                 , MT_REMIND_TYPE=#{mt_remind_type}
             </if>

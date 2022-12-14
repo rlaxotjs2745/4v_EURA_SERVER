@@ -1455,6 +1455,7 @@ public class MeetController extends BaseController {
                         // 취소 상태에서 수정하면 재개설이므로 상태는 비공개로 전환됨.
                         meetingVO.setMt_status(0);
                     }
+
                     if(rrs.getIdx_user().equals(uInfo.getIdx_user())){
                         if(StringUtils.isEmpty(meetingVO.getMt_start_dt())){
                             resultVO.setResult_str("미팅 시작 시간을 골라주세요.");
@@ -1545,8 +1546,17 @@ public class MeetController extends BaseController {
                                     // 미팅룸 첨부파일 저장
                                     meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                    //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                     if(rrs.getMt_status()==1 && (getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0)){
                                         meetingService.sendMail(meetingVO, rrs, 7);
+                                    }
+
+                                    //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                    if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                        Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                        if(openM==1){
+                                            meetingService.sendMail(meetingVO, rrs, 4);
+                                        }
                                     }
 
                                     resultVO.setResult_code(CONSTANT.success);
@@ -1770,8 +1780,17 @@ public class MeetController extends BaseController {
                                                         // 미팅룸 첨부파일 저장
                                                         _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                                        //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                                         if(rrs.getMt_status()==1 && (getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0)){
                                                             meetingService.sendMail(meetingVO, rrs, 7);
+                                                        }
+
+                                                        //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                                        if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                                            Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                                            if(openM==1){
+                                                                meetingService.sendMail(meetingVO, rrs, 4);
+                                                            }
                                                         }
 
                                                         resultVO.setResult_code(CONSTANT.success);
@@ -1839,8 +1858,17 @@ public class MeetController extends BaseController {
                                                                     // 미팅룸 첨부파일 저장
                                                                     _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                                                    //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                                                     if(rrs.getMt_status()==1 && (getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0)){
                                                                         meetingService.sendMail(meetingVO, rrs, 7);
+                                                                    }
+
+                                                                    //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                                                    if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                                                        Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                                                        if(openM==1){
+                                                                            meetingService.sendMail(meetingVO, rrs, 4);
+                                                                        }
                                                                     }
 
                                                                     resultVO.setResult_code(CONSTANT.success);
@@ -1926,8 +1954,17 @@ public class MeetController extends BaseController {
                                                                     // 미팅룸 첨부파일 저장
                                                                     _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                                                    //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                                                     if(rrs.getMt_status()==1 && (getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0)){
                                                                         meetingService.sendMail(meetingVO, rrs, 7);
+                                                                    }
+
+                                                                    //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                                                    if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                                                        Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                                                        if(openM==1){
+                                                                            meetingService.sendMail(meetingVO, rrs, 4);
+                                                                        }
                                                                     }
 
                                                                     resultVO.setResult_code(CONSTANT.success);
@@ -2007,8 +2044,17 @@ public class MeetController extends BaseController {
                                                                 // 미팅룸 첨부파일 저장
                                                                 _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                                                //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                                                 if(rrs.getMt_status()==1 && (getDateTimeDiff(rrs.getMt_start_dt(),meetingVO.getMt_start_dt())!=0 || getDateTimeDiff(rrs.getMt_end_dt(),meetingVO.getMt_end_dt())!=0)){
                                                                     meetingService.sendMail(meetingVO, rrs, 7);
+                                                                }
+
+                                                                //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                                                if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                                                    Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                                                    if(openM==1){
+                                                                        meetingService.sendMail(meetingVO, rrs, 4);
+                                                                    }
                                                                 }
                                                                 
                                                                 resultVO.setResult_code(CONSTANT.success);
@@ -2091,9 +2137,19 @@ public class MeetController extends BaseController {
                                                                 // 미팅룸 첨부파일 저장
                                                                 _frss = meetingService.meetFileSave(req, meetingVO.getIdx_meeting());
 
+                                                                //공개 상태에서 시간 변경되었을때 일정변경 메일 발송
                                                                 if (rrs.getMt_status() == 1 && (getDateTimeDiff(rrs.getMt_start_dt(), meetingVO.getMt_start_dt()) != 0 || getDateTimeDiff(rrs.getMt_end_dt(), meetingVO.getMt_end_dt()) != 0)) {
                                                                     meetingService.sendMail(meetingVO, rrs, 7);
                                                                 }
+
+                                                                //수정하기 통해서 공개값 변환될때 공개메일 발송
+                                                                if(meetingVO.getMt_status()!=null && rrs.getMt_status()==0 && meetingVO.getMt_status()==1){
+                                                                    Integer openM = meetMapper.putMeetOpen(meetingVO);
+                                                                    if(openM==1){
+                                                                        meetingService.sendMail(meetingVO, rrs, 4);
+                                                                    }
+                                                                }
+
                                                                 resultVO.setResult_code(CONSTANT.success);
                                                                 resultVO.setResult_str("미팅룸을 " + _edittxt + "하였습니다.");
                                                             } else {
