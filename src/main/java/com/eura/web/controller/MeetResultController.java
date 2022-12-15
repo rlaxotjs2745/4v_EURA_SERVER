@@ -185,7 +185,7 @@ public class MeetResultController extends BaseController {
                         }else{
                             String _mpath = _mlist.getFile_name().replace(".mp4","");
                             _furl = voddomain + "/output/" + _mpath + CONSTANT._movieUrl + _mpath + "_720.m3u8";
-                            _furl2 = voddomain + "/output/" + _mpath + CONSTANT._movieMp4 + _mlist.getFile_name();
+                            _furl2 = voddomain + "/input/euraclass" + meetingVO.getIdx_meeting() + "/" + _mlist.getFile_name();
                         }
                     }
                     _ul.put("fileUrl", _furl);    // 영상

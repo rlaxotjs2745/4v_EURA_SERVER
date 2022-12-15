@@ -7,21 +7,24 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.Upload;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 
-import java.io.IOException;
-
 @Service
 public class S3VodService {
     private AmazonS3 s3Client;
+    private TransferManager tm;
 
     @Value("${cloud.aws.credentials.accessKey}")
     private String accessKey;
@@ -42,22 +45,25 @@ public class S3VodService {
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withRegion(region)
                 .build();
+        tm = TransferManagerBuilder.standard()
+                .withS3Client(s3Client)
+                .build();
     }
 
     // upload 메서드 | 단일 파일 업로드
-    public void upload(MultipartFile file, String key) throws IOException {
-        uploadToS3(new PutObjectRequest(bucket, key, file.getInputStream(), null).withCannedAcl(CannedAccessControlList.PublicRead), key);
-    }
-
-    // PutObjectRequest는 Aws s3 버킷에 업로드할 객체 메타 데이터와 파일 데이터로 이루어져 있다.
-    private void uploadToS3(PutObjectRequest putObjectRequest, String key) {
+    public void upload(MultipartFile file, String key) throws Exception {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        // metadata.setContentType(file.getContentType());
+        metadata.setContentType(Mimetypes.getInstance().getMimetype(file.getOriginalFilename()));
         try {
-            this.s3Client.putObject(putObjectRequest);
+            Upload upload = tm.upload(bucket, key, file.getInputStream(), metadata);
+            System.out.println("Object upload started");
+            upload.waitForCompletion();
+            System.out.println("Object upload complete");
         } catch (AmazonServiceException e) {
             e.printStackTrace();
         } catch (SdkClientException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
             e.printStackTrace();
         }
     }

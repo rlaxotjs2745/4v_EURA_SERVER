@@ -114,7 +114,7 @@
         SELECT A.*, B.USER_NAME, IF(C.TOKEN IS NULL,0,1) AS IS_JOIN
             FROM TB_MEETING A
             JOIN TB_USER B ON B.IDX_USER = A.IDX_USER
-            JOIN TB_MEETING_USER_JOIN C ON C.IDX_MEETING=A.IDX_MEETING AND C.IDX_USER=#{idx_user}
+            JOIN TB_MEETING_USER_JOIN C ON C.IDX_MEETING=A.IDX_MEETING AND C.IDX_USER=#{idx_user} AND C.DELETE_STAT=0
             WHERE A.DELETE_STAT=0 
                 AND (A.IDX_USER=#{idx_user} OR A.IDX_MEETING IN (SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE IDX_USER=#{idx_user} AND DELETE_STAT=0))
                 AND ((A.MT_END_DT <![CDATA[<]]> NOW() AND A.MT_STATUS=1 AND A.IS_LIVE_DT IS NOT NULL) OR A.IS_FINISH=1)
@@ -268,7 +268,7 @@
         UPDATE TB_MEETING_USER_JOIN 
             SET 
                 DELETE_STAT=1, IS_LIVE=0, DEL_DT=NOW() 
-            WHERE IDX_MEETING=#{idx_meeting} AND USER_EMAIL=#{user_email}
+            WHERE IDX_MEETING=#{idx_meeting} AND USER_EMAIL=#{user_email} AND DELETE_STAT=0
     </update>
 
     <!-- 미팅룸 공개 -->
@@ -316,7 +316,7 @@
         UPDATE TB_MEETING_USER_JOIN
             SET
                 IS_LIVE=1, ZUID=#{zuid}
-            WHERE TOKEN=#{token} AND SESSIONID=#{mcid}
+            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND DELETE_STAT=0
     </update>
 
     <!-- ZOOM 미팅 Keep Alive : 녹화/감정 분석 진행여부 -->
@@ -330,7 +330,7 @@
             <if test="allmute != null">
                 , ALLMUTE = #{allmute}
             </if>
-            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND ZUID=#{zuid}
+            WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND ZUID=#{zuid} AND DELETE_STAT=0
     </update>
 
     <!-- 호스트가 설정한 줌의 환경 설정 가져오기 -->
@@ -339,7 +339,7 @@
             FROM TB_MEETING_USER_JOIN A
             JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING AND B.TOKEN=#{token} AND B.SESSIONID=#{mcid} AND B.ZUID=#{zuid}
             JOIN TB_MEETING C ON C.IDX_MEETING=A.IDX_MEETING
-            WHERE A.IDX_USER = C.IDX_USER
+            WHERE A.IDX_USER = C.IDX_USER AND A.DELETE_STAT=0
     </select>
 
     <!-- 미팅 들어가기 -->
@@ -347,14 +347,14 @@
         UPDATE TB_MEETING_USER_JOIN
             SET
                 JOIN_DT=NOW(), TOKEN=#{token}, SESSIONID=#{sessionid}, IS_LIVE=0
-            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
     </update>
 
     <!-- 미팅에 참여중인지 확인 -->
     <select id="chkMeetLiveJoin" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT TOKEN, SESSIONID, IS_LIVE, IDX_MEETING_USER_JOIN, JOIN_DT
             FROM TB_MEETING_USER_JOIN
-            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user}
+            WHERE IDX_MEETING=#{idx_meeting} AND IDX_USER=#{idx_user} AND DELETE_STAT=0
     </select>
 
     <!-- 미팅 시간 중복 체크 -->
@@ -383,7 +383,7 @@
             , B.SESSIONID
             , IF(A.IDX_USER=B.IDX_USER,1,0) AS ISHOST
             FROM TB_MEETING A
-        JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING
+        JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING AND B.DELETE_STAT=0
         JOIN TB_USER C ON C.IDX_USER=B.IDX_USER
         WHERE B.SESSIONID=#{sessionid} AND B.TOKEN=#{token}
     </select>
@@ -408,20 +408,20 @@
             <if test="is_finish != null">
                 , IS_FINISH_DT = NOW()
             </if>
-        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid})
+        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND DELETE_STAT=0)
     </update>
 
     <!-- 라이브 중인 미팅룸 INDEX -->
     <select id="getMeetLiveIdx" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT IDX_MEETING 
         FROM TB_MEETING
-        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid})
+        WHERE IDX_MEETING=(SELECT IDX_MEETING FROM TB_MEETING_USER_JOIN WHERE TOKEN=#{token} AND SESSIONID=#{mcid} AND DELETE_STAT=0)
     </select>
 
     <!-- 미팅 참가자 INDEX 정보 추출 -->
     <select id="getMeetInvite" resultType="com.eura.web.model.DTO.MeetingVO">
         SELECT IDX_USER, IDX_MEETING FROM TB_MEETING_USER_JOIN
-            WHERE TOKEN=#{token} AND SESSIONID=#{sessionid}
+            WHERE TOKEN=#{token} AND SESSIONID=#{sessionid} AND DELETE_STAT=0
     </select>
 
     <!-- 참여자에서 본인이 있다면 참여자 정보와 연동 -->
@@ -429,6 +429,6 @@
         UPDATE TB_MEETING_USER_JOIN 
             SET 
                 IDX_USER=(SELECT IDX_USER FROM TB_USER WHERE USER_ID=#{user_id})
-            WHERE USER_EMAIL=#{user_id} AND IDX_USER=0
+            WHERE USER_EMAIL=#{user_id} AND IDX_USER=0 AND DELETE_STAT=0
     </update>
 </mapper>

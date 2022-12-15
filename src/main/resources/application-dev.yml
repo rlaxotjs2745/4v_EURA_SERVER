@@ -5,7 +5,7 @@ server:
 spring:
   datasource:
     hikari:
-      max-lifetime: 20
+      max-lifetime: 30000
     driver-class-name: org.mariadb.jdbc.Driver
     # url: jdbc:mariadb://eura-maria-db.cmjphsu1czot.ap-northeast-2.rds.amazonaws.com:3306/eura_db
     # username: eura_user
