@@ -1,5 +1,7 @@
 spring:
   datasource:
+    hikari:
+      max-lifetime: 20
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://eura-db.cxmubqzajvkd.ap-northeast-2.rds.amazonaws.com:3306/eura_db
     username: euradb
@@ -37,4 +39,4 @@ domain: https://api.eura.site
 w3domain: https://eura.site
 filedomain: https://file.eura.site/upload
 voddomain: https://vod.eura.site
-srvinfo: "prod"
+srvinfo: prod

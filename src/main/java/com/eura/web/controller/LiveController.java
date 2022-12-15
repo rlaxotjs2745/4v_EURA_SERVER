@@ -7,7 +7,6 @@ import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
 import com.eura.web.model.DTO.MeetEndVO;
-import com.eura.web.model.DTO.MeetResultVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
@@ -30,12 +29,14 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
+@MultipartConfig(maxFileSize=1024*1024*1024*5)
 public class LiveController extends BaseController {
     private final AnalysisService analysisService;
     private final FileServiceMapper fileServiceMapper;
