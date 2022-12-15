@@ -7,16 +7,21 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.util.IOUtils;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @Service
@@ -46,7 +51,17 @@ public class S3Service {
 
     // upload 메서드 | 단일 파일 업로드
     public void upload(MultipartFile file, String key) throws IOException {
-        uploadToS3(new PutObjectRequest(bucket, key, file.getInputStream(), null).withCannedAcl(CannedAccessControlList.PublicRead), key);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        metadata.setContentType(Mimetypes.getInstance().getMimetype(file.getOriginalFilename()));
+
+        // ObjectMetadata objMeta = new ObjectMetadata();
+        // byte[] bytes = IOUtils.toByteArray(file.getInputStream());
+        // objMeta.setContentLength(bytes.length);
+        // ByteArrayInputStream byteArrayIs = new ByteArrayInputStream(bytes);
+        PutObjectRequest putObjReq = new PutObjectRequest(bucket, key, file.getInputStream(), metadata).withCannedAcl(CannedAccessControlList.PublicRead);
+        uploadToS3(putObjReq, key);
+        // uploadToS3(new PutObjectRequest(bucket, key, file.getInputStream(), null).withCannedAcl(CannedAccessControlList.PublicRead), key);
     }
 
     // PutObjectRequest는 Aws s3 버킷에 업로드할 객체 메타 데이터와 파일 데이터로 이루어져 있다.
