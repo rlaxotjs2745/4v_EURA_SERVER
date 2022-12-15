@@ -113,8 +113,8 @@ public class MeetResultController extends BaseController {
             String _chkHour2 = meetingInfo.getMt_end_dt().split("\\s")[1];
             _rs.put("mtMeetiTime", _chkHour.substring(0,5) + " ~ " + _chkHour2.substring(0,5));
 
-            if(meetingVO.getFile_no()==null){
-                meetingVO.setFile_no(1);
+            if(meetingVO.getFileno()==null){
+                meetingVO.setFileno(1);
             }
 
             SimpleDateFormat ff = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);

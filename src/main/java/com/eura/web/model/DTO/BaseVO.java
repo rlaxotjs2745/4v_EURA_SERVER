@@ -37,6 +37,7 @@ public class BaseVO {
     private String searchTxt;   // 검색어
 
     private Integer file_no;
+    private Integer fileno;
     private Integer duration;
     private String record_dt;
 }

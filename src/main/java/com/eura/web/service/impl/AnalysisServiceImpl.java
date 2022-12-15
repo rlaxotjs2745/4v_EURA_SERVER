@@ -42,11 +42,10 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         if(_Time==null){
             return personalLevelVO;
         }
-        int level_num = 0;
+        int _tcnt = 60;  // 구간 수
         List<ConcentrationVO> result = new ArrayList<>();
         if(_dataChk==1){
             Integer duration = _Time.getDuration();
-            int _tcnt = 60;  // 구간 수
             int level = 60; // 60초
             int eng1 = 0;
             int eng0 = 0;
@@ -102,19 +101,19 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 }else{
                     ConcentrationVO concentrationVO = new ConcentrationVO();
                     concentrationVO.setIdx_meeting_user_join(_idxjoin);
-                    concentrationVO.setLevel_num(getSec2Time(nowtime));
+                    concentrationVO.setLevel_num(getSec2Time(nowtime) + "");
                     concentrationVO.setGood(0);
                     concentrationVO.setBad(0);
                     concentrationVO.setTotalcnt(0);
                     result.add(concentrationVO);
                 }
 
-                level_num++; // 레벨 순서 업데이트
+                // level_num++; // 레벨 순서 업데이트
             }
         }
 
         personalLevelVO.setIdx_meeting_user_join(_idxjoin);
-        personalLevelVO.setMaxLevel(level_num);
+        personalLevelVO.setMaxLevel(_tcnt);
         personalLevelVO.setConcentrationList(result);
 
         return personalLevelVO;
@@ -191,7 +190,7 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 for(PersonalLevelVO person : allLevelVOList){ // 참여자 한명씩 탐색함
                     List<ConcentrationVO> contList = person.getConcentrationList();
                     if(contList!=null && contList.size()>0){
-                        for(int i=0; i < goodList0.size(); i++){ // 참여자 한명의 모든 레벨 데이터 불러오기
+                        for(int i=0; i < contList.size(); i++){ // 참여자 한명의 모든 레벨 데이터 불러오기
                             goodList0.set(i, goodList0.get(i) + contList.get(i).getGood());
                             badList0.set(i, badList0.get(i) + contList.get(i).getBad());
                             lvlList.set(i, contList.get(i).getLevel_num());
@@ -219,6 +218,38 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
         return result;
     }
 
+    @Override
+    public ConcentrationVO getTotalRate(List<PersonalLevelVO> allLevelVOList) {
+        ConcentrationVO result = new ConcentrationVO();
+        Double Good = 0.0;
+        Double Bad = 0.0;
+        Double TotcalCnt = 0.0;
+        Double resultGood = 0.0;
+        Double resultBad = 0.0;
+
+        Integer _psize = allLevelVOList.size();
+        if(allLevelVOList != null && _psize > 0){
+            for(PersonalLevelVO person : allLevelVOList){
+                List<ConcentrationVO> contList = person.getConcentrationList();
+                if(contList!=null && contList.size()>0){
+                    for(ConcentrationVO paramVo : contList){
+                        Good += paramVo.getGood();
+                        Bad += paramVo.getBad();
+                        TotcalCnt += paramVo.getTotalcnt();
+                    }
+                }
+            }
+            resultGood = (Good/(double)TotcalCnt) * 100;
+            resultBad = (Bad/(double)TotcalCnt) * 100;
+        }
+        result.setGood((int)Math.round(resultGood)); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출
+        result.setBad((int)Math.round(resultBad));
+        result.setCameraOff((int)(100-(Math.round(Good) + Math.round(Bad))));
+        // 100에서 good, bad의 평균값을 제외할 경우 남는 값이 cameraOff
+
+        return result;
+    }
+
     // 미팅의 전체 집중도 수치 평균값(상단 반원 그래프)
     // 매개변수: AnalysisService getAllUserRate를 통해 나온 모든 레벨 당 전체 참여자 데이터 평균 리스트
     @Override
@@ -240,8 +271,8 @@ public class AnalysisServiceImpl extends BaseController implements AnalysisServi
                 resultTotcalCnt += totcalCntList.get(i);
                 // 모든 레벨 당 데이터를 더함
             }
-            Good = resultGood/(double)resultTotcalCnt * 100;
-            Bad = resultBad/(double)resultTotcalCnt * 100;
+            Good = (resultGood/(double)resultTotcalCnt) * 100;
+            Bad = (resultBad/(double)resultTotcalCnt) * 100;
         }
 
         concentrationVO.setGood((int)Math.round(Good)); // 모든 레벨당 데이터를 더한 값을 레벨 갯수로 나눈어 평균값 도출

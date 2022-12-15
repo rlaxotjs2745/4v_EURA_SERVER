@@ -516,6 +516,7 @@ public class MeetResultService {
                 _rs0.setTimefirst(_sDt);
                 _rs0.setTimeend(_eDt);
                 _rs0.setDuration(_mlist.getDuration());
+                _rs0.setFile_no(_mlist.getFile_no());
                 _Time.add(_rs0);
             }
         }
@@ -529,7 +530,6 @@ public class MeetResultService {
         Integer _ri = 0;
         if(_ulists != null){
             Map<String, Object> _sptd = new HashMap<String, Object>();
-            ArrayList<Object> _sptd0 = new ArrayList<Object>();
             for(AnalysisVO _Time0 : _Time){
                 List<PersonalLevelVO> personalLevelVOList = new ArrayList<>();
 
@@ -543,16 +543,21 @@ public class MeetResultService {
                     PersonalLevelVO personalLevelVO = analysisService.getLevelData(allAnalysisList, _Time0, _ulist.getIdx_meeting_user_join(), _dataChk);
                     allLevelVOList.add(personalLevelVO);    // 분석요약용 : 모든 동영상
                     personalLevelVOList.add(personalLevelVO);
-
+                    
+                    ArrayList<Object> _sptd0 = new ArrayList<Object>();
                     for(ConcentrationVO paramVo : personalLevelVO.getConcentrationList()){
                         ConcentrationVO param = new ConcentrationVO();
                         param.setGood(paramVo.getGood());
                         param.setBad(paramVo.getBad());
                         param.setLvl(paramVo.getLevel_num());
                         param.setIdx_meeting(meetingVO.getIdx_meeting());
-                        param.setMovie_no((_ri+1));
+                        param.setMovie_no((_Time0.getFile_no()));
                         param.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
                         _sptd0.add(param);
+                    }
+                    if(_sptd0.size()>0){
+                        _sptd.put("list",_sptd0);
+                        analysisMapper.savePersoanlBarData(_sptd);
                     }
                 }
 
@@ -572,17 +577,18 @@ public class MeetResultService {
                         param.setBad((Math.round(badList2.get(i))*-1));
                         param.setLvl(lvlList2.get(i));
                         param.setIdx_meeting(meetingVO.getIdx_meeting());
-                        param.setMovie_no((_ri+1));
+                        param.setMovie_no(_Time0.getFile_no());
                         _dlists.add(param);
                     }
-                    _dlists1.put("list",_dlists);
-                    analysisMapper.saveTotalBarData(_dlists1);
+                    if(_dlists.size()>0){
+                        _dlists1.put("list",_dlists);
+                        analysisMapper.saveTotalBarData(_dlists1);
+                    }
                 }
                 _ri++;
             }
-            _sptd.put("list",_sptd0);
-            analysisMapper.savePersoanlBarData(_sptd);
 
+            // 참석자 전체 몰입도
             Map<String, Object> _sptd1 = new HashMap<String, Object>();
             ArrayList<Object> _sptd10 = new ArrayList<Object>();
             for(MeetingVO _ulist : _ulists){
@@ -595,18 +601,21 @@ public class MeetResultService {
                 param.setIdx_meeting_user_join(_ulist.getIdx_meeting_user_join());
                 _sptd10.add(param);
             }
-            _sptd1.put("list",_sptd10);
-            analysisMapper.savePersoanlTotalData(_sptd1);
+            if(_sptd10.size()>0){
+                _sptd1.put("list",_sptd10);
+                analysisMapper.savePersoanlTotalData(_sptd1);
+            }
         }
 
         // 전체 집중도율 - 반원 그래프 : 동영상 통합
-        GraphMidVO userRateMap = analysisService.getAllUserRate(allLevelVOList);
+        // GraphMidVO userRateMap = analysisService.getAllUserRate(allLevelVOList);
         
-        List<Integer> goodList = userRateMap.getGoodList();
-        List<Integer> badList = userRateMap.getBadList();
-        List<Integer> totcalCntList = userRateMap.getTotcalCntList();
+        // List<Integer> goodList = userRateMap.getGoodList();
+        // List<Integer> badList = userRateMap.getBadList();
+        // List<Integer> totcalCntList = userRateMap.getTotcalCntList();
         
-        ConcentrationVO conVO = analysisService.getMeetingRate(goodList, badList, totcalCntList);
+        // ConcentrationVO conVO = analysisService.getMeetingRate(goodList, badList, totcalCntList);
+        ConcentrationVO conVO = analysisService.getTotalRate(allLevelVOList);
         ConcentrationVO param = new ConcentrationVO();
         param.setGood(conVO.getGood());
         param.setBad(conVO.getBad());

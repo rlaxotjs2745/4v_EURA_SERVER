@@ -108,6 +108,21 @@
         ORDER BY TIMESTAMP ASC
     </select>
 
+
+    <delete id="delMeetResult0">
+        DELETE FROM TB_MEETING_ANALYSIS_TOTAL WHERE IDX_MEETING=#{idx_meeting}
+    </delete>
+
+    <delete id="delMeetResult1">
+        DELETE FROM TB_MEETING_ANALYSIS_PERSONAL_BAR WHERE IDX_MEETING=#{idx_meeting}
+    </delete>
+    <delete id="delMeetResult2">
+        DELETE FROM TB_MEETING_ANALYSIS_PERSONAL WHERE IDX_MEETING=#{idx_meeting}
+    </delete>
+    <delete id="delMeetResult3">
+        DELETE FROM TB_MEETING_ANALYSIS_TOTAL_BAR WHERE IDX_MEETING=#{idx_meeting}
+    </delete>
+
     <!-- 분석 요약 -->
     <select id="getMeetResultData" resultType="com.eura.web.model.DTO.MeetResultVO">
         SELECT TOTAL_GOOD, TOTAL_BAD FROM TB_MEETING_ANALYSIS_TOTAL WHERE IDX_MEETING=#{idx_meeting}
@@ -122,7 +137,7 @@
     <select id="getPersoanlBarData" resultType="com.eura.web.model.DTO.ConcentrationVO">
         SELECT GOOD, BAD, LVL, IDX_MEETING_USER_JOIN 
         FROM TB_MEETING_ANALYSIS_PERSONAL_BAR 
-        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{file_no}
+        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{fileno}
         ORDER BY IDX_MEETING_USER_JOIN, LVL
     </select>
 
@@ -153,7 +168,7 @@
     <select id="getTotalBarData" resultType="com.eura.web.model.DTO.ConcentrationVO">
         SELECT GOOD, BAD, LVL
         FROM TB_MEETING_ANALYSIS_TOTAL_BAR 
-        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{file_no}
+        WHERE IDX_MEETING=#{idx_meeting} AND MOVIE_NO=#{fileno}
         ORDER BY LVL ASC
     </select>
 

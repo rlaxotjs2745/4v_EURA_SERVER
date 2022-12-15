@@ -7,6 +7,7 @@ import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.DTO.LiveEmotionVO;
 import com.eura.web.model.DTO.MeetEndVO;
+import com.eura.web.model.DTO.MeetResultVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.service.AnalysisService;
@@ -224,6 +225,23 @@ public class LiveController extends BaseController {
             meetingVO.setIs_finish(1);
             Integer rs = meetMapper.endMeetLive(meetingVO);
             if(rs == 1){
+                // MeetingVO param = meetMapper.getMeetLiveIdx(meetingVO);
+                // MeetResultVO _rss = analysisMapper.getMeetResultData(param);
+                // if(_rss==null){
+                //     analysisMapper.delMeetResult0(param);
+                //     analysisMapper.delMeetResult1(param);
+                //     analysisMapper.delMeetResult2(param);
+                //     analysisMapper.delMeetResult3(param);
+                //     meetResultService.makeResultData(param);
+                // }else{
+                //     if(meetingVO.getResult().equals("result")){
+                //         analysisMapper.delMeetResult0(param);
+                //         analysisMapper.delMeetResult1(param);
+                //         analysisMapper.delMeetResult2(param);
+                //         analysisMapper.delMeetResult3(param);
+                //         meetResultService.makeResultData(param);
+                //     }
+                // }
                 resultVO.setResult_code(CONSTANT.success);
                 resultVO.setResult_str("미팅이 종료되었습니다.");
             }else{

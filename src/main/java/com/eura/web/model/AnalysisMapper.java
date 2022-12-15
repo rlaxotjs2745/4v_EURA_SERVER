@@ -44,4 +44,9 @@ public interface AnalysisMapper {
 
     // 전체 막대그래프용 데이터 저장
     public Integer saveTotalBarData(Map<String, Object> meetingVO) throws Exception;
+
+    public Integer delMeetResult0(MeetingVO meetingVO) throws Exception;
+    public Integer delMeetResult1(MeetingVO meetingVO) throws Exception;
+    public Integer delMeetResult2(MeetingVO meetingVO) throws Exception;
+    public Integer delMeetResult3(MeetingVO meetingVO) throws Exception;
 }
