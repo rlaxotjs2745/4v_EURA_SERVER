@@ -385,7 +385,7 @@
             FROM TB_MEETING A
         JOIN TB_MEETING_USER_JOIN B ON B.IDX_MEETING=A.IDX_MEETING AND B.DELETE_STAT=0
         JOIN TB_USER C ON C.IDX_USER=B.IDX_USER
-        WHERE B.SESSIONID=#{sessionid} AND B.TOKEN=#{token}
+        WHERE B.SESSIONID=#{sessionid} AND B.TOKEN=#{token} AND A.IS_FINISH=0
     </select>
 
     <!--현재 진행 중인 미팅 끝내기-->

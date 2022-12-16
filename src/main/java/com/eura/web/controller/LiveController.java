@@ -29,14 +29,14 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.util.*;
 
-import javax.servlet.annotation.MultipartConfig;
+// import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/live")
-@MultipartConfig(maxFileSize=1024*1024*1024*5)
+// @MultipartConfig(maxFileSize=1024*1024*1024*5)
 public class LiveController extends BaseController {
     private final AnalysisService analysisService;
     private final FileServiceMapper fileServiceMapper;
