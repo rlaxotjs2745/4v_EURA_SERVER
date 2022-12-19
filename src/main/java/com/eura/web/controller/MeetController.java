@@ -1016,7 +1016,7 @@ public class MeetController extends BaseController {
                                     param.setMt_remind_week(null);
                                     param.setMt_remind_end(null);
                                 }
-                                if(getDateDiff(_sdate, _enddt)<0){
+                                if(getDateDiff(_sdate, _enddt)<=0){
                                     resultVO = meetingService.createMeetRoom(req, param);
                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                     if(i==0){
@@ -1065,7 +1065,7 @@ public class MeetController extends BaseController {
                                             String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
                                             param.setMt_start_dt(_sdate);
                                             param.setMt_end_dt(_edate);
-                                            if(getDateDiff(_sdate, _enddt)<0){
+                                            if(getDateDiff(_sdate, _enddt)<=0){
                                                 _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                             }
                                         }
@@ -1091,7 +1091,7 @@ public class MeetController extends BaseController {
                                                     param.setMt_remind_week("");
                                                     param.setMt_remind_end(null);
                                                 }
-                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                     resultVO = meetingService.createMeetRoom(req, param);
                                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                                     if(_fcnt==0){
@@ -1148,7 +1148,7 @@ public class MeetController extends BaseController {
                                                 String _edate = getCalDate(_ed, 0, 0, j+((i-1)*14));
                                                 param.setMt_start_dt(_sdate);
                                                 param.setMt_end_dt(_edate);
-                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                 }
                                             //반복하고자 하는 요일이 오늘(요일) 보다 이전
@@ -1157,7 +1157,7 @@ public class MeetController extends BaseController {
                                                 String _edate = getCalDate(_ed, 0, 0, 7+j+((i-1)*14));
                                                 param.setMt_start_dt(_sdate);
                                                 param.setMt_end_dt(_edate);
-                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                 }
                                             }
@@ -1195,7 +1195,7 @@ public class MeetController extends BaseController {
                                                     param.setMt_remind_week("");
                                                     param.setMt_remind_end(null);
                                                 }
-                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                     resultVO = meetingService.createMeetRoom(req, param);
                                                     _idx = Integer.valueOf(resultVO.getData().get("key").toString());
                                                     if(_fcnt==0){
@@ -1262,7 +1262,7 @@ public class MeetController extends BaseController {
 
                                     String _loofday = _sdate.substring(8,10);
 
-                                    if(getDateDiff(_sdate, _enddt)<0){
+                                    if(getDateDiff(_sdate, _enddt)<=0){
                                         if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_startdt, _sdate)<=0){
                                             resultVO = meetingService.createMeetRoom(req, param);
                                             _idx = Integer.valueOf(resultVO.getData().get("key").toString());
@@ -1329,7 +1329,7 @@ public class MeetController extends BaseController {
                                         param.setMt_remind_week("");
                                         param.setMt_remind_end(null);
                                     }
-                                    if(getDateDiff(_sdate, _enddt)<0){
+                                    if(getDateDiff(_sdate, _enddt)<=0){
                                         if(getDateDiff(_sd, _sdate)<=0){
                                             resultVO = meetingService.createMeetRoom(req, param);
                                             _idx = Integer.valueOf(resultVO.getData().get("key").toString());
@@ -1621,7 +1621,7 @@ public class MeetController extends BaseController {
                                                             // String _edate = getCalDate(_ed, 0, 0, j+((i-1)*7));
                                                             // param.setMt_start_dt(_sdate);
                                                             // param.setMt_end_dt(_edate);
-                                                            if (getDateDiff(_sdate, _enddt) < 0) {
+                                                            if (getDateDiff(_sdate, _enddt) <= 0) {
                                                                 _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                             }
                                                         }
@@ -1661,7 +1661,7 @@ public class MeetController extends BaseController {
                                                                 String _edate = getCalDate(_ed, 0, 0, j+((i-1)*14));
                                                                 param.setMt_start_dt(_sdate);
                                                                 param.setMt_end_dt(_edate);
-                                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                                 }
                                                                 //반복하고자 하는 요일이 오늘(요일) 보다 이전
@@ -1670,7 +1670,7 @@ public class MeetController extends BaseController {
                                                                 String _edate = getCalDate(_ed, 0, 0, 7+j+((i-1)*14));
                                                                 param.setMt_start_dt(_sdate);
                                                                 param.setMt_end_dt(_edate);
-                                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                                     _dayChk = meetingService.chkRoomDup(meetingVO.getMt_remind_type(), _dayChk, _cnt, meetingVO);
                                                                 }
                                                             }
@@ -1770,7 +1770,7 @@ public class MeetController extends BaseController {
                                                 param.setMt_remind_week(null);
                                                 param.setMt_remind_end(null);
                                             }
-                                            if(getDateDiff(_sdate, _enddt)<0){
+                                            if(getDateDiff(_sdate, _enddt)<=0){
                                                 if(i==0){
                                                     rs = meetMapper.meet_modify(meetingVO);
                                                     if(rs > 0){
@@ -1848,7 +1848,7 @@ public class MeetController extends BaseController {
                                                             param.setMt_remind_week("");
                                                             param.setMt_remind_end(null);
                                                         }
-                                                        if(getDateDiff(_sdate, _enddt)<0){
+                                                        if(getDateDiff(_sdate, _enddt)<=0){
                                                             if(_fcnt==0){
                                                                 rs = meetMapper.meet_modify(meetingVO);
                                                                 if(rs > 0){
@@ -1944,7 +1944,7 @@ public class MeetController extends BaseController {
                                                             param.setMt_remind_week("");
                                                             param.setMt_remind_end(null);
                                                         }
-                                                        if(getDateDiff(_sdate, _enddt)<0){
+                                                        if(getDateDiff(_sdate, _enddt)<=0){
                                                             if(_fcnt==0){
                                                                 rs = meetMapper.meet_modify(meetingVO);
                                                                 if(rs > 0){
@@ -2033,7 +2033,7 @@ public class MeetController extends BaseController {
 
                                                 String _loofday = _sdate.substring(8,10);
 
-                                                if(getDateDiff(_sdate, _enddt)<0){
+                                                if(getDateDiff(_sdate, _enddt)<=0){
                                                     if(_loofday.equals(meetingVO.getMt_remind_monthDay()) && getDateDiff(_sd, _sdate)<= 0){
                                                         if(creatN==0){
                                                             rs = meetMapper.meet_modify(meetingVO);
@@ -2126,7 +2126,7 @@ public class MeetController extends BaseController {
                                                     param.setMt_remind_end(null);
                                                 }
 
-                                                if(getDateDiff(_sdate, _enddt)<0) {
+                                                if(getDateDiff(_sdate, _enddt)<=0) {
                                                     if(getDateDiff(_sd, _sdate)<=0) {
                                                         if (creatN == 0) {
                                                             rs = meetMapper.meet_modify(meetingVO);
