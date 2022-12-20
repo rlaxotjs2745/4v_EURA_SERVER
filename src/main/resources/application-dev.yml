@@ -47,6 +47,6 @@ domain: http://localhost:10000
 w3domain: http://localhost:3000
 # filedomain: http://localhost:10000
 # voddomain: http://localhost:10000
-filedomain: https://file.eura.site/upload
-voddomain: https://vod.eura.site
+filedomain: https://eura-server.s3.ap-northeast-2.amazonaws.com/upload
+voddomain: https://eura-media.s3.ap-northeast-2.amazonaws.com
 srvinfo: dev

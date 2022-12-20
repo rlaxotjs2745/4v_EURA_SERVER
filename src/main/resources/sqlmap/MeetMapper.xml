@@ -81,7 +81,7 @@
                 <!-- pageSort - 1:최신순, 2:미팅 시간순, 3:비공개 미팅순, 4:취소된 미팅순 -->
                 <!-- MT_STATUS - 0:비공개, 1:공개, 2:취소, 3:삭제 -->
                 <when test="pageSort != null and pageSort == 1">
-                    A.REG_DT DESC
+                    FIELD(A.MT_STATUS, 1,0,2), A.REG_DT DESC
                 </when>
                 <when test="pageSort != null and pageSort == 3">
                     FIELD(A.MT_STATUS, 0,1,2), A.MT_START_DT ASC
@@ -169,7 +169,7 @@
             <if test="idx_meeting != null">
                 AND A.IDX_MEETING=#{idx_meeting}
             </if>
-            ORDER BY FIELD(IF(A.IDX_USER=C.IDX_USER,1,0),1,0), IFNULL(B.USER_NAME,A.USER_EMAIL) ASC
+            ORDER BY FIELD(A.IDX_USER=C.IDX_USER, IFNULL(B.USER_NAME,A.USER_EMAIL)), IFNULL(B.USER_NAME,A.USER_EMAIL) ASC, A.TOKEN DESC
             <if test="currentPage != null and currentPage > 0">
                 LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
             </if>
