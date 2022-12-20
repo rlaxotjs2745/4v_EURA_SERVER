@@ -1309,7 +1309,7 @@ public class MeetController extends BaseController {
                                 int creatN = 0;
                                 int i = 0;
 
-                                while (creatN <_cnt){
+                                while (creatN < _cnt){
                                     cal.set(cal.DAY_OF_WEEK, Integer.valueOf(week));
                                     if(sequence <= 4){
                                         cal.set(cal.DAY_OF_WEEK_IN_MONTH, sequence);
