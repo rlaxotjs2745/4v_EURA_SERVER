@@ -21,17 +21,3 @@ mybatis:
   mapper-locations: classpath:sqlmap/*.xml
   configuration:
     jdbc-type-for-null: null
-
-cloud:
-  aws:
-    credentials:
-      accessKey: AKIAQHUOHBOHNOHIEYEW
-      secretKey: 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
-    s3:
-      bucket: "eura-server"
-    vod:
-      bucket: "eura-media"
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
