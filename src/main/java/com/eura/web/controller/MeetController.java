@@ -330,7 +330,7 @@ public class MeetController extends BaseController {
                 // 미팅이 종료된 상태는 분석 페이지로 이동하게
                 if(rs.getIs_finish()==1){
                     resultVO.setResult_code(CONSTANT.fail+"01");
-                    resultVO.setResult_str("미팅이 종료되어 분석 페이지로 이동합니다.");
+                    resultVO.setResult_str("종료된 미팅입니다.");
                     return resultVO;
                 }
                 
