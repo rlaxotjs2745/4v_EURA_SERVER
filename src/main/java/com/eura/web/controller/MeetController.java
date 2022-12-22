@@ -424,6 +424,10 @@ public class MeetController extends BaseController {
                 resultVO.setResult_str("로그인 후 이용해주세요.");
                 return resultVO;
             }
+            if(rs==null){
+                resultVO.setResult_str("미팅룸이 존재하지 않습니다.");
+                return resultVO;
+            }
             Integer _auth = 0;
             if(uInfo.getIdx_user().equals(rs.getIdx_user())){
                 _auth = 1;
@@ -911,7 +915,7 @@ public class MeetController extends BaseController {
                     resultVO.setResult_str("미팅룸 정보를 불러왔습니다.");
                 }
             }else{
-                resultVO.setResult_str("미팅룸 정보가 존재하지 않습니다.");
+                resultVO.setResult_str("미팅룸이 존재하지 않습니다.");
             }
         } catch (Exception e) {
             e.printStackTrace();
