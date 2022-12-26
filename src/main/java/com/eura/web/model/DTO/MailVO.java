@@ -11,4 +11,6 @@ public class MailVO {
     String title;
     String content;
     int mail_type;
+    private Integer idx_meeting_user_join;
+
 }

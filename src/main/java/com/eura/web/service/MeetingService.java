@@ -16,7 +16,9 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.eura.web.base.BaseController;
 import com.eura.web.model.FileServiceMapper;
+import com.eura.web.model.MailMapper;
 import com.eura.web.model.MeetMapper;
+import com.eura.web.model.DTO.MailVO;
 import com.eura.web.model.DTO.MeetingVO;
 import com.eura.web.model.DTO.ResultVO;
 import com.eura.web.model.DTO.UserVO;
@@ -30,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 public class MeetingService extends BaseController {
     @Autowired
     private MeetMapper meetMapper;
+
+    @Autowired
+    private MailMapper mailMapper;
     
     @Autowired
     private MailSender mailSender;
@@ -191,7 +196,7 @@ public class MeetingService extends BaseController {
 
         // 참가자 이메일 전송
         }else{
-            List<MeetingVO> irs = meetMapper.getMeetInvites(meetingVO);
+            List<MeetingVO> irs = mailMapper.getMeetInvites(meetingVO);
             String _subject = "";
             for(MeetingVO _ss : irs){
                 String _unm = _ss.getUser_name();
@@ -245,46 +250,67 @@ public class MeetingService extends BaseController {
                 }
 
                 mailSender.sender(_ss.getUser_email(), "[EURA] \"" + rrs.getMt_name() + "\"" + _subject, _sebody);
+                MailVO paramVo = new MailVO();
+                paramVo.setIdx_user(_ss.getIdx_user());
+                paramVo.setReceiver(_ss.getUser_email());
+                paramVo.setTitle("[EURA] " + _ss.getMt_name());
+                paramVo.setContent(_sebody);
+                paramVo.setMail_type(_mFTyp);
+                paramVo.setIdx_meeting_user_join(_ss.getIdx_meeting_user_join());
+                mailMapper.saveSendMail(paramVo);   // 보낸 메일 저장
             }
         }
     }
 
     public void sendModifyMail(MeetingVO ee, Integer _mFTyp) throws Exception {
+        MeetingVO meetVO = mailMapper.chkSendMail(ee);
+        if(meetVO!=null){
+            // 이메일 데이터 호출
+            String _data = getMailForm(_mFTyp);
+            String _ebody = _data.replace("${DOMAIN}", w3domain);
 
-        // 이메일 데이터 호출
-        String _data = getMailForm(_mFTyp);
-        String _ebody = _data.replace("${DOMAIN}", w3domain);
+            UserVO userVO = userService.findUserById(ee.getUser_email());
+            MeetingVO meetingVO = meetMapper.getRoomInfo(ee);
+            String _subject = "";
+            String _unm = "";
+            Integer _uidx = 0;
 
-        UserVO userVO = userService.findUserById(ee.getUser_email());
-        MeetingVO meetingVO = meetMapper.getRoomInfo(ee);
-        String _subject = "";
-        String _unm = "";
+            if(userVO!=null){
+                _uidx = userVO.getIdx_user();
+                _unm = userVO.getUser_name();
+            } else {
+                _unm = ee.getUser_email();
+            }
 
-        if(userVO!=null){
-            _unm = userVO.getUser_name();
-        } else {
-            _unm = ee.getUser_email();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
+            Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
+            dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
+
+            String _sebody = _ebody.replace("${USERNAME}", _unm)
+                    .replace("${USEREMAIL}", ee.getUser_email())
+                    .replace("${MEETNAME}", meetingVO.getMt_name())
+                    .replace("${MEETORIDATE}", dateFormat.format(_md))
+                    .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
+
+            if(_mFTyp==3) {
+                _subject = " 미팅이 취소되었습니다.";
+            }
+
+            if(_mFTyp==4) {
+                _subject = " 미팅에 초대되었습니다.";
+            }
+
+            mailSender.sender(ee.getUser_email(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
+
+            MailVO paramVo = new MailVO();
+            paramVo.setIdx_user(_uidx);
+            paramVo.setReceiver(ee.getUser_email());
+            paramVo.setTitle("[EURA] " + meetingVO.getMt_name());
+            paramVo.setContent(_sebody);
+            paramVo.setMail_type(_mFTyp);
+            paramVo.setIdx_meeting_user_join(meetVO.getIdx_meeting_user_join());
+            mailMapper.saveSendMail(paramVo);   // 보낸 메일 저장
         }
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREAN);
-        Date _md = dateFormat.parse(meetingVO.getMt_start_dt());
-        dateFormat.applyPattern("yyyy년 MM월 dd일, a hh:mm");
-
-        String _sebody = _ebody.replace("${USERNAME}", _unm)
-                .replace("${USEREMAIL}", ee.getUser_email())
-                .replace("${MEETNAME}", meetingVO.getMt_name())
-                .replace("${MEETORIDATE}", dateFormat.format(_md))
-                .replace("${URL}", w3domain + "/meetingroom/" + meetingVO.getIdx_meeting());
-
-        if(_mFTyp==3) {
-            _subject = " 미팅이 취소되었습니다.";
-        }
-
-        if(_mFTyp==4) {
-            _subject = " 미팅에 초대되었습니다.";
-        }
-
-        mailSender.sender(ee.getUser_email(), "[EURA] \"" + meetingVO.getMt_name() + "\"" + _subject, _sebody);
     }
 
 

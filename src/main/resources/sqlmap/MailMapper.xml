@@ -22,4 +22,34 @@
                  )
     </insert>
 
+    <!-- 미팅룸 참여자 리스트~ -->
+    <select id="getMeetInvites" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT A.*, IFNULL(B.USER_NAME,'') AS USER_NAME, IFNULL(D.FILE_NAME,'') AS FILE_NAME, IFNULL(D.FILE_PATH,'') AS FILE_PATH, IF(A.IDX_USER=C.IDX_USER,1,0) AS IS_HOST, IFNULL(E.GOOD,0) AS GOOD, IFNULL(E.BAD,0) AS BAD
+            FROM TB_MEETING_USER_JOIN A 
+                LEFT OUTER JOIN TB_USER B ON B.IDX_USER=A.IDX_USER
+                JOIN TB_MEETING C ON C.IDX_MEETING=A.IDX_MEETING
+                LEFT OUTER JOIN TB_PROFILE_INFO D ON D.IDX_USER=A.IDX_USER
+                LEFT OUTER JOIN TB_ANALYSIS_USER E ON E.IDX_MEETING_USER_JOIN=A.IDX_MEETING_USER_JOIN
+                LEFT OUTER JOIN TB_MAIL_MEET F ON F.IDX_MEETING_USER_JOIN=A.IDX_MEETING_USER_JOIN AND F.MAIL_TYPE=#{mail_type}
+            WHERE A.DELETE_STAT=0 AND A.IDX_MEETING > 300
+            <if test="idx_meeting != null">
+                AND A.IDX_MEETING=#{idx_meeting}
+            </if>
+            ORDER BY FIELD(A.IDX_USER=C.IDX_USER, IFNULL(B.USER_NAME,A.USER_EMAIL)), A.TOKEN DESC, IFNULL(B.USER_NAME,A.USER_EMAIL) ASC
+    </select>
+
+    <select id="chkSendMail" resultType="com.eura.web.model.DTO.MeetingVO">
+        SELECT IDX_MEETING_USER_JOIN
+            FROM TB_MEETING_USER_JOIN
+            WHERE IDX_MEETING=#{idx_meeting} AND USER_EMAIL=#{user_email} AND DELETE_STAT=0
+    </select>
+
+    <!-- 메일 발송 완료 처리 -->
+    <insert id="saveSendMail">
+        INSERT INTO TB_MAIL_MEET (
+            IDX_USER, RECEIVER, TITLE, CONTENT, MAIL_TYPE, IDX_MEETING_USER_JOIN
+        ) VALUES (
+            #{idx_user}, #{receiver}, #{title}, #{content}, #{mail_type}, #{idx_meeting_user_join}
+        )
+    </insert>
 </mapper>
