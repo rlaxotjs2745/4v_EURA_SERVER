@@ -69,7 +69,11 @@ public class S3Service {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        // }finally{
+		// 	s3Client.shutdown();
+		}
+
+
         return _url;
     }
 

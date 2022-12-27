@@ -65,6 +65,8 @@ public class S3VodService {
             e.printStackTrace();
         } catch (SdkClientException e) {
             e.printStackTrace();
+        // }finally{
+			// s3Client.shutdown();
         }
     }
 
