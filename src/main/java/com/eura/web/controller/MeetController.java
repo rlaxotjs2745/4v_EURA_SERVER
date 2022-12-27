@@ -650,6 +650,10 @@ public class MeetController extends BaseController {
                         resultVO.setResult_str("미팅 중에는 취소 할 수 없습니다.");
                         return resultVO;
                     }
+                    if(rrs.getIs_finish()==1){
+                        resultVO.setResult_str("종료된 미팅은 취소 할 수 없습니다.");
+                        return resultVO;
+                    }
                     Integer rs = meetMapper.putMeetCacncel(meetingVO);
                     if(rs==1){
                         if(rrs.getMt_status()==1){
