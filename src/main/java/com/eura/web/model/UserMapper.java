@@ -42,4 +42,7 @@ public interface UserMapper {
 
     // 참석자 검색
     public List<UserVO> getUserSearch(UserVO userVo);
+
+    // 프로파일 이미지 초기화
+    public int resetProfile(UserVO userVO);
 }

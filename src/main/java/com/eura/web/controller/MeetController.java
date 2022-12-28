@@ -22,6 +22,7 @@ import com.eura.web.model.FileServiceMapper;
 import com.eura.web.model.MeetMapper;
 import com.eura.web.model.UserMapper;
 import com.eura.web.service.MeetingService;
+import com.eura.web.service.S3Service;
 import com.eura.web.util.CONSTANT;
 import com.eura.web.util.TokenJWT;
 
@@ -39,6 +40,7 @@ public class MeetController extends BaseController {
     private final TokenJWT tokenJWT;
     private final MeetingService meetingService;
     private final UserMapper userMapper;
+    private final S3Service s3Service;
 
     @Value("${srvinfo}")
     public String srvinfo;
@@ -1538,9 +1540,13 @@ public class MeetController extends BaseController {
                                             MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
                                             if(finfo!=null){
                                                 if(StringUtils.isNotEmpty(finfo.getFile_name())){
-                                                    File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                                    if(f.exists()){
-                                                        f.delete();
+                                                    if(srvinfo.equals("dev")){
+                                                        File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                                        if(f.exists()){
+                                                            f.delete();
+                                                        }
+                                                    }else{
+                                                        s3Service.delete("upload"+finfo.getFile_path() + finfo.getFile_name());
                                                     }
                                                     fileServiceMapper.delMeetFile(ee);
                                                 }
@@ -1753,9 +1759,13 @@ public class MeetController extends BaseController {
                                             // 파일 삭제
                                             MeetingVO finfo = fileServiceMapper.getMeetFile(ee);
                                             if(StringUtils.isNotEmpty(finfo.getFile_name())){
-                                                File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
-                                                if(f.exists()){
-                                                    f.delete();
+                                                if(srvinfo.equals("dev")){
+                                                    File f = new File(this.filepath + finfo.getFile_path() + finfo.getFile_name());
+                                                    if(f.exists()){
+                                                        f.delete();
+                                                    }
+                                                }else{
+                                                    s3Service.delete("upload"+finfo.getFile_path() + finfo.getFile_name());
                                                 }
                                                 fileServiceMapper.delMeetFile(ee);
                                             }

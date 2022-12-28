@@ -153,4 +153,9 @@
             AND (INSTR(A.USER_NAME, #{searchTxt})<![CDATA[>]]>0 OR INSTR(A.USER_ID, #{searchTxt})<![CDATA[>]]>0)
             ORDER BY A.IDX_USER
     </select>
+
+    <!-- 프로파일 이미지 초기화 -->
+    <delete id="resetProfile">
+        DELETE FROM TB_PROFILE_INFO WHERE IDX_USER=#{idx_user}
+    </delete>
 </mapper>

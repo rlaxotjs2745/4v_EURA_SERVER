@@ -337,6 +337,32 @@ public class RestAPIController extends BaseController {
      * @param user_id
      * @return
      */
+    @PostMapping("/reset_profile")
+    public ResultVO reset_profile(HttpServletRequest req, HttpSession session) throws Exception {
+        ResultVO resultVO = new ResultVO();
+        resultVO.setResult_str("프로필 사진 초기화에 실패했습니다.");
+        resultVO.setResult_code(CONSTANT.fail);
+
+        UserVO findUserVO = getChkUserLogin(req);
+        if(findUserVO==null){
+            resultVO.setResult_str("로그인 후 이용해주세요.");
+            return resultVO;
+        }
+
+        Integer rs = userMapper.resetProfile(findUserVO);
+        if(rs == 1){
+            if(srvinfo=="prod"){
+                s3Service.delete("upload"+findUserVO.getFile_path() + findUserVO.getFile_name());
+            }
+            findUserVO.setProfile_y(0);
+            userService.addNewProfile(findUserVO);
+            resultVO.setResult_str("프로필 사진을 초기화했습니다.");
+            resultVO.setResult_code(CONSTANT.success);
+        }
+
+        return resultVO;
+    }
+
     @PostMapping("/modify_profile")
     public ResultVO modify_profile(HttpServletRequest req, @RequestParam("file") MultipartFile file, HttpSession session) throws Exception {
         ResultVO resultVO = new ResultVO();
@@ -366,13 +392,18 @@ public class RestAPIController extends BaseController {
                 userService.addNewProfile(findUserVO);
 
                 resultVO.setResult_str("프로필 사진을 등록했습니다.");
-                resultVO.setResult_code(CONSTANT.success + "01");
+                resultVO.setResult_code(CONSTANT.success);
 
             } else if (findUserVO.getProfile_y() == 1) {
-                profileFileService.updateProfileFile(profileInfo);
+                if(findUserVO.getFile_path() == null){
+                    profileFileService.uploadProfileFile(profileInfo);
+                }else{
+                    profileFileService.updateProfileFile(profileInfo);
+
+                }
 
                 resultVO.setResult_str("프로필 사진을 등록했습니다.");
-                resultVO.setResult_code(CONSTANT.success + "02");
+                resultVO.setResult_code(CONSTANT.success);
             }
         }
 
