@@ -548,6 +548,7 @@ public class MeetController extends BaseController {
                         }
                         Integer rs = meetMapper.putMeetOpen(meetingVO);
                         if(rs==1){
+                            rrs = meetMapper.getRoomInfo(meetingVO);
                             // 참가자 이메일 전송
                             meetingService.sendMail(meetingVO, rrs, 4);
 
