@@ -253,7 +253,7 @@ public class MeetingService extends BaseController {
                 MailVO paramVo = new MailVO();
                 paramVo.setIdx_user(_ss.getIdx_user());
                 paramVo.setReceiver(_ss.getUser_email());
-                paramVo.setTitle("[EURA] " + _ss.getMt_name());
+                paramVo.setTitle("[EURA] " + rrs.getMt_name());
                 paramVo.setContent(_sebody);
                 paramVo.setMail_type(_mFTyp);
                 paramVo.setIdx_meeting_user_join(_ss.getIdx_meeting_user_join());
